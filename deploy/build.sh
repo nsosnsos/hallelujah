@@ -10,7 +10,7 @@ deploy_dir=/root/${svc_name}
 root_dir=$(dirname $(dirname "$(readlink -f $0)"))
 cert_dir=/etc/nginx/cert
 cert_gen_sh=${root_dir}/deploy/cert_gen.sh
-nginx_conf=${root_dir}/deploy/${svc_name}.nginx
+nginx_conf=${root_dir}/deploy/nginx.conf
 req_pkg_txt=${root_dir}/requirements.txt
 
 
