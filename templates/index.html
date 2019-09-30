@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+{% block head %}
+<title>
+</title>
+{% endblock head %}
+{% block header %}
+    <h1>
+        {% if description %}
+            {{ description }}
+        {% else %}
+            In God We Trust
+        {% endif %}
+    </h1>
+{% endblock header %}
+{% block content %}
+{% endblock content %}
+{% block footer %}
+{% endblock footer %}
+
+<!-
+https://github.com/Blackyukun/YuBlog/tree/master/source
+https://github.com/miguelgrinberg/flasky/blob/12e/app/models.py
+https://github.com/adisonhuang/flask-blog/blob/master/app/models.py
+-->
