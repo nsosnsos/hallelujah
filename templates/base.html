@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+    {% block html %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description" content="Private Site">
+        <meta name="keywords" content="Information, Technology, Consulting">
+        <meta name="author" content="Stan Lee">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        {% block head_metas %}
+        {% endblock head_metas %}
+        {% block head_styles %}
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js">
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js">
+        {% endblock head_styles %}
+        {% block head_script %}
+        <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+        {% endblock head_script %}
+        {% block head_title %}
+            <title>
+            {% if title %}
+                {{ title }}
+            {% else %}
+                Hallelujah
+            {% endif %}
+            </title>
+        {% endblock head_title %}
+    </head>
+    <header>
+        {% block header %}
+        {% endblock header %}
+    </header>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">{{ site_name }}</a>
+        </div>
+        {% block navbar %}
+        <div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+            </ul>
+        </div>
+        {% endblock navbar %}
+        </div>
+    </nav>
+    <aside>
+        {% block aside %}
+        {% endblock aside %}
+    </aside>
+    <body>
+        {% block body %}
+        {% endblock body %}
+    </body>
+    <footer>
+        {% block footer %}
+        {% endblock footer %}
+        <p>
+            &reg; <script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script><br>
+            &copy;&nbsp;Copyright <script>document.write(new Date().getFullYear())</script>
+        </p>
+    </footer>
+    {% endblock html %}
+</html>
