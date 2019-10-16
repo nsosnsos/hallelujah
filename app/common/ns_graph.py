@@ -10,6 +10,7 @@ from anytree import Node, RenderTree
 from anytree.exporter import DotExporter
 from networkx.drawing.nx_pydot import write_dot
 from networkx.drawing.nx_pydot import read_dot
+from collections import deque
 
 from . import ns_datanalysis
 
@@ -125,6 +126,9 @@ class NsGraph(nx.DiGraph):
 
     def init_graph(self):
         for i in range(len(self.link)):
+             if (self.link.at[i, u'SRC_NE_ID'] == self.link.at[i, u'DST_NE_ID']) or \
+                common.df_isna(self.link, i, u'SRC_NE_ID') or common.df_isna(self.link, i, u'DST_NE_ID'):
+                continue
             if not self.has_node(self.link.at[i, 'SRC_NE_ID']):
                 self.add_node(self.link.at[i, 'SRC_NE_ID'], type=self.link.at[i, 'SRC_NE_TYPE'])
             if not self.has_node(self.link.at[i, 'DST_NE_ID']):
@@ -165,24 +169,32 @@ class NsGraph(nx.DiGraph):
 
     def cycle_detect(self):
         result_list = []
+        result_set = set()
         visited_set = set()
         for node in self.nodes():
             if node in visited_set:
                 continue
-            visited_set.add(node)
-            dfs_stack = list()
+            cur_visit_set = set()
+            dfs_stack = deque()
             dfs_stack.append((node, []))
             while dfs_stack:
                 cur_node, cur_path = dfs_stack.pop()
-                new_path = cur_path[:]
-                new_path.append(cur_node)
+                cur_path.append(cur_node)
+                cur_visit_set.add(cur_node)
+                cur_path_set = set(cur_path)
                 for x in self.neighbors(cur_node):
-                    if x not in visited_set:
-                        visited_set.add(x)
-                        dfs_stack.append((x, new_path[:]))
-                    elif x in new_path:
-                        result_list.append(new_path[new_path.index(x):])
-                        result_list[-1].append(x)
+                    if x in cur_path_set:
+                        cur_result = cur_path[cur_path.index(x):]
+                        cur_result.append(x)
+                        cur_result_set = frozenset(cur_result)
+                        if cur_result_set not in result_set:
+                            result_set.add(cur_result_set)
+                            result_list.append(cur_result)
+                    if x in visited_set:
+                        continue
+                    if x not in cur_path_set:
+                        dfs_stack.append((x, cur_path[:]))
+            visited_set.update(cur_visit_set)
         return result_list
 
     def save_dot(self, dot_file, layout=None):
@@ -241,3 +253,22 @@ def __node_graph_test():
     plt.axis('off')
     plt.show()
     return
+
+
+def graph_cycle_test():
+    link_cols = [u'SRC_NE_ID', u'SRC_NE_TYPE', u'DST_NE_ID', u'DST_NE_TYPE']
+    matrix = [[1, 'A', 2, 'A'], [2, 'A', 1, 'A'], [1, 'A', 3, 'A'], [3, 'A', 1, 'A'],
+              [2, 'A', 3, 'A'], [3, 'A', 2, 'A'], [2, 'A', 4, 'B'], [5, 'B', 2, 'A'],
+              [3, 'A', 6, 'B'], [6, 'B', 3, 'A'], [7, 'B', 3, 'A'], [4, 'A', 7, 'B'],
+              [6, 'B', 5, 'B'], [6, 'B', 7, 'B']]
+    df_rule = common.df_from_matrix(matrix, link_cols)
+
+    g = NsGraph(link=df_rule)
+    print(g.number_of_edges())
+    # g.show_graph()
+    # g.save_dot('alarm_rules_20190724.dot')
+    import datetime
+    print(str(datetime.datetime.now()))
+    r = g.cycle_detect()
+    print(r)
+    print(str(datetime.datetime.now()))
