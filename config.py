@@ -62,6 +62,9 @@ class Config:
 
     SITE_NAME = config.get('SITE', 'SITE_NAME')
     SITE_TITLE = config.get('SITE', 'SITE_TITLE')
+    SITE_AUTHOR = config.get('SITE', 'SITE_AUTHOR')
+    SITE_KEYWORDS = config.get('SITE', 'SITE_KEYWORDS')
+    SITE_DESCRIPTION = config.get('SITE', 'SITE_DESCRIPTION')
 
     MYSQL_HOST = config.get('MYSQL', 'MYSQL_HOST')
     MYSQL_PORT = config.getint('MYSQL', 'MYSQL_PORT')
