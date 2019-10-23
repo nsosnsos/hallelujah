@@ -1,52 +1,82 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     {% block html %}
     <head>
+        {% block head_metas %}
         <meta charset="UTF-8">
-        <meta name="description" content="Private Site">
-        <meta name="keywords" content="Information, Technology, Consulting">
-        <meta name="author" content="Stan Lee">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="author" content="{{ config.SITE_AUTHOR }}">
+        <meta name="keywords" content="{{ config.SITE_KEYWORDS }}">
+        <meta name="description" content="{{ config.SITE_DESCRIPTION }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+        {% endblock head_metas %}
+        {% block head_icon %}
         <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
         <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-        {% block head_metas %}
-        {% endblock head_metas %}
+        {% endblock head_icon %}
         {% block head_styles %}
-        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js">
-        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js">
+            <!-- <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
+            <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
         {% endblock head_styles %}
         {% block head_script %}
-        <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+            <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> -->
+            <!-- <script src="https://code.jquery.com/jquery-latest.min.js"></script> -->
+            <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+            <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script> -->
+            <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+            <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
+            <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
         {% endblock head_script %}
-        {% block head_title %}
-            <title>
-            {% if title %}
-                {{ title }}
-            {% else %}
-                Hallelujah
-            {% endif %}
-            </title>
-        {% endblock head_title %}
+        <title>
+            {% block head_title %}
+                {% if site_name %}
+                    {{ site_name }}
+                {% else %}
+                    {{ config.SITE_NAME }}
+                {% endif %}
+            {% endblock head_title %}
+        </title>
     </head>
     <header>
         {% block header %}
+            <div class="jumbotron jumbotron-fluid bg-secondary">
+                <h1 class="display-1 text-capitalize text-center text-light font-weight-bold">
+                    {% if site_title %}
+                        {{ site_title }}
+                    {% else %}
+                        {{ config.SITE_TITLE }}
+                    {% endif %}
+                </h1>
+                <p class="text-capitalize text-center text-light font-weight-bold">
+                    {{ config.SITE_DESCRIPTION }}
+                </p>
+            </div>
         {% endblock header %}
     </header>
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#">{{ site_name }}</a>
-        </div>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top" role="navigation">
         {% block navbar %}
-        <div>
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="{{ url_for('main.index') }}">Home</a></li>
-                <li><a href="{{ url_for('main.about') }}">About</a></li>
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="navbar-brand" href="#">
+                        <img src="{{ url_for('static', filename='img/favicon.png') }}" alt="logo" class="img-fluid">
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Diary</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Gallery</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Article</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
+                </li>
             </ul>
         </div>
         {% endblock navbar %}
-        </div>
     </nav>
     <aside>
         {% block aside %}
@@ -57,10 +87,12 @@
         {% endblock body %}
     </body>
     <footer>
+        <a href="#">Back to top &uarr;</a>
         {% block footer %}
         {% endblock footer %}
         <p>
-            &reg; <script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script><br>
+            &reg;&nbsp;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
+            <br>
             &copy;&nbsp;Copyright <script>document.write(new Date().getFullYear())</script>
         </p>
     </footer>
