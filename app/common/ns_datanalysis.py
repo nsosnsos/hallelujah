@@ -8,6 +8,9 @@ import bs4
 import sys
 import time
 import json
+import zipfile
+import tarfile
+import rarfile
 import inspect
 import platform
 import sshtunnel
@@ -198,7 +201,7 @@ def write_table_to_file(tb_name, file_path):
 def rar_extractall(file, target_path=None, del_flag=True):
     file = __string_coding(file)
     target_path = __string_coding(target_path) if target_path else os.path.abspath(os.path.dirname(file))
-    import rarfile
+
     with rarfile.RarFile(file) as rar_file:
         rar_file.extractall(target_path)
     if del_flag:
@@ -215,10 +218,7 @@ def __rar_extractall_wrapper(file, args):
 def zip_extractall(file, target_path=None, del_flag=True):
     file = __string_coding(file)
     target_path = __string_coding(target_path) if target_path else os.path.abspath(os.path.dirname(file))
-    if sys.version_info >= (3, 6):
-        import zipfile
-    else:
-        import zipfile36 as zipfile
+
     with zipfile.ZipFile(file, 'r') as zip_file:
         zip_file.extractall(target_path)
     if del_flag:
@@ -237,7 +237,6 @@ def tar_extractall(file, target_path=None, compress_flag='', del_flag=True):
     file = __string_coding(file)
     target_path = __string_coding(target_path) if target_path else os.path.abspath(os.path.dirname(file))
 
-    import tarfile
     try:
         with tarfile.open(file, open_flag) as tar_file:
             tar_file.extractall(path=target_path)
@@ -271,6 +270,15 @@ def extract_compress_file(file, *args):
     file_op[file_ext](file, args=args)
 
 
+def __rm_file(file_path):
+    if os.path.isdir(file_path):
+        files = os.listdir(file_path)
+        for f in files:
+            __rm_file(f)
+    else:
+        os.remove(file_path)
+
+
 def tar_compress(file_path, target_file=None, compress_flag='', del_flag=False):
     open_flag = 'w:' + compress_flag
     file_path = __string_coding(file_path)
@@ -278,16 +286,11 @@ def tar_compress(file_path, target_file=None, compress_flag='', del_flag=False):
     target_name = (origin_name + '.tar.' + compress_flag) if len(compress_flag) else (origin_name + '.tar')
     target_file = __string_coding(target_file) if target_file else target_name
 
-    import tarfile
     with tarfile.open(target_file, open_flag) as tar_file:
         tar_file.add(file_path)
     if del_flag:
-        import shutil
         try:
-            if os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-            else:
-                os.remove(file_path)
+            __rm_file(file_path)
         except OSError as e:
             Config.LOGGER.error('tar_compress error {0}: {1}'.format(e.filename, e.strerror))
             sys.exit(-1)
@@ -490,7 +493,7 @@ def recursive_path_process(dir_name, ext_list, operation, exclude_flag=False, *a
             if not exclude_flag:
                 operation(cur_file, *args)
         elif exclude_flag:
-                operation(cur_file, *args)
+            operation(cur_file, *args)
 
 
 class __dummy_ssh_tunnel:

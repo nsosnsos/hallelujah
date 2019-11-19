@@ -126,8 +126,9 @@ class NsGraph(nx.DiGraph):
 
     def init_graph(self):
         for i in range(len(self.link)):
-             if (self.link.at[i, u'SRC_NE_ID'] == self.link.at[i, u'DST_NE_ID']) or \
-                common.df_isna(self.link, i, u'SRC_NE_ID') or common.df_isna(self.link, i, u'DST_NE_ID'):
+            if ((self.link.at[i, u'SRC_NE_ID'] == self.link.at[i, u'DST_NE_ID']) or
+                    ns_datanalysis.df_isna(self.link, i, u'SRC_NE_ID') or
+                    ns_datanalysis.df_isna(self.link, i, u'DST_NE_ID')):
                 continue
             if not self.has_node(self.link.at[i, 'SRC_NE_ID']):
                 self.add_node(self.link.at[i, 'SRC_NE_ID'], type=self.link.at[i, 'SRC_NE_TYPE'])
@@ -261,7 +262,7 @@ def graph_cycle_test():
               [2, 'A', 3, 'A'], [3, 'A', 2, 'A'], [2, 'A', 4, 'B'], [5, 'B', 2, 'A'],
               [3, 'A', 6, 'B'], [6, 'B', 3, 'A'], [7, 'B', 3, 'A'], [4, 'A', 7, 'B'],
               [6, 'B', 5, 'B'], [6, 'B', 7, 'B']]
-    df_rule = common.df_from_matrix(matrix, link_cols)
+    df_rule = ns_datanalysis.df_from_matrix(matrix, link_cols)
 
     g = NsGraph(link=df_rule)
     print(g.number_of_edges())

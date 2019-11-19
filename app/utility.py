@@ -28,7 +28,7 @@ def markdown2html(text):
                     'h1', 'h2', 'h3', 'p', 'img']
     extensions = ['fenced_code', 'codehilite(css_class=highlight, linenums=true)', 'admonition', 'tables', 'extra']
     return bleach.linkify(bleach.clean(
-        markdown(text, extensions, output_format='html5'), tags=allowed_tags, strip=True))
+        markdown(text, extensions=extensions, output_format='html5'), tags=allowed_tags, strip=True))
 
 
 # noinspection PyUnusedLocal
