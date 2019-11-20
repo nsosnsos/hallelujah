@@ -10,8 +10,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
         {% endblock head_metas %}
         {% block head_icon %}
-        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+        <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico') }}">
+        <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico') }}">
         {% endblock head_icon %}
         {% block head_styles %}
             <!-- <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
@@ -39,7 +39,7 @@
     </head>
     <header>
         {% block header %}
-            <div class="jumbotron jumbotron-fluid bg-secondary">
+            <div class="jumbotron jumbotron-fluid bg-secondary modal-title">
                 <h1 class="display-1 text-capitalize text-center text-light font-weight-bold">
                     {% if site_title %}
                         {{ site_title }}
@@ -59,7 +59,7 @@
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="navbar-brand" href="#">
-                        <img src="{{ url_for('static', filename='img/favicon.jpeg') }}" alt="logo" class="img-fluid">
+                        <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid">
                     </a>
                 </li>
                 <li class="nav-item">
