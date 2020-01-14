@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 set -x
@@ -16,12 +16,12 @@ req_pkg_txt=${root_dir}/requirements.txt
 
 function usage(){
 	echo "Usage: build.sh [deploy|clean]"
-	exit -1
+	exit 1
 }
 
 function cert_fail(){
 	echo "Certificates build failed!"
-	exit -1
+	exit 1
 }
 
 if [ "$#" -gt 1 ]; then
@@ -40,20 +40,22 @@ fi
 
 
 if [ $op == "deploy" ]; then
+	mkdir -p ${cert_dir}
 	/bin/sh ${cert_gen_sh} ${cert_dir}
 	if [ "$?" -ne 0 ]; then
 		cert_fail
 	fi
 	mkdir -p ${deploy_dir}
-	mkdir -p ${cert_dir}
 	cp -rf ${nginx_conf} /etc/nginx/sites-available/${svc_name}
-	ln -s /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
+	ln -sf /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
 	cp -rf ${root_dir}/* ${deploy_dir}/
 	pip3 install -r ${req_pkg_txt}
+	systemctl daemon-reload
 	service nginx restart
 else
 	rm -rf ${cert_dir}
 	rm -rf /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
 	rm -rf ${deploy_dir}
+	systemctl daemon-reload
 	service nginx restart
 fi
