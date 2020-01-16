@@ -14,18 +14,14 @@
         <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico') }}">
         {% endblock head_icon %}
         {% block head_styles %}
-            <!-- <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
-            <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+            <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+            <link rel="stylesheet" type="test/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+            <link rel="stylesheet" type="test/css" href="{{ url_for('static', filename='css/style.css') }}">
         {% endblock head_styles %}
         {% block head_script %}
-            <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> -->
-            <!-- <script src="https://code.jquery.com/jquery-latest.min.js"></script> -->
-            <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
-            <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script> -->
-            <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
-            <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
-            <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+            <script src="https://code.jquery.com/jquery-latest.min.js"></script>
         {% endblock head_script %}
         <title>
             {% block head_title %}
@@ -39,7 +35,7 @@
     </head>
     <header>
         {% block header %}
-            <div class="jumbotron jumbotron-fluid bg-secondary modal-title">
+            <div class="jumbotron jumbotron-fluid bg-secondary mb-0">
                 <h1 class="display-1 text-capitalize text-center text-light font-weight-bold">
                     {% if site_title %}
                         {{ site_title }}
@@ -48,33 +44,41 @@
                     {% endif %}
                 </h1>
                 <p class="text-capitalize text-center text-light font-weight-bold">
+                    <a class="navbar-brand" href="#">
+                        <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid">
+                    </a>
                     {{ config.SITE_DESCRIPTION }}
                 </p>
             </div>
         {% endblock header %}
     </header>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top" role="navigation">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-secondary sticky-top navbar-fixed-top" role="navigation">
         {% block navbar %}
         <div class="container-fluid">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="navbar-brand" href="#">
-                        <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid">
-                    </a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="icon-home"></i> Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Diary</a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="icon-coffee"></i> Article</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Gallery</a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="icon-camera"></i> Gallery</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Article</a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="icon-key"></i> Diary</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
+                    <a class="nav-link" href="{{ url_for('main.about') }}"><i class="icon-user"></i> About</a>
                 </li>
             </ul>
+            <div class="search-container float-right">
+                <form action="/action_page.php">
+                <input type="text" placeholder="Search.." name="search">
+                <button type="submit"><i class="icon-search"></i></button>
+                </form>
+                <button type="submit"><i class="icon-signin"></i> Login</button>
+            </div>
         </div>
         {% endblock navbar %}
     </nav>
@@ -83,18 +87,27 @@
         {% endblock aside %}
     </aside>
     <body>
+        <div class="bg-light mb-0">
+        <hr class="mt-0">
         {% block body %}
         {% endblock body %}
+        <hr class="mb-0">
+        </div>
     </body>
     <footer>
-        <a href="#">Back to top &uarr;</a>
         {% block footer %}
+        <div class="container-fluid bg-secondary">
+            <div class="container-fluid text-center text-light">
+            <a href="#" class="label-default text-light">&#8593</a>
+            </div>
+            <p class="container-fluid text-center text-light">
+                &copy;Copyright <script>document.write(new Date().getFullYear())</script>
+                &reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
+                All Rights Reserved.
+            </p>
+            <hr class="mb-0">
+        </div>
         {% endblock footer %}
-        <p>
-            &reg;&nbsp;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
-            <br>
-            &copy;&nbsp;Copyright <script>document.write(new Date().getFullYear())</script>
-        </p>
     </footer>
     {% endblock html %}
 </html>
