@@ -15,11 +15,11 @@
         {% endblock head_icon %}
         {% block head_styles %}
             <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-            <link rel="stylesheet" type="test/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
-            <link rel="stylesheet" type="test/css" href="{{ url_for('static', filename='css/style.css') }}">
+            <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+            <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
         {% endblock head_styles %}
         {% block head_script %}
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>->
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
             <script src="https://code.jquery.com/jquery-latest.min.js"></script>
         {% endblock head_script %}
@@ -52,7 +52,7 @@
             </div>
         {% endblock header %}
     </header>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-secondary sticky-top navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-secondary sticky-top fixed-top" role="navigation">
         {% block navbar %}
         <div class="container-fluid">
             <ul class="navbar-nav">
@@ -72,13 +72,21 @@
                     <a class="nav-link" href="{{ url_for('main.about') }}"><i class="icon-user"></i> About</a>
                 </li>
             </ul>
-            <div class="search-container float-right">
-                <form action="/action_page.php">
-                <input type="text" placeholder="Search.." name="search">
-                <button type="submit"><i class="icon-search"></i></button>
-                </form>
-                <button type="submit"><i class="icon-signin"></i> Login</button>
-            </div>
+        </div>
+        <div class="container-fluid">
+            <form action="/action_page.php" class="text-center">
+                <div class="container-fluid">
+                    <div class="container-fluid">
+                        <input type="text" placeholder="Search..." name="search">
+                    </div>
+                    <div class="container-fluid">
+                        <button type="submit"><i class="icon-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="container-fluid float-right">
+            <button type="submit" class="float-right"><i class="icon-signin"></i> Login</button>
         </div>
         {% endblock navbar %}
     </nav>
@@ -100,12 +108,11 @@
             <div class="container-fluid text-center text-light">
             <a href="#" class="label-default text-light">&#8593</a>
             </div>
-            <p class="container-fluid text-center text-light">
+            <p class="container-fluid text-center text-light mb-0">
                 &copy;Copyright <script>document.write(new Date().getFullYear())</script>
                 &reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
                 All Rights Reserved.
             </p>
-            <hr class="mb-0">
         </div>
         {% endblock footer %}
     </footer>
