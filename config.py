@@ -53,6 +53,9 @@ class Config:
     SYS_FOLLOWERS_PER_PAGE = config.getint('SYSTEM', 'SYS_FOLLOWERS_PER_PAGE')
     SYS_ADMIN = config.get('SYSTEM', 'SYS_ADMIN')
 
+    SSL_CRT = config.get('SSL', 'CRT')
+    SSL_KEY = config.get('SSL', 'KEY')
+
     MAIL_SERVER = config.get('MAIL', 'MAIL_SERVER')
     MAIL_PORT = config.getint('MAIL', 'MAIL_PORT')
     MAIL_USE_TLS = config.getboolean('MAIL', 'MAIL_TLS')
