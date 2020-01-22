@@ -21,6 +21,7 @@ rex_more_tag = re.compile(r'<!--more-->', re.I)
 
 
 class RoleName:
+    GUEST = 'GUEST'
     DIARY = 'DIARY'
     GALLERY = 'GALLERY'
     ARTICLE = 'ARTICLE'
@@ -28,6 +29,7 @@ class RoleName:
 
 
 class Permission:
+    GUEST = 0x00
     DIARY = 0x01
     ARTICLE = 0x02
     GALLERY = 0x04
@@ -85,6 +87,7 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         roles = {
+            RoleName.GUEST:   [Permission.GUEST],
             RoleName.DIARY:   [Permission.DIARY],
             RoleName.GALLERY: [Permission.DIARY, Permission.GALLERY],
             RoleName.ARTICLE: [Permission.DIARY, Permission.GALLERY, Permission.ARTICLE],
@@ -94,7 +97,6 @@ class Role(db.Model):
             role = Role.query.filter_by(name=r).first()
             if not role:
                 role = Role(name=r)
-            role.default = (role.name == RoleName.DIARY)
             role.reset_permission()
             for p in roles[r]:
                 role.add_permission(p)
@@ -116,7 +118,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False)
     email = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False)
     description = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=True)
-    confirmed = db.Column(db.Boolean, default=False, unique=False, nullable=False)
+    confirmed = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     password_hash = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
     avatar_hash = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), unique=False, nullable=False)
@@ -140,7 +142,7 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(name=RoleName.ADMIN).first()
             else:
                 self.role = Role.query.filter_by(name=RoleName.DIARY).first()
-            self.role_id = self.role.id
+            self.role_id = self.role.id if self.role else 0
         if not self.avatar_hash:
             self.avatar_hash = self.generate_avatar_hash()
 
@@ -233,11 +235,11 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.datetime.utcnow()
         db.session.add(self)
 
-    def get_gravatar(self, size=100, default='identicon', rating='g'):
+    def get_gravatar(self, size=100, rating='g', default='identicon'):
         url = 'https://secure.gravatar.com/avatar'
         avatar_hash = self.avatar_hash or self.generate_avatar_hash()
-        return '{url}/{avatar_hash}?s={size}&d={default}&r={rating}'.format(
-            url=url, avatar_hash=avatar_hash, size=size, default=default, rating=rating)
+        return '{url}/{avatar_hash}?s={size}&r={rating}&d={default}'.format(
+            url=url, avatar_hash=avatar_hash, size=size, rating=rating, default=default)
 
     def is_following(self, user):
         if not user.id:
@@ -365,7 +367,7 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
-    is_private = db.Column(db.Boolean, default=False, unique=False, nullable=False)
+    is_private = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     create_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     modify_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     title = db.Column(db.String(SHORT_STR_LEN), unique=False, nullable=False)
@@ -431,7 +433,7 @@ class Gallery(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
-    is_private = db.Column(db.Boolean, default=True, unique=False, nullable=False)
+    is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
 
@@ -446,7 +448,7 @@ class Diary(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
-    is_private = db.Column(db.Boolean, default=True, unique=False, nullable=False)
+    is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
 
