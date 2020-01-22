@@ -5,7 +5,7 @@ set -x
 
 
 svc_name=hallelujah
-deploy_dir=/root/${svc_name}
+deploy_dir=/home/${svc_name}
 
 root_dir=$(dirname $(dirname "$(readlink -f $0)"))
 cert_dir=${deploy_dir}/cert
@@ -42,13 +42,15 @@ if [ $op == "deploy" ]; then
     pip3 install -r ${req_pkg_txt}
 
     mkdir -p ${cert_dir}
-    /bin/sh ${cert_gen_sh} ${cert_dir}
-    if [ "$?" -ne 0 ]; then
-        cert_fail
-    fi
-
     cert_file=${cert_dir}/cert.pem
     key_file=${cert_dir}/key.pem
+	if [ ! -f ${cert_file} ] || [ ! -f ${key_file} ]; then
+	    /bin/sh ${cert_gen_sh} ${cert_dir}
+		if [ "$?" -ne 0 ]; then
+			cert_fail
+		fi
+	fi
+
     cp -rf ${nginx_conf} /etc/nginx/sites-available/${svc_name}
     sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
     sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
