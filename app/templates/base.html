@@ -55,9 +55,9 @@
     <nav class="navbar navbar-expand-sm navbar-dark bg-secondary sticky-top" role="navigation">
         {% block navbar %}
         <div class="container-fluid">
-            <ul class="navbar-nav">
+            <ul class="{{ 'nav-item active' if request.path == '/' or request.path == '/index/' else 'nav-item' }}">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-coffee"></i> Article</a>
@@ -68,7 +68,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i> Diary</a>
                 </li>
-                <li class="nav-item">
+                <li class="{{ 'nav-item active' if request.path == '/about/' else 'nav-item' }}">
                     <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i> About</a>
                 </li>
             </ul>
