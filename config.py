@@ -8,18 +8,14 @@ import logging
 from logging import handlers
 
 
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'site.conf')
-
-SHORT_STR_LEN = 64
-LONG_STR_LEN = 1024
-EXPIRATION_TIME = 3600
+_CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'site.conf')
 
 
-if not os.path.isfile(CONFIG_FILE):
+if not os.path.isfile(_CONFIG_FILE):
     print('Error: missing site config file.')
     sys.exit(-1)
-config = configparser.ConfigParser()
-config.read(CONFIG_FILE)
+_CONFIG_PARSER = configparser.ConfigParser()
+_CONFIG_PARSER.read(_CONFIG_FILE)
 
 
 def get_logger(log_switch, log_file, log_name):
@@ -43,51 +39,57 @@ class Config:
     CSRF_ENABLED = True
     SECRET_KEY = os.urandom(32)
     LOCALHOST = '127.0.0.1'
+    SHORT_STR_LEN = 64
+    LONG_STR_LEN = 1024
+    EXPIRATION_TIME = 3600
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+    SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SYS_HOST = config.get('SYSTEM', 'SYS_HOST')
-    SYS_PORT = config.getint('SYSTEM', 'SYS_PORT')
-    SYS_DEBUG = config.getboolean('SYSTEM', 'SYS_DEBUG')
-    SYS_ARTICLE_PER_PAGE = config.getint('SYSTEM', 'SYS_ITEMS_PER_PAGE')
-    SYS_FOLLOWERS_PER_PAGE = config.getint('SYSTEM', 'SYS_FOLLOWERS_PER_PAGE')
-    SYS_ADMIN = config.get('SYSTEM', 'SYS_ADMIN')
+    SYS_HOST = _CONFIG_PARSER.get('SYSTEM', 'SYS_HOST')
+    SYS_PORT = _CONFIG_PARSER.getint('SYSTEM', 'SYS_PORT')
+    SYS_DEBUG = _CONFIG_PARSER.getboolean('SYSTEM', 'SYS_DEBUG')
+    SYS_ADMIN = _CONFIG_PARSER.get('SYSTEM', 'SYS_ADMIN')
+    SYS_ARTICLE_PER_PAGE = _CONFIG_PARSER.getint('SYSTEM', 'SYS_ITEMS_PER_PAGE')
+    SYS_FOLLOWERS_PER_PAGE = _CONFIG_PARSER.getint('SYSTEM', 'SYS_FOLLOWERS_PER_PAGE')
+    SYS_COMMENTS_PER_PAGE = _CONFIG_PARSER.getint('SYSTEM', 'SYS_COMMENTS_PER_PAGE')
+    SYS_SLOW_QUERY_TIME = _CONFIG_PARSER.getfloat('SYSTEM', 'SYS_SLOW_QUERY_TIME')
 
-    SSL_CRT = config.get('SSL', 'SSL_CERT')
-    SSL_KEY = config.get('SSL', 'SSL_KEY')
+    SSL_CRT = _CONFIG_PARSER.get('SSL', 'SSL_CERT')
+    SSL_KEY = _CONFIG_PARSER.get('SSL', 'SSL_KEY')
 
-    MAIL_SERVER = config.get('MAIL', 'MAIL_SERVER')
-    MAIL_PORT = config.getint('MAIL', 'MAIL_PORT')
-    MAIL_USE_TLS = config.getboolean('MAIL', 'MAIL_TLS')
-    MAIL_USERNAME = os.environ.get('MAIL_USR', None) or config.get('MAIL', 'MAIL_USR')
-    MAIL_PASSWORD = os.environ.get('MAIL_PWD', None) or config.get('MAIL', 'MAIL_PWD')
+    MAIL_SERVER = _CONFIG_PARSER.get('MAIL', 'MAIL_SERVER')
+    MAIL_PORT = _CONFIG_PARSER.getint('MAIL', 'MAIL_PORT')
+    MAIL_USE_TLS = _CONFIG_PARSER.getboolean('MAIL', 'MAIL_TLS')
+    MAIL_USERNAME = os.environ.get('MAIL_USR', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_USR')
+    MAIL_PASSWORD = os.environ.get('MAIL_PWD', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_PWD')
     MAIL_ADMIN = MAIL_USERNAME + MAIL_SERVER[MAIL_SERVER.find('.'):]
 
-    SITE_NAME = config.get('SITE', 'SITE_NAME')
-    SITE_TITLE = config.get('SITE', 'SITE_TITLE')
-    SITE_AUTHOR = config.get('SITE', 'SITE_AUTHOR')
-    SITE_KEYWORDS = config.get('SITE', 'SITE_KEYWORDS')
-    SITE_DESCRIPTION = config.get('SITE', 'SITE_DESCRIPTION')
+    SITE_NAME = _CONFIG_PARSER.get('SITE', 'SITE_NAME')
+    SITE_TITLE = _CONFIG_PARSER.get('SITE', 'SITE_TITLE')
+    SITE_AUTHOR = _CONFIG_PARSER.get('SITE', 'SITE_AUTHOR')
+    SITE_KEYWORDS = _CONFIG_PARSER.get('SITE', 'SITE_KEYWORDS')
+    SITE_DESCRIPTION = _CONFIG_PARSER.get('SITE', 'SITE_DESCRIPTION')
 
-    MYSQL_HOST = config.get('MYSQL', 'MYSQL_HOST')
-    MYSQL_PORT = config.getint('MYSQL', 'MYSQL_PORT')
-    MYSQL_DB = config.get('MYSQL', 'MYSQL_DB')
-    MYSQL_USR = os.environ.get('MYSQL_USR', None) or config.get('MYSQL', 'MYSQL_USR')
-    MYSQL_PWD = os.environ.get('MYSQL_PWD', None) or config.get('MYSQL', 'MYSQL_PWD')
-    MYSQL_CHARSET = config.get('MYSQL', 'MYSQL_CHARSET')
+    MYSQL_HOST = _CONFIG_PARSER.get('MYSQL', 'MYSQL_HOST')
+    MYSQL_PORT = _CONFIG_PARSER.getint('MYSQL', 'MYSQL_PORT')
+    MYSQL_DB = _CONFIG_PARSER.get('MYSQL', 'MYSQL_DB')
+    MYSQL_USR = os.environ.get('MYSQL_USR', None) or _CONFIG_PARSER.get('MYSQL', 'MYSQL_USR')
+    MYSQL_PWD = os.environ.get('MYSQL_PWD', None) or _CONFIG_PARSER.get('MYSQL', 'MYSQL_PWD')
+    MYSQL_CHARSET = _CONFIG_PARSER.get('MYSQL', 'MYSQL_CHARSET')
 
-    SSH_TUNNEL_SWITCH = config.getboolean('SSH_TUNNEL', 'SSH_TUNNEL_SWITCH')
-    SSH_TUNNEL_PORT = config.getint('SSH_TUNNEL', 'SSH_TUNNEL_PORT')
-    SSH_TUNNEL_USR = os.environ.get('SSH_TUNNEL_USR', None) or config.get('SSH_TUNNEL', 'SSH_TUNNEL_USR')
-    SSH_TUNNEL_PWD = os.environ.get('SSH_TUNNEL_PWD', None) or config.get('SSH_TUNNEL', 'SSH_TUNNEL_PWD')
+    SSH_TUNNEL_SWITCH = _CONFIG_PARSER.getboolean('SSH_TUNNEL', 'SSH_TUNNEL_SWITCH')
+    SSH_TUNNEL_PORT = _CONFIG_PARSER.getint('SSH_TUNNEL', 'SSH_TUNNEL_PORT')
+    SSH_TUNNEL_USR = os.environ.get('SSH_TUNNEL_USR', None) or _CONFIG_PARSER.get('SSH_TUNNEL', 'SSH_TUNNEL_USR')
+    SSH_TUNNEL_PWD = os.environ.get('SSH_TUNNEL_PWD', None) or _CONFIG_PARSER.get('SSH_TUNNEL', 'SSH_TUNNEL_PWD')
 
-    CACHE_TYPE = 'redis' if config.getboolean('REDIS', 'REDIS_SWITCH') else 'simple'
-    CACHE_REDIS_HOST = config.get('REDIS', 'REDIS_HOST')
-    CACHE_REDIS_PORT = config.get('REDIS', 'REDIS_PORT')
-    CACHE_REDIS_DB = config.get('REDIS', 'REDIS_DB')
+    CACHE_TYPE = 'redis' if _CONFIG_PARSER.getboolean('REDIS', 'REDIS_SWITCH') else 'simple'
+    CACHE_REDIS_HOST = _CONFIG_PARSER.get('REDIS', 'REDIS_HOST')
+    CACHE_REDIS_PORT = _CONFIG_PARSER.get('REDIS', 'REDIS_PORT')
+    CACHE_REDIS_DB = _CONFIG_PARSER.get('REDIS', 'REDIS_DB')
 
-    LOG_SWITCH = config.getboolean('LOG', 'LOG_SWITCH')
-    LOG_FILE = config.get('LOG', 'LOG_FILE')
+    LOG_SWITCH = _CONFIG_PARSER.getboolean('LOG', 'LOG_SWITCH')
+    LOG_FILE = _CONFIG_PARSER.get('LOG', 'LOG_FILE')
 
     LOGGER = get_logger(LOG_SWITCH, LOG_FILE, SITE_NAME)
     MYSQL_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'
@@ -100,14 +102,14 @@ class Config:
     def __str__(self):
         return self.__repr__()
 
-    @staticmethod
-    def init_app(app):
-        pass
+    @classmethod
+    def init_app(cls, app):
+        app.logger.addHandler(cls.LOGGER)
 
 
 class TestingConfig(Config):
-    SQLITE_PATH = config.get('SQLITE', 'SQLITE_PATH')
-    SQLITE_DB = config.get('SQLITE', 'SQLITE_DB')
+    SQLITE_PATH = _CONFIG_PARSER.get('SQLITE', 'SQLITE_PATH')
+    SQLITE_DB = _CONFIG_PARSER.get('SQLITE', 'SQLITE_DB')
 
     DEBUG = False
     TESTING = True
@@ -123,6 +125,25 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
+
+    @classmethod
+    def __get_mail_handler(cls):
+        credentials, secure = None, None
+        if getattr(cls, 'MAIL_USERNAME', None):
+            credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
+            if getattr(cls, 'MAIL_USE_TLS', None):
+                secure = ()
+        mail_handler = handlers.SMTPHandler(mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT), fromaddr=cls.MAIL_ADMIN,
+                                            toaddrs=[cls.MAIL_ADMIN], subject=cls.SITE_NAME + ' ERROR MESSGAE',
+                                            credentials=credentials, secure=secure)
+        mail_handler.setLevel(logging.ERROR)
+        return mail_handler
+
+    @classmethod
+    def init_app(cls, app):
+        super().init_app(app)
+        Config.init_app(app)
+        app.logger.addHandler(cls.__get_mail_handler())
 
 
 config = {

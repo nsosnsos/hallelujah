@@ -14,7 +14,7 @@ from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Se
 
 from . import db, loginMgr, whoosh
 from .utility import split_key_words, string_to_url, markdown2html, unused_param
-from config import SHORT_STR_LEN, LONG_STR_LEN, EXPIRATION_TIME
+from config import Config
 
 
 rex_more_tag = re.compile(r'<!--more-->', re.I)
@@ -55,7 +55,7 @@ class Role(db.Model):
     __table_name__ = 'role'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    name = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
     permission = db.Column(db.Integer, unique=False, nullable=False)
     users = db.relationship('User', backref=db.backref('role', lazy='joined'), lazy='dynamic')
 
@@ -115,12 +115,12 @@ class User(UserMixin, db.Model):
     __table_name__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    name = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False)
-    email = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False)
-    description = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=True)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
+    email = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
+    description = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
     confirmed = db.Column(db.Boolean, unique=False, nullable=False, default=False)
-    password_hash = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
-    avatar_hash = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
+    password_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
+    avatar_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), unique=False, nullable=False)
     member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
@@ -155,7 +155,7 @@ class User(UserMixin, db.Model):
     def generate_avatar_hash(self):
         return hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
-    def generate_conform_token(self, expiration=EXPIRATION_TIME):
+    def generate_conform_token(self, expiration=Config.EXPIRATION_TIME):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'confirm': self.id}).decode('utf-8')
 
@@ -182,7 +182,7 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def generate_password_reset_token(self, expiration=EXPIRATION_TIME):
+    def generate_password_reset_token(self, expiration=Config.EXPIRATION_TIME):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'password_reset': self.id}).decode('utf-8')
 
@@ -200,7 +200,7 @@ class User(UserMixin, db.Model):
         db.session.add(user)
         return True
 
-    def generate_email_change_token(self, expiration=EXPIRATION_TIME):
+    def generate_email_change_token(self, expiration=Config.EXPIRATION_TIME):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'email_change': self.id}).decode('utf-8')
 
@@ -324,7 +324,7 @@ class Tag(db.Model):
     __table_name__ = 'tag'
     query_class = TagQuery
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(SHORT_STR_LEN), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     __mapper_args__ = {'order_by': [id.asc()]}
 
     @property
@@ -370,10 +370,10 @@ class Article(db.Model):
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     create_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     modify_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
-    title = db.Column(db.String(SHORT_STR_LEN), unique=False, nullable=False)
+    title = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=True)
-    summary = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=True)
+    summary = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
     tags = db.relationship(Tag, secondary=article_tag_ref, backref=db.backref('articles', lazy=True), lazy='subquery')
     comments = db.relationship('Comment', backref=db.backref('article', lazy='joined'), lazy='dynamic')
 
@@ -384,7 +384,7 @@ class Article(db.Model):
             if rex_more_tag_match:
                 self.summary = markdown2html(value[:rex_more_tag_match.start()])
             else:
-                self.summary = do_truncate(do_striptags(self.content_html), length=LONG_STR_LEN)
+                self.summary = do_truncate(do_striptags(self.content_html), length=Config.LONG_STR_LEN)
 
     @property
     def has_more(self):
@@ -435,7 +435,7 @@ class Gallery(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
-    content = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
+    content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
     @property
     def link(self):
@@ -450,7 +450,7 @@ class Diary(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
-    content = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
+    content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
     @property
     def link(self):
@@ -463,7 +463,7 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
     article_id = db.Column(db.Integer, db.ForeignKey('article.id'), unique=False, nullable=False)
-    content = db.Column(db.String(LONG_STR_LEN), unique=False, nullable=False)
+    content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     reply_to = db.Column(db.Integer, unique=False, nullable=True)
 
