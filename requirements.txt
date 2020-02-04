@@ -22,3 +22,5 @@ flask_moment==0.9.0
 flask_pagedown==0.2.2
 flask_script==2.0.6
 flask_sqlalchemy==2.4.1
+flask_whooshee==0.7.0
+flask_cache==0.13.1

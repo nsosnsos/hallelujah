@@ -8,6 +8,8 @@ from flask_mail import Mail
 from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
+from flask_whooshee import Whooshee
+from flask_cache import Cache
 
 from config import config
 
@@ -18,6 +20,8 @@ mail = Mail()
 moment = Moment()
 pagedown = PageDown()
 db = SQLAlchemy()
+whoosh = Whooshee()
+cache = Cache()
 
 
 def create_app(config_name='default'):
@@ -31,13 +35,21 @@ def create_app(config_name='default'):
     loginMgr.session_protection = 'strong'
 
     bootstrap.init_app(app)
+    loginMgr.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
     pagedown.init_app(app)
     db.init_app(app)
-    loginMgr.init_app(app)
+    whoosh.init_app(app)
+    cache.init_app(app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint, url_prefix='/')
+
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix='/api')
 
     return app
