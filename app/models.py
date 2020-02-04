@@ -4,16 +4,16 @@
 import re
 import hashlib
 import datetime
-from flask import current_app, url_for, abort
-from flask_login import current_user, UserMixin, AnonymousUserMixin
+from flask import current_app, url_for
+from flask_login import UserMixin, AnonymousUserMixin
 from flask_sqlalchemy import BaseQuery
-from functools import wraps, reduce
+from functools import reduce
 from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
 
 from . import db, loginMgr, whoosh
-from .utility import split_key_words, string_to_url, markdown2html, unused_param
+from .functions import split_key_words, string_to_url, markdown2html, unused_param
 from config import Config
 
 
@@ -22,6 +22,7 @@ rex_more_tag = re.compile(r'<!--more-->', re.I)
 
 class RoleName:
     GUEST = 'GUEST'
+    COMMENT = 'COMMENT'
     DIARY = 'DIARY'
     GALLERY = 'GALLERY'
     ARTICLE = 'ARTICLE'
@@ -30,25 +31,11 @@ class RoleName:
 
 class Permission:
     GUEST = 0x00
-    DIARY = 0x01
-    ARTICLE = 0x02
+    COMMENT = 0x01
+    DIARY = 0x02
     GALLERY = 0x04
+    ARTICLE = 0x08
     ADMIN = 0x10
-
-
-def permission_required(perm):
-    def decorator(f):
-        @wraps(f)
-        def decoratored_function(*args, **kwargs):
-            if not current_user.can(perm):
-                abort(403)
-            return f(*args, **kwargs)
-        return decoratored_function
-    return decorator
-
-
-def admin_required(f):
-    return permission_required(Permission.ADMIN)(f)
 
 
 class Role(db.Model):
@@ -88,10 +75,12 @@ class Role(db.Model):
     def insert_roles():
         roles = {
             RoleName.GUEST:   [Permission.GUEST],
-            RoleName.DIARY:   [Permission.DIARY],
-            RoleName.GALLERY: [Permission.DIARY, Permission.GALLERY],
-            RoleName.ARTICLE: [Permission.DIARY, Permission.GALLERY, Permission.ARTICLE],
-            RoleName.ADMIN:   [Permission.DIARY, Permission.GALLERY, Permission.ARTICLE, Permission.ADMIN]
+            RoleName.COMMENT: [Permission.COMMENT],
+            RoleName.DIARY:   [Permission.COMMENT, Permission.DIARY],
+            RoleName.GALLERY: [Permission.COMMENT, Permission.DIARY, Permission.GALLERY],
+            RoleName.ARTICLE: [Permission.COMMENT, Permission.DIARY, Permission.GALLERY, Permission.ARTICLE],
+            RoleName.ADMIN:   [Permission.COMMENT, Permission.DIARY, Permission.GALLERY, Permission.ARTICLE,
+                               Permission.ADMIN]
         }
         for r in roles:
             role = Role.query.filter_by(name=r).first()

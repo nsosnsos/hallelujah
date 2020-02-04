@@ -29,7 +29,7 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
-    loginMgr.login_view = 'login'
+    loginMgr.login_view = 'auth.login'
     loginMgr.login_message = 'Unauthorized User'
     loginMgr.login_message_category = 'info'
     loginMgr.session_protection = 'strong'
