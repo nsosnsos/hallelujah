@@ -13,6 +13,7 @@ from networkx.drawing.nx_pydot import read_dot
 from collections import deque
 
 from . import ns_datanalysis
+from config import Config
 
 
 class NsNode(Node):
@@ -213,7 +214,7 @@ class NsGraph(nx.DiGraph):
                 img = mpimg.imread(img_file)
                 plt.imshow(img)
             else:
-                print('ERROR: {0} does not exists.'.format(img_file))
+                Config.LOGGER.error('show_graph error: {0} does not exists.'.format(img_file))
                 return
         else:
             pos = nx.nx_agraph.graphviz_layout(self)
