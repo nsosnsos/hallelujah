@@ -10,3 +10,21 @@ footer {
   bottom: 0;
   width: 100%;
 }
+
+.banner {
+    padding:1rem 1rem;
+    border-radius:.1rem
+    max-height: 100px;
+}
+
+@media (min-width:576px) {
+    .banner {
+        padding:1rem 1rem
+    }
+}
+
+.banner-fluid {
+    padding-right:0;
+    padding-left:0;
+    border-radius:0
+}
