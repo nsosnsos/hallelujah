@@ -38,6 +38,7 @@ def deploy():
     db.create_all()
     Role.insert_roles()
     User.insert_admin()
+    User.add_self_follows()
 
 
 if __name__ == '__main__':

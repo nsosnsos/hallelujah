@@ -97,7 +97,7 @@ class Follow(db.Model):
     __table_name__ = 'follow'
     follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
+    datetime = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
 
 
 class User(UserMixin, db.Model):
@@ -106,10 +106,10 @@ class User(UserMixin, db.Model):
     __mapper_args__ = {'order_by': [id.asc()]}
     name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
     email = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
-    description = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
+    description = db.Column(db.Text(), unique=False, nullable=True)
     confirmed = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     password_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
-    avatar_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
+    avatar_hash = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), unique=False, nullable=False)
     member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
@@ -140,6 +140,21 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return 'User: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
+    @staticmethod
+    def insert_admin():
+        user = User(name=current_app.config['SYS_ADMIN'], email=current_app.config['MAIL_ADMIN'],
+                    password=current_app.config['SYS_ADMIN'], description=current_app.config['SYS_ADMIN'])
+        db.session.add(user)
+        db.session.commit()
+
+    @staticmethod
+    def add_self_follows():
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+        db.session.commit()
 
     def generate_avatar_hash(self):
         return hashlib.md5(self.email.encode('utf-8')).hexdigest()
@@ -187,6 +202,7 @@ class User(UserMixin, db.Model):
             return False
         user.password = new_password
         db.session.add(user)
+        db.session.commit()
         return True
 
     def generate_email_change_token(self, expiration=Config.EXPIRATION_TIME):
@@ -206,6 +222,7 @@ class User(UserMixin, db.Model):
         user.email = new_email
         user.avatar_hash = user.generate_avatar_hash()
         db.session.add(user)
+        db.session.commit()
         return True
 
     def can(self, perm):
@@ -213,12 +230,6 @@ class User(UserMixin, db.Model):
 
     def is_admin(self):
         return self.can(Permission.ADMIN)
-
-    @staticmethod
-    def insert_admin():
-        user = User(name=current_app.config['SYS_ADMIN'], email=current_app.config['MAIL_ADMIN'],
-                    password=current_app.config['SYS_ADMIN'], description=current_app.config['SYS_ADMIN'])
-        db.session.add(user)
 
     def update_last_seen(self):
         self.last_seen = datetime.datetime.utcnow()
@@ -242,7 +253,7 @@ class User(UserMixin, db.Model):
 
     def follow(self, user):
         if not self.is_following(user):
-            f = Follow(follower_id=self, followed_id=user)
+            f = Follow(follower_id=self.id, followed_id=user.id)
             db.session.add(f)
 
     def unfollow(self, user):
