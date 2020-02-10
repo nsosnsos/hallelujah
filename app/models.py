@@ -277,6 +277,10 @@ class User(UserMixin, db.Model):
         return Blog.query.filter(Blog.user_id == self.id)
 
     @property
+    def self_comments(self):
+        return Comment.query.filter(Comment.user_id == self.id)
+
+    @property
     def followed_diary(self):
         return Diary.query.join(Follow, Follow.followed_id == Diary.user_id).filter(
             (not Diary.is_private) and Follow.follower_id == self.id)
@@ -291,13 +295,18 @@ class User(UserMixin, db.Model):
         return Blog.query.join(Follow, Follow.followed_id == Blog.user_id).filter(
             (not Blog.is_private) and Follow.follower_id == self.id)
 
+    @property
+    def followed_comment(self):
+        return Comment.query.join(Follow, Follow.followed_id == Comment.user_id).filter(
+            Follow.follower_id == self.id)
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, perm):
         if perm:
             return False
         else:
-            return self.is_authenticated()
+            return self.is_anonymous()
 
     def is_admin(self):
         return self.is_authenticated()
@@ -307,8 +316,8 @@ loginMgr.anonymous_user = AnonymousUser
 
 
 @loginMgr.user_loader
-def load_user(uid):
-    return User.query.get(int(uid))
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 blog_tag_ref = db.Table(
@@ -368,7 +377,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
-    blogs = db.relationship('Blog', backref=db.backref('category', lazy='joined'), lazy='dynamic')
+    blogs = db.relationship('Blog', backref='category', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(Category, self).__init__(**kwargs)
