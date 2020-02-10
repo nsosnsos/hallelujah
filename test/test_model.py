@@ -27,4 +27,4 @@ class TestModel(unittest.TestCase):
 
     def test_anonymous(self):
         u = AnonymousUser()
-        self.assertFalse(u.can(Permission.ARTICLE))
+        self.assertFalse(u.can(Permission.BLOG))
