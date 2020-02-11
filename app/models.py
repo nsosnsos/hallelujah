@@ -44,18 +44,18 @@ class Role(db.Model):
     __mapper_args__ = {'order_by': [id.asc()]}
     name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
     permission = db.Column(db.Integer, unique=False, nullable=False)
-    users = db.relationship('User', backref=db.backref('role', lazy='joined'), lazy='dynamic')
+    users = db.relationship('User', backref='role', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(Role, self).__init__(**kwargs)
         if self.permission is None:
             self.permission = 0
 
+    def __repr__(self):
+        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
     def __str__(self):
         return self.__repr__()
-
-    def __repr__(self):
-        return '<{}: {}>'.format(self.__class__.__name__, self.name)
 
     def add_permission(self, perm):
         if not self.has_permission(perm):
@@ -78,7 +78,7 @@ class Role(db.Model):
             RoleName.COMMENT: [Permission.COMMENT],
             RoleName.DIARY:   [Permission.COMMENT, Permission.DIARY],
             RoleName.GALLERY: [Permission.COMMENT, Permission.DIARY, Permission.GALLERY],
-            RoleName.BLOG:     [Permission.COMMENT, Permission.DIARY, Permission.GALLERY, Permission.BLOG],
+            RoleName.BLOG:    [Permission.COMMENT, Permission.DIARY, Permission.GALLERY, Permission.BLOG],
             RoleName.ADMIN:   [Permission.COMMENT, Permission.DIARY, Permission.GALLERY, Permission.BLOG,
                                Permission.ADMIN]
         }
@@ -113,10 +113,10 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), unique=False, nullable=False)
     member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
-    diaries = db.relationship('Diary', backref=db.backref('user', lazy='joined'), lazy='dynamic')
-    blogs = db.relationship('Blog', backref=db.backref('user', lazy='joined'), lazy='dynamic')
-    galleries = db.relationship('Gallery', backref=db.backref('user', lazy='joined'), lazy='dynamic')
-    comments = db.relationship('Comment', backref=db.backref('user', lazy='joined'), lazy='dynamic')
+    diaries = db.relationship('Diary', backref='user', lazy='dynamic')
+    blogs = db.relationship('Blog', backref='user', lazy='dynamic')
+    galleries = db.relationship('Gallery', backref='user', lazy='dynamic')
+    comments = db.relationship('Comment', backref='user', lazy='dynamic')
     followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'), lazy='dynamic',
                                cascade='all, delete-orphan')
@@ -135,11 +135,11 @@ class User(UserMixin, db.Model):
         if not self.avatar_hash:
             self.avatar_hash = self.generate_avatar_hash()
 
+    def __repr__(self):
+        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
     def __str__(self):
         return self.__repr__()
-
-    def __repr__(self):
-        return 'User: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
 
     @staticmethod
     def insert_admin():
@@ -320,8 +320,8 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-blog_tag_ref = db.Table(
-    'blog_tag_ref',
+blog_tags = db.Table(
+    'blog_tags',
     db.Column('blog_id', db.Integer, db.ForeignKey('blog.id', ondelete='CASCADE'), primary_key=True),
     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='CASCADE'), primary_key=True))
 
@@ -336,8 +336,17 @@ class Tag(db.Model):
     __table_name__ = 'tag'
     query_class = TagQuery
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     __mapper_args__ = {'order_by': [id.asc()]}
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
+
+    def __init__(self, **kwargs):
+        super(Tag, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def link(self):
@@ -377,16 +386,19 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
+    parent_id = db.Column(db.Integer(), db.ForeignKey('category.id'), unique=False, nullable=True)
+    parent = db.relationship('Category', primaryjoin='Category.parent_id == Category.id',
+                             remote_side=id, backref=db.backref('children'))
     blogs = db.relationship('Blog', backref='category', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(Category, self).__init__(**kwargs)
 
+    def __repr__(self):
+        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
     def __str__(self):
         return self.__repr__()
-
-    def __repr__(self):
-        return '<{}: {}>'.format(self.__class__.__name__, self.name)
 
     @staticmethod
     def insert_categories():
@@ -396,6 +408,25 @@ class Category(db.Model):
                 category = Category(name=c)
                 db.session.add(category)
                 db.session.commit()
+
+    @property
+    def link(self):
+        return url_for('main.category', id=self.id, _external=True)
+
+    @property
+    def count(self):
+        categories = Category.query.all()
+        ids = [c.id for c in categories]
+        return Blog.query.public().filter(Blog.category_id.in_(ids)).count()
+
+    @property
+    def parents(self):
+        cur, parent_list = self, []
+        while cur:
+            parent_list.append(cur)
+            cur = cur.parent
+        parent_list.reverse()
+        return parent_list
 
 
 @whoosh.register_model('title', 'content')
@@ -413,7 +444,7 @@ class Blog(db.Model):
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=True)
     summary = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
-    tags = db.relationship(Tag, secondary=blog_tag_ref, backref=db.backref('blogs', lazy=True), lazy='subquery')
+    tags = db.relationship(Tag, secondary=blog_tags, backref=db.backref('blogs', lazy='dynamic'), lazy='subquery')
     comments = db.relationship('Comment', backref=db.backref('blog', lazy='joined'), lazy='dynamic')
 
     def generate_html(self, value):
