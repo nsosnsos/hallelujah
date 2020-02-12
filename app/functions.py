@@ -34,3 +34,7 @@ def markdown2html(text):
 # noinspection PyUnusedLocal
 def unused_param(*args, **kwargs):
     pass
+
+
+class ValidationError(ValueError):
+    pass

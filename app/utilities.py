@@ -41,7 +41,3 @@ def send_mail(to, subject, template, **kwargs):
     # thread = Thread(target=send_async_mail, args=[current_app._get_current_object(), msg])
     # thread.start()
     # return thread
-
-
-class ValidationError(ValueError):
-    pass

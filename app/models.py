@@ -13,11 +13,8 @@ from jinja2.filters import do_striptags, do_truncate
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
 
 from . import db, loginMgr, whoosh
-from .functions import split_key_words, string_to_url, markdown2html, unused_param
+from .functions import split_key_words, markdown2html, unused_param, ValidationError
 from config import Config
-
-
-rex_more_tag = re.compile(r'<!--more-->', re.I)
 
 
 class RoleName:
@@ -228,6 +225,35 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
+    @property
+    def url(self):
+        return url_for('api.get_user', id=self.id)
+
+    @property
+    def blogs_url(self):
+        return url_for('api.get_user_blogs', id=self.id)
+
+    @property
+    def followed_blogs_url(self):
+        return url_for('api.get_user_followed_blogs', id=self.id)
+
+    def to_json(self):
+        json_str = {
+            'url': self.url,
+            'name': self.name,
+            'email': self.email,
+            'description': self.description,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+            'blogs_url': self.blogs_url,
+            'followed_blogs_url': self.followed_blogs_url,
+            'blogs_count': self.blogs.count(),
+            'followed_count': self.followed.count(),
+            'follower_count': self.follower.count(),
+            'comments_count': self.comments.count(),
+        }
+        return json_str
+
     def can(self, perm):
         return self.role and self.role.has_permission(perm)
 
@@ -349,8 +375,8 @@ class Tag(db.Model):
         return self.__repr__()
 
     @property
-    def link(self):
-        return url_for('main.tag', name=self.name.lower(), _external=True)
+    def url(self):
+        return url_for('api.get_tag', id=self.id)
 
     @property
     def count(self):
@@ -410,11 +436,15 @@ class Category(db.Model):
                 db.session.commit()
 
     @property
-    def link(self):
-        return url_for('main.category', id=self.id, _external=True)
+    def url(self):
+        return url_for('api.get_category', id=self.id)
 
     @property
     def count(self):
+        return Blog.query.public().filter_by(category_id=self.id).count()
+
+    @property
+    def count_all(self):
         categories = Category.query.all()
         ids = [c.id for c in categories]
         return Blog.query.public().filter(Blog.category_id.in_(ids)).count()
@@ -444,58 +474,105 @@ class Blog(db.Model):
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=True)
     summary = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
-    tags = db.relationship(Tag, secondary=blog_tags, backref=db.backref('blogs', lazy='dynamic'), lazy='subquery')
+    tags = db.relationship(Tag, secondary=blog_tags, backref=db.backref('blogs', lazy='dynamic'), lazy='dynamic')
     comments = db.relationship('Comment', backref=db.backref('blog', lazy='joined'), lazy='dynamic')
 
-    def generate_html(self, value):
+    def __init__(self, **kwargs):
+        super(Blog, self).__init__(**kwargs)
+        self.rex_more_tag = re.compile(r'<!--more-->', re.I)
+
+    def __generate_info(self, value):
         self.content_html = markdown2html(value)
-        if not self.summary or not len(self.summary.strip()):
-            rex_more_tag_match = rex_more_tag.search(value)
+        if self.summary is None or self.summary.strip() == '':
+            rex_more_tag_match = self.rex_more_tag.search(value)
             if rex_more_tag_match:
-                self.summary = markdown2html(value[:rex_more_tag_match.start()])
+                html_data = markdown2html(value[:rex_more_tag_match.start()])
             else:
-                self.summary = do_truncate(do_striptags(self.content_html), length=Config.LONG_STR_LEN)
+                html_data = self.content_html
+            self.summary = do_truncate(do_striptags(html_data), length=Config.LONG_STR_LEN)
+            self.modify_datetime = datetime.datetime.utcnow()
+
+    def to_json(self):
+        json_str = {
+            'url': self.url,
+            'title': self.name,
+            'summary': self.summary,
+            'content': self.content,
+            'create_datetime': self.create_datetime,
+            'modify_datetime': self.modify_datetime,
+            'user_url': self.user_url,
+            'tags_url': self.tags_url,
+            'tags_count': self.tags.count(),
+            'comments_url': self.comments_url,
+            'comments_count': self.comments.count(),
+        }
+        return json_str
+
+    @staticmethod
+    def from_json(json_str):
+        content = json_str.get('content', None)
+        if content is None or content == '':
+            raise ValidationError('json blog does not have content')
+        return Blog(content=content)
 
     @property
     def has_more(self):
-        return rex_more_tag.search(self.content)
+        return self.rex_more_tag.search(self.content) or self.summary.find('...') >= 0
 
     @property
-    def link(self):
-        return url_for('main.blog', name=string_to_url(self.title), _external=True)
+    def url(self):
+        return url_for('api.get_blog', id=self.id)
 
     @property
-    def next(self):
-        _query = db.and_(Blog.id > self.id,)
+    def user_url(self):
+        return url_for('api.get_blog_user_url', id=self.id)
+
+    @property
+    def tags_url(self):
+        return url_for('api.get_blog_tags_url', id=self.id)
+
+    @property
+    def comments_url(self):
+        return url_for('api.get_blog_comments_url', id=self.id)
+
+    @property
+    def next(self, from_category=False):
+        _query = db.and_(Blog.category_id.in_([self.category_id]), Blog.id > self.id) \
+            if from_category else db.and_(Blog.id > self.id,)
         return self.query.public().filter(_query).order_by(Blog.id.asc()).first
 
     @property
-    def prev(self):
-        _query = db.and_(Blog.id < self.id,)
+    def prev(self, from_category=False):
+        _query = db.and_(Blog.category_id.in_([self.category_id]), Blog.id < self.id) \
+            if from_category else db.and_(Blog.id < self.id,)
         return self.query.public().filter(_query).order_by(Blog.id.desc()).first
 
     @property
     def year(self):
-        return self.create_datetime.year
+        return int(self.create_datetime.year)
 
     @property
     def month(self):
-        return self.create_datetime.month
+        return int(self.create_datetime.month)
 
     @property
     def day(self):
-        return self.create_datetime.day
+        return int(self.create_datetime.day)
 
     @staticmethod
     def before_insert(mapper, connection, target):
         unused_param(mapper, connection)
         value = target.content
-        target.generate_html(value)
+        target.__generate_info(value)
 
     @staticmethod
     def on_change_content(target, value, oldvalue, initiator):
         unused_param(oldvalue, initiator)
-        target.generate_html(value)
+        target.__generate_info(value)
+
+
+db.event.listen(Blog, 'before_insert', Blog.before_insert)
+db.event.listen(Blog.content, 'set', Blog.on_change_content)
 
 
 class Gallery(db.Model):
@@ -508,8 +585,8 @@ class Gallery(db.Model):
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
     @property
-    def link(self):
-        return url_for('main.gallery', id=self.id, _external=True)
+    def url(self):
+        return url_for('api.get_gallery', id=self.id)
 
 
 @whoosh.register_model('content')
@@ -523,8 +600,8 @@ class Diary(db.Model):
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
     @property
-    def link(self):
-        return url_for('main.diary', id=self.id, _external=True)
+    def url(self):
+        return url_for('api.get_diary', id=self.id)
 
 
 @whoosh.register_model('content')
@@ -536,7 +613,3 @@ class Comment(db.Model):
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     reply_to = db.Column(db.Integer, unique=False, nullable=True)
-
-
-db.event.listen(Blog, 'before_insert', Blog.before_insert)
-db.event.listen(Blog.content, 'set', Blog.on_change_content)
