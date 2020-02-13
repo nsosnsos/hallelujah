@@ -4,11 +4,11 @@
 import re
 import hashlib
 import datetime
-from wtforms import ValidationError
+from functools import reduce
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_sqlalchemy import BaseQuery
-from functools import reduce
+from wtforms import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
