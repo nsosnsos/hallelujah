@@ -4,6 +4,7 @@
 import re
 import hashlib
 import datetime
+from wtforms import ValidationError
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 from flask_sqlalchemy import BaseQuery
@@ -13,7 +14,7 @@ from jinja2.filters import do_striptags, do_truncate
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
 
 from . import db, loginMgr, whoosh
-from .functions import split_key_words, markdown2html, unused_param, ValidationError
+from .utilities import Permission, split_key_words, markdown2html, unused_param
 from config import Config
 
 
@@ -24,15 +25,6 @@ class RoleName:
     GALLERY = 'GALLERY'
     BLOG = 'BLOG'
     ADMIN = 'ADMIN'
-
-
-class Permission:
-    GUEST = 0x00
-    COMMENT = 0x01
-    DIARY = 0x02
-    GALLERY = 0x04
-    BLOG = 0x08
-    ADMIN = 0x10
 
 
 class Role(db.Model):
