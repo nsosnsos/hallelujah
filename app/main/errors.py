@@ -4,7 +4,7 @@
 from flask import render_template, request, jsonify
 
 from . import main
-from ..functions import unused_param
+from ..utilities import unused_param
 
 
 @main.app_errorhandler(403)
