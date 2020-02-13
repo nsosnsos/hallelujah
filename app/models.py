@@ -463,6 +463,7 @@ class Category(db.Model):
 class Blog(db.Model):
     __table_name__ = 'blog'
     query_class = BlogQuery
+    __rex_more_tag = re.compile(r'<!--more-->', re.I)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
@@ -479,12 +480,17 @@ class Blog(db.Model):
 
     def __init__(self, **kwargs):
         super(Blog, self).__init__(**kwargs)
-        self.rex_more_tag = re.compile(r'<!--more-->', re.I)
+
+    def __repr__(self):
+        return '{}: id={}, title={}'.format(self.__class__.__name__, self.id, self.title)
+
+    def __str__(self):
+        return self.__repr__()
 
     def __generate_info(self, value):
         self.content_html = markdown2html(value)
         if self.summary is None or self.summary.strip() == '':
-            rex_more_tag_match = self.rex_more_tag.search(value)
+            rex_more_tag_match = Blog.__rex_more_tag.search(value)
             if rex_more_tag_match:
                 html_data = markdown2html(value[:rex_more_tag_match.start()])
             else:
@@ -517,7 +523,7 @@ class Blog(db.Model):
 
     @property
     def has_more(self):
-        return self.rex_more_tag.search(self.content) or self.summary.find('...') >= 0
+        return Blog.__rex_more_tag.search(self.content) or self.summary.find('...') >= 0
 
     @property
     def url(self):
@@ -584,6 +590,15 @@ class Gallery(db.Model):
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
+    def __init__(self, **kwargs):
+        super(Gallery, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '{}: id={}, content={}'.format(self.__class__.__name__, self.id, self.content)
+
+    def __str__(self):
+        return self.__repr__()
+
     @property
     def url(self):
         return url_for('api.get_gallery', id=self.id)
@@ -599,6 +614,15 @@ class Diary(db.Model):
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
 
+    def __init__(self, **kwargs):
+        super(Diary, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '{}: id={}, content={}'.format(self.__class__.__name__, self.id, self.content)
+
+    def __str__(self):
+        return self.__repr__()
+
     @property
     def url(self):
         return url_for('api.get_diary', id=self.id)
@@ -613,3 +637,30 @@ class Comment(db.Model):
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     reply_to = db.Column(db.Integer, unique=False, nullable=True)
+
+    def __init__(self, **kwargs):
+        super(Comment, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '{}: id={}, content={}'.format(self.__class__.__name__, self.id, self.content)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def to_json(self):
+        json_str = {
+            'blog_url': url_for('api.get_blog', id=self.blog_id),
+            'user_id': self.user_url,
+            'blog_id': self.blog_id,
+            'content': self.content,
+            'datetime': self.datetime,
+            'reply_to': self.reply_to,
+        }
+        return json_str
+
+    @staticmethod
+    def from_json(json_str):
+        content = json_str.get('content', None)
+        if content is None or content == '':
+            raise ValidationError('json blog does not have content')
+        return Comment(content=content)
