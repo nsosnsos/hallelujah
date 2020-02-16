@@ -9,7 +9,7 @@ from ..models import User
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
+    id = StringField('Name/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Keep me login in')
     submit = SubmitField('Login')
@@ -23,8 +23,8 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
     confirm_password = PasswordField('Confirm password',
                                      validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
-                                                 EqualTo('password', message='Passwords mush match.')])
-    submit = SubmitField('Submit')
+                                                 EqualTo('password', message='Passwords must match.')])
+    submit = SubmitField('Register')
 
     @staticmethod
     def validate_email(field):
@@ -43,6 +43,12 @@ class ChangePasswordForm(FlaskForm):
     confirm_new_password = PasswordField('Confirm new password',
                                          validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
                                                      EqualTo('new_password', message='Passwords mush match.')])
+    submit = SubmitField('Change password')
+
+
+class PasswordResetRequestForm(FlaskForm):
+    id = StringField('Name/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
+    submit = SubmitField('Reset password')
 
 
 class PasswordResetForm(FlaskForm):
@@ -50,13 +56,13 @@ class PasswordResetForm(FlaskForm):
     confirm_new_password = PasswordField('Confirm new password',
                                          validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
                                                      EqualTo('new_password', message='Passwords mush match.')])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Reset password')
 
 
 class ChangeEmailForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
+    new_email = StringField('New email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Change email')
 
     @staticmethod
     def validate_email(field):

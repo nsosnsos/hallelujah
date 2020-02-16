@@ -66,12 +66,12 @@ def admin_required(f):
     return permission_required(Permission.ADMIN)(f)
 
 
-def send_async_mail(app, msg):
+def send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
 
-def send_mail(to, subject, template, **kwargs):
+def send_email(to, subject, template, **kwargs):
     msg = Message(subject=current_app.config['SITE_NAME'] + ': ' + subject, sender=current_app.config['MAIL_ADMIN'],
                   recipients=[to])
     msg.body = render_template(template+'.txt', **kwargs)
@@ -79,6 +79,6 @@ def send_mail(to, subject, template, **kwargs):
     with current_app.app_context():
         mail.send(msg)
     # from threading import Thread
-    # thread = Thread(target=send_async_mail, args=[current_app._get_current_object(), msg])
+    # thread = Thread(target=send_async_email, args=[current_app._get_current_object(), msg])
     # thread.start()
     # return thread
