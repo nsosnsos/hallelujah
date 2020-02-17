@@ -40,7 +40,7 @@
     </head>
     <header>
         {% block header %}
-            <div class="banner banner-fluid bg-secondary">
+            <div class="banner banner-fluid bg-dark">
                 <h1 class="display-5 text-capitalize text-center text-light font-weight-bold">
                     {% if site_title %}
                         {{ site_title }}
@@ -57,42 +57,39 @@
             </div>
         {% endblock header %}
     </header>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-secondary sticky-top" role="navigation">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top" role="navigation">
         {% block navbar %}
-        <div class="container-fluid justify-content-start">
-            <ul class="navbar-nav">
-                <li class="{{ 'nav-item active' if request.path == '/' or request.path == '/index/' else 'nav-item' }}">
-                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-coffee"></i> Blog</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-camera"></i> Gallery</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i> Diary</a>
-                </li>
-                <li class="{{ 'nav-item active' if request.path == '/about/' else 'nav-item' }}">
-                    <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i> About</a>
-                </li>
-            </ul>
-        </div>
-        <div class="container-fluid justify-content-center">
-            <form action="/action_page.php">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <input type="text" placeholder="Search..." name="search">
+        <div class="container">
+            <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#CollapsingNavbar">
+                &#9776;
+            </button>
+            <div class="collapse navbar-collapse" id="CollapsingNavbar">
+                <ul class="nav navbar-nav container-fluid align-items-center">
+                    <li class="{{ 'nav-item active' if request.path == '/' or request.path == '/index/' else 'nav-item' }}">
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <button type="submit"><i class="fas fa-search"></i></button>
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-coffee"></i> Blog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-camera"></i> Gallery</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i> Diary</a>
+                    </li>
+                    <li class="{{ 'nav-item active' if request.path == '/about/' else 'nav-item' }}">
+                        <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i> About</a>
+                    </li>
+                    <li class="nav-item">
+                        <div class="has-search">
+                            <span class="fa fa-search form-control-feedback"></span>
+                            <input type="text" class="form-control" placeholder="Search">
+                        </div>
+                    </li>
+                    <li class="nav-item mt-1 mb-1 ml-auto">
+                        <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
                     </li>
                 </ul>
-            </form>
-        </div>
-        <div class="container-fluid justify-content-end">
-            <div>
-                <button type="submit" class="text-right"><i class="fas fa-sign-in-alt"></i> Login</button>
             </div>
         </div>
         {% endblock navbar %}
@@ -111,7 +108,7 @@
     </body>
     <footer>
         {% block footer %}
-        <div class="bg-secondary">
+        <div class="bg-dark">
             <div class="container-fluid text-center">
                 <a href="#" class="text-light">&#8593</a>
             </div>
