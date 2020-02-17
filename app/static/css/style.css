@@ -12,19 +12,35 @@ footer {
 }
 
 .banner {
-    padding:1rem 1rem;
-    border-radius:.1rem
-    max-height: 100px;
-}
-
-@media (min-width:576px) {
-    .banner {
-        padding:1rem 1rem
-    }
+  padding: 1rem 1rem;
+  border-radius: .1rem
+  max-height: 100px;
 }
 
 .banner-fluid {
-    padding-right:0;
-    padding-left:0;
-    border-radius:0
+  padding-right: 0;
+  padding-left: 0;
+  border-radius: 0;
+}
+
+@media (min-width:576px) {
+  .banner {
+      padding:1rem 1rem;
+  }
+}
+
+.has-search .form-control {
+  padding-left: 2.375rem;
+}
+
+.has-search .form-control-feedback {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 2.375rem;
+  height: 2.375rem;
+  line-height: 2.375rem;
+  text-align: center;
+  pointer-events: none;
+  color: #aaa;
 }
