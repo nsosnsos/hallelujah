@@ -1,4 +1,4 @@
-
+/* minimal body height 100vh */
 body {
   min-height: 100vh;
   position: relative;
@@ -11,10 +11,11 @@ footer {
   width: 100%;
 }
 
+/* banner height 6rem */
 .banner {
   padding: 1rem 1rem;
   border-radius: .1rem
-  max-height: 100px;
+  max-height: 6rem;
 }
 
 .banner-fluid {
@@ -29,18 +30,21 @@ footer {
   }
 }
 
+/* navbar search icon in search input */
 .has-search .form-control {
-  padding-left: 2.375rem;
+  padding-left: 2rem;
 }
 
 .has-search .form-control-feedback {
   position: absolute;
   z-index: 2;
   display: block;
-  width: 2.375rem;
-  height: 2.375rem;
-  line-height: 2.375rem;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
   text-align: center;
   pointer-events: none;
   color: #aaa;
 }
+
+/* navbar dropdown hover */
