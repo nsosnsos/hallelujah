@@ -89,11 +89,24 @@
                     </li>
                 </ul>
                 <ul class="nav navbar-nav align-items-center ml-auto">
-                    {% if not current_user.is_authenticated %}
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <button class="btn btn-sm btn-dark dropdown-toggle" id="DropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user"></i> admin
+                            </button>
+                            <ul class="bg-dark dropdown-menu" aria-labelledby="DropdownMenu">
+                                <li>
+                                    <button class="btn btn-block btn-sm btn-dark text-left"><i class="fas fa-address-card"></i> Info</button>
+                                </li>
+                                <li>
+                                    <button class="btn btn-block btn-sm btn-dark text-left"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
                         <li class="nav-item">
                             <button class="btn btn-sm btn-dark"><i class="fas fa-sign-in-alt"></i> Login</button>
                         </li>
-                    {% else %}
                     {% endif %}
                 </ul>
             </div>
@@ -116,7 +129,7 @@
         {% block footer %}
         <div class="bg-dark">
             <div class="container-fluid text-center">
-                <a href="#" class="text-light">&#8593</a>
+                <a href="#" class="text-light"><i class="fas fa-angle-double-up"></i></a>
             </div>
             <p class="container-fluid text-center text-light mb-0">
                 &copy;Copyright <script>document.write(new Date().getFullYear())</script>
