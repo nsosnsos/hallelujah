@@ -127,27 +127,27 @@ class NsGraph(nx.DiGraph):
 
     def init_graph(self):
         for i in range(len(self.link)):
-            if ((self.link.at[i, u'SRC_NE_ID'] == self.link.at[i, u'DST_NE_ID']) or
-                    ns_datanalysis.df_isna(self.link, i, u'SRC_NE_ID') or
-                    ns_datanalysis.df_isna(self.link, i, u'DST_NE_ID')):
+            if ((self.link.at[i, u'SRC_ID'] == self.link.at[i, u'DST_ID']) or
+                    ns_datanalysis.df_isna(self.link, i, u'SRC_ID') or
+                    ns_datanalysis.df_isna(self.link, i, u'DST_ID')):
                 continue
-            if not self.has_node(self.link.at[i, 'SRC_NE_ID']):
-                self.add_node(self.link.at[i, 'SRC_NE_ID'], type=self.link.at[i, 'SRC_NE_TYPE'])
-            if not self.has_node(self.link.at[i, 'DST_NE_ID']):
-                self.add_node(self.link.at[i, 'DST_NE_ID'], type=self.link.at[i, 'DST_NE_TYPE'])
-            edge_type = 'single_domain' if self.link.at[i, 'SRC_NE_TYPE'] == self.link.at[i, 'DST_NE_TYPE']\
+            if not self.has_node(self.link.at[i, 'SRC_ID']):
+                self.add_node(self.link.at[i, 'SRC_ID'], type=self.link.at[i, 'SRC_TYPE'])
+            if not self.has_node(self.link.at[i, 'DST_ID']):
+                self.add_node(self.link.at[i, 'DST_ID'], type=self.link.at[i, 'DST_TYPE'])
+            edge_type = 'single_domain' if self.link.at[i, 'SRC_TYPE'] == self.link.at[i, 'DST_TYPE']\
                 else 'cross_domain'
-            self.add_edge(self.link.at[i, 'SRC_NE_ID'], self.link.at[i, 'DST_NE_ID'], type=edge_type)
+            self.add_edge(self.link.at[i, 'SRC_ID'], self.link.at[i, 'DST_ID'], type=edge_type)
 
     def path_to_link(self, path=None):
-        link_cols = ['SRC_NE_ID', 'SRC_NE_TYPE', 'DST_NE_ID', 'DST_NE_TYPE']
+        link_cols = ['SRC_ID', 'SRC_TYPE', 'DST_ID', 'DST_TYPE']
         link_list = []
         df_paths = path.groupby('PATH_ID', as_index=False)
         for path_name, cur_path in df_paths:
             prev_ne_id, prev_ne_type = None, None
             for row_index, row in cur_path.iterrows():
-                cur_ne_id = cur_path.at[row_index, 'NE_NAME']
-                cur_ne_type = cur_path.at[row_index, 'NE_TYPE']
+                cur_ne_id = cur_path.at[row_index, 'NAME']
+                cur_ne_type = cur_path.at[row_index, 'TYPE']
                 if prev_ne_id:
                     link_list.append([prev_ne_id, prev_ne_type, cur_ne_id, cur_ne_type])
                 prev_ne_id, prev_ne_type = cur_ne_id, cur_ne_type
@@ -228,8 +228,8 @@ def __node_graph_test():
     alarm_a = [1, 2, 3]
     alarm_b = [4, 5, 6]
     alarm_c = [7]
-    a = NsNode('基站名称', parent=None, alarm_list=alarm_a)
-    a1 = NsNode('基站名称', parent=None, alarm_list=alarm_a)
+    a = NsNode('name', parent=None, alarm_list=alarm_a)
+    a1 = NsNode('name', parent=None, alarm_list=alarm_a)
     a2 = a
     b = NsNode('b', parent=a, alarm_list=alarm_b)
     c = NsNode('c', parent=a, alarm_list=alarm_c)
@@ -258,7 +258,7 @@ def __node_graph_test():
 
 
 def graph_cycle_test():
-    link_cols = [u'SRC_NE_ID', u'SRC_NE_TYPE', u'DST_NE_ID', u'DST_NE_TYPE']
+    link_cols = [u'SRC_ID', u'SRC_TYPE', u'DST_ID', u'DST_TYPE']
     matrix = [[1, 'A', 2, 'A'], [2, 'A', 1, 'A'], [1, 'A', 3, 'A'], [3, 'A', 1, 'A'],
               [2, 'A', 3, 'A'], [3, 'A', 2, 'A'], [2, 'A', 4, 'B'], [5, 'B', 2, 'A'],
               [3, 'A', 6, 'B'], [6, 'B', 3, 'A'], [7, 'B', 3, 'A'], [4, 'A', 7, 'B'],

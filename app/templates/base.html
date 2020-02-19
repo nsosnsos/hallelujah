@@ -91,21 +91,21 @@
                 <ul class="nav navbar-nav align-items-center ml-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <button class="btn btn-sm btn-dark dropdown-toggle" id="DropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user"></i> admin
-                            </button>
-                            <ul class="bg-dark dropdown-menu" aria-labelledby="DropdownMenu">
+                            <a class="dropdown-toggle btn btn-sm btn-dark text-light" role="button" id="DropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-user"></i> {{ current_user.name }}
+                            </a>
+                            <ul class="dropdown-menu bg-dark" aria-labelledby="DropdownMenu">
                                 <li>
-                                    <button class="btn btn-block btn-sm btn-dark text-left"><i class="fas fa-address-card"></i> Info</button>
+                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.info') }}" role="button"><i class="fas fa-address-card"></i> Info</a>
                                 </li>
                                 <li>
-                                    <button class="btn btn-block btn-sm btn-dark text-left"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.logout') }}" role="button"><i class="fas fa-sign-out-alt"></i> Logout</a>
                                 </li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <button class="btn btn-sm btn-dark"><i class="fas fa-sign-in-alt"></i> Login</button>
+                            <a class="btn btn-sm btn-dark" href="{{ url_for('auth.login') }}" role="button"><i class="fas fa-sign-in-alt"></i> Login</a>
                         </li>
                     {% endif %}
                 </ul>

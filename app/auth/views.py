@@ -1,7 +1,7 @@
 # !/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 
 from .. import db
@@ -16,23 +16,16 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm, ChangeEmailF
 def before_request():
     if current_user.is_authenticated:
         current_user.update_last_seen()
-        if not current_user.confirmed and request.endpoint and \
-                request.blueprint != 'auth' and request.endpoint != 'static':
-            return redirect(url_for('auth.unconfirmed'))
-
-
-@auth.route('/unconfirmed')
-def unconfirmed():
-    if current_user.is_anonymous or current_user.confirmed:
-        return redirect(url_for('main.index'))
-    return render_template('auth/unconfirmed.html')
+        # if not current_user.confirmed and request.endpoint and \
+        #        request.blueprint != 'auth' and request.endpoint != 'static':
+        #    return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(db.or_(email=form.id.data.lower(), name=form.id.data)).first()
+        user = User.query.filter(db.or_(User.email == form.id.data.lower(), User.name == form.id.data)).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember.data)
             next_url = request.args.get('next')
@@ -51,7 +44,13 @@ def logout():
     return redirect(url_for('main.index'))
 
 
-@auth.route('/register', method=['GET', 'POST'])
+@auth.route('/info')
+@login_required
+def info():
+    return render_template('auth/info.html')
+
+
+@auth.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -65,7 +64,7 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
-@auth.route('/change_password', method=['GET', 'POST'])
+@auth.route('/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     form = ChangePasswordForm()
@@ -81,7 +80,7 @@ def change_password():
     return render_template('auth/change_password.html', form=form)
 
 
-@auth.route('/request_reset_password', method=['GET', 'POST'])
+@auth.route('/reset_password', methods=['GET', 'POST'])
 def request_reset_password():
     if not current_user.is_anoymous:
         return redirect(url_for('main.index'))
@@ -90,13 +89,14 @@ def request_reset_password():
         user = User.query.filter_by(db.or_(email=form.id.data.lower(), name=form.id.data)).first()
         if user:
             token = user.get_password_reset_token()
-            send_email(user.email, 'Reset your password', 'auth/request_reset_password', user=user, token=token)
+            send_email(user.email, 'Reset your password', 'auth/email/reset_password',
+                       site_name=current_app.config['SITE_NAME'], user=user, token=token)
             flash('An email with instructions to reset your password has been sent to you.')
             return redirect(url_for('auth.login'))
-    return render_template('auth/request_reset_password.html', form=form)
+    return render_template('auth/reset_password.html', form=form)
 
 
-@auth.route('/reset_password/<token>', method=['GET', 'POST'])
+@auth.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if not current_user.is_anoymous:
         return redirect(url_for('main.index'))
@@ -111,7 +111,7 @@ def reset_password(token):
     return render_template('auth/reset_password.html', form=form)
 
 
-@auth.route('/request_change_email', method=['GET', 'POST'])
+@auth.route('/change_email', methods=['GET', 'POST'])
 @login_required
 def request_change_email():
     form = ChangeEmailForm()
@@ -119,18 +119,18 @@ def request_change_email():
         if current_user.verify_password(form.password.data):
             new_email = form.new_email.data.lower()
             token = current_user.get_email_change_token(new_email)
-            send_email(current_user.email, 'Change your email', 'auth/request_change_email',
-                       user=current_user, token=token)
+            send_email(current_user.email, 'Change your email', 'auth/email/change_email',
+                       site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
             flash('An email with instructions to change your email has been sent to you.')
             return redirect(url_for('main.index'))
         else:
             flash('Invalid password.')
     else:
         flash('Invalid email.')
-    return render_template('auth/request_change_email.html', form=form)
+    return render_template('auth/change_email.html', form=form)
 
 
-@auth.route('/change_email/<token>', method=['GET', 'POST'])
+@auth.route('/change_email/<token>')
 @login_required
 def change_email(token):
     if current_user.change_email(token):
@@ -141,14 +141,15 @@ def change_email(token):
     return redirect(url_for('main.index'))
 
 
-@auth.route('/request_confirm')
+@auth.route('/confirm')
 @login_required
 def request_confirm():
     if current_user.confirmed:
         flash('Your account has already been confirmed.')
         return redirect(url_for('main.index'))
     token = current_user.get_confirm_token()
-    send_email(current_user.email, 'Confirm your account', 'auth/email/confirm', user=current_user, token=token)
+    send_email(current_user.email, 'Confirm your account', 'auth/email/confirm',
+               site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
     flash('A confirmation email has been resent to you, please confirm by the email link.')
     return redirect(url_for('main.index'))
 
@@ -164,3 +165,10 @@ def confirm(token):
     else:
         flash('The confirmation link is invalid or has expired.')
     return redirect(url_for('main.index'))
+
+
+@auth.route('/unconfirmed')
+def unconfirmed():
+    if current_user.is_anonymous or current_user.confirmed:
+        return redirect(url_for('main.index'))
+    return render_template('auth/unconfirmed.html')

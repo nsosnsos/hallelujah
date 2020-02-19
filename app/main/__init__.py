@@ -5,8 +5,11 @@ from flask import Blueprint
 
 main = Blueprint(name='main', import_name=__name__)
 
-from . import views, errors
-from ..models import Permission
+try:
+    from . import views, errors
+    from ..models import Permission
+except Exception:
+    raise
 
 
 @main.app_context_processor

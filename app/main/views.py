@@ -4,12 +4,11 @@
 from flask import current_app, request, render_template
 
 from . import main
-from .. import db
 from app.models import Blog
 
 
 @main.route('/')
-@main.route('/index/')
+@main.route('/index')
 def index():
     page_num = request.args.get('page', 1, type=int)
     pagination = Blog.query.order_by(Blog.create_datetime.desc())\
@@ -18,6 +17,6 @@ def index():
     return render_template('index.html', blogs=blogs, pagination=pagination, endpoint='.index')
 
 
-@main.route('/about/')
+@main.route('/about')
 def about():
     return render_template('about.html')

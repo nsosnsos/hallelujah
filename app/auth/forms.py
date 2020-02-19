@@ -17,7 +17,7 @@ class LoginForm(FlaskForm):
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
-                           Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, 'Username must start with letters, '
+                           Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
                                   'having only letters, numbers, dots or underscores.')])
     email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
