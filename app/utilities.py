@@ -7,6 +7,7 @@ from flask import abort, current_app, render_template
 from flask_login import current_user
 from flask_mail import Message
 from functools import wraps
+from threading import Thread
 
 from . import mail
 
@@ -77,9 +78,10 @@ def send_email(to, subject, template, **kwargs):
     msg.body = render_template(template+'.txt', **kwargs)
     msg.html = render_template(template+'.html', **kwargs)
 
-    with current_app.app_context():
-        mail.send(msg)
-    # from threading import Thread
-    # thread = Thread(target=send_async_email, args=[current_app._get_current_object(), msg])
-    # thread.start()
-    # return thread
+    # with current_app.app_context():
+    #    mail.send(msg)
+
+    # noinspection PyProtectedMember
+    thread = Thread(target=send_async_email, args=[current_app._get_current_object(), msg])
+    thread.start()
+    return thread

@@ -329,6 +329,9 @@ class AnonymousUser(AnonymousUserMixin):
     def is_admin(self):
         return self.is_authenticated()
 
+    def is_anonymous(self):
+        return self.is_anonymous()
+
 
 loginMgr.anonymous_user = AnonymousUser
 

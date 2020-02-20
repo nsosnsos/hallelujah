@@ -62,7 +62,7 @@ class Config:
     MAIL_USE_TLS = _CONFIG_PARSER.getboolean('MAIL', 'MAIL_TLS')
     MAIL_USERNAME = os.environ.get('MAIL_USR', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_USR')
     MAIL_PASSWORD = os.environ.get('MAIL_PWD', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_PWD')
-    MAIL_ADMIN = MAIL_USERNAME + MAIL_SERVER[MAIL_SERVER.find('.'):]
+    MAIL_ADMIN = MAIL_USERNAME + '@' + MAIL_SERVER[MAIL_SERVER.find('.')+1:]
 
     SITE_NAME = _CONFIG_PARSER.get('SITE', 'SITE_NAME')
     SITE_TITLE = _CONFIG_PARSER.get('SITE', 'SITE_TITLE')

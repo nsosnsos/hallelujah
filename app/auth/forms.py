@@ -16,7 +16,7 @@ class LoginForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
+    username = StringField('Username', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
                            Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
                                   'having only letters, numbers, dots or underscores.')])
     email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
@@ -26,14 +26,12 @@ class RegistrationForm(FlaskForm):
                                                  EqualTo('password', message='Passwords must match.')])
     submit = SubmitField('Register')
 
-    @staticmethod
-    def validate_email(field):
-        if User.query.filter_by(email=field.data.lower()).first():
+    def validate_email(self, field):
+        if not self.is_submitted() or User.query.filter_by(email=field.data.lower()).first():
             raise ValidationError('Email already registered.')
 
-    @staticmethod
-    def validate_username(field):
-        if User.query.filter_by(name=field.data).first():
+    def validate_username(self, field):
+        if not self.is_submitted() or User.query.filter_by(name=field.data).first():
             raise ValidationError('Username already registered.')
 
 
@@ -65,6 +63,6 @@ class ChangeEmailForm(FlaskForm):
     submit = SubmitField('Change email')
 
     @staticmethod
-    def validate_email(field):
-        if User.query.filter_by(email=field.data.lower()).first():
+    def validate_email(self, field):
+        if not self.is_submitted() or User.query.filter_by(email=field.data.lower()).first():
             raise ValidationError('Email already registered.')

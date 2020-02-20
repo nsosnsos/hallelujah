@@ -3,7 +3,7 @@
 
 
 {% block head_title %}
-    {{ config.SITE_TITLE }} - Unconfirmed
+    {{ config.SITE_NAME }} - Unconfirmed
 {% endblock head_title %}
 
 {% block body %}
@@ -11,7 +11,7 @@
     <h1>Hello {{ current_user.name }}!</h1>
     <h3>You have not confirmed your account yet.</h3>
     <p>
-        Before you can access {{ config.SITE_TITLE }}, you need to confirm account by email.
+        Before you can access {{ config.SITE_NAME }}, you need to confirm account by email.
     </p>
     <p>
         Need the confirmation letter? <a href="{{ url_for('auth.request_confirm') }}">Click here</a>
