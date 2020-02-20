@@ -116,7 +116,7 @@ class User(UserMixin, db.Model):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if not self.role:
-            if self.email == current_app.config['MAIL_ADMIN']:
+            if self.email == current_app.config['MAIL_USERNAME']:
                 self.role = Role.query.filter_by(name=RoleName.ADMIN).first()
             else:
                 self.role = Role.query.filter_by(name=RoleName.DIARY).first()
@@ -132,7 +132,7 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def insert_admin():
-        user = User(name=current_app.config['SYS_ADMIN'], email=current_app.config['MAIL_ADMIN'],
+        user = User(name=current_app.config['SYS_ADMIN'], email=current_app.config['MAIL_USERNAME'],
                     password=current_app.config['SYS_ADMIN'], description=current_app.config['SYS_ADMIN'])
         db.session.add(user)
         db.session.commit()

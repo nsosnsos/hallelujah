@@ -9,16 +9,16 @@ from ..models import User
 
 
 class LoginForm(FlaskForm):
-    id = StringField('Name/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
+    id = StringField('Id/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Keep me login in')
     submit = SubmitField('Login')
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
-                           Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
-                                  'having only letters, numbers, dots or underscores.')])
+    id = StringField('Id', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
+                     Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
+                            'having only letters, numbers, dots or underscores.')])
     email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
     confirm_password = PasswordField('Confirm password',
@@ -26,13 +26,13 @@ class RegistrationForm(FlaskForm):
                                                  EqualTo('password', message='Passwords must match.')])
     submit = SubmitField('Register')
 
+    def validate_id(self, field):
+        if not self.is_submitted() or User.query.filter_by(name=field.data).first():
+            raise ValidationError('Id already registered.')
+
     def validate_email(self, field):
         if not self.is_submitted() or User.query.filter_by(email=field.data.lower()).first():
             raise ValidationError('Email already registered.')
-
-    def validate_username(self, field):
-        if not self.is_submitted() or User.query.filter_by(name=field.data).first():
-            raise ValidationError('Username already registered.')
 
 
 class ChangePasswordForm(FlaskForm):
@@ -45,7 +45,7 @@ class ChangePasswordForm(FlaskForm):
 
 
 class PasswordResetRequestForm(FlaskForm):
-    id = StringField('Name/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
+    id = StringField('Id/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
     submit = SubmitField('Reset password')
 
 

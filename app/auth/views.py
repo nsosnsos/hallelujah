@@ -16,9 +16,9 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm, ChangeEmailF
 def before_request():
     if current_user.is_authenticated:
         current_user.update_last_seen()
-        # if not current_user.confirmed and request.endpoint and \
-        #        request.blueprint != 'auth' and request.endpoint != 'static':
-        #    return redirect(url_for('auth.unconfirmed'))
+        if not current_user.confirmed and request.endpoint and \
+                request.blueprint != 'auth' and request.endpoint != 'static':
+            return redirect(url_for('auth.unconfirmed'))
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -29,7 +29,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember.data)
             next_url = request.args.get('next')
-            if next_url is None or not next_url.startwith('/'):
+            if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
             return redirect(next_url)
         flash('Invalid user or password.')
@@ -54,7 +54,7 @@ def info():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(name=form.name.data, email=form.email.data, password=form.password.data)
+        user = User(name=form.id.data, email=form.email.data, password=form.password.data)
         db.session.add(user)
         db.session.commit()
         confirm_token = user.get_confirm_token()

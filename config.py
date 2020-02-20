@@ -59,10 +59,11 @@ class Config:
 
     MAIL_SERVER = _CONFIG_PARSER.get('MAIL', 'MAIL_SERVER')
     MAIL_PORT = _CONFIG_PARSER.getint('MAIL', 'MAIL_PORT')
+    MAIL_USE_SSL = _CONFIG_PARSER.getboolean('MAIL', 'MAIL_SSL')
     MAIL_USE_TLS = _CONFIG_PARSER.getboolean('MAIL', 'MAIL_TLS')
-    MAIL_USERNAME = os.environ.get('MAIL_USR', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_USR')
+    MAIL_USERNAME = (os.environ.get('MAIL_USR', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_USR')) \
+        + '@' + MAIL_SERVER[MAIL_SERVER.find('.')+1:]
     MAIL_PASSWORD = os.environ.get('MAIL_PWD', None) or _CONFIG_PARSER.get('MAIL', 'MAIL_PWD')
-    MAIL_ADMIN = MAIL_USERNAME + '@' + MAIL_SERVER[MAIL_SERVER.find('.')+1:]
 
     SITE_NAME = _CONFIG_PARSER.get('SITE', 'SITE_NAME')
     SITE_TITLE = _CONFIG_PARSER.get('SITE', 'SITE_TITLE')
@@ -132,8 +133,8 @@ class ProductionConfig(Config):
             credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
             if getattr(cls, 'MAIL_USE_TLS', None):
                 secure = ()
-        mail_handler = handlers.SMTPHandler(mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT), fromaddr=cls.MAIL_ADMIN,
-                                            toaddrs=[cls.MAIL_ADMIN], subject=cls.SITE_NAME + ' ERROR MESSGAE',
+        mail_handler = handlers.SMTPHandler(mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT), fromaddr=cls.MAIL_USERNAME,
+                                            toaddrs=[cls.MAIL_USERNAME], subject=cls.SITE_NAME + ' ERROR MESSGAE',
                                             credentials=credentials, secure=secure)
         mail_handler.setLevel(logging.ERROR)
         return mail_handler

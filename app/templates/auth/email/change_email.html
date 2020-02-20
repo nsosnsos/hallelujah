@@ -1,5 +1,5 @@
 <p>Dear {{ user.name }},</p>
-<p>To confirm your new email address, <a href="{{ url_for('auth.change_email', token=token, _external=True) }}">click here</a></p>
+<p>To change your email, <a href="{{ url_for('auth.change_email', token=token, _external=True) }}">click here</a>.</p>
 <p>Alternatively, you can copy the following link to your browser:</p>
 <p>{{ url_for('auth.change_email', token=token, _external=True) }}</p>
 <p>Sincerely,</p>

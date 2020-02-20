@@ -3,5 +3,5 @@
 {% block body %}
     author: <script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
     <br>
-    email: {{ config['MAIL_ADMIN'] }}
+    email: {{ config['MAIL_USERNAME'] }}
 {% endblock body %}
