@@ -31,6 +31,7 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
+            flash('Welcome {} coming from {}.'.format(user.name, request.remote_addr))
             return redirect(next_url)
         flash('Invalid user or password.')
     return render_template('auth/login.html', form=form)
@@ -107,6 +108,7 @@ def reset_password(token):
             flash('Your password has been updated.')
             return redirect(url_for('auth.login'))
         else:
+            flash('Invalid request.')
             return redirect(url_for('main.index'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -125,8 +127,6 @@ def request_change_email():
             return redirect(url_for('main.index'))
         else:
             flash('Invalid password.')
-    else:
-        flash('Invalid email.')
     return render_template('auth/change_email.html', form=form)
 
 

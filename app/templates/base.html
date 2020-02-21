@@ -117,14 +117,20 @@
         {% block aside %}
         {% endblock aside %}
     </aside>
-    <body>
-        <div class="bg-light mb-0">
-            <hr class="mt-0">
-            {% block body %}
-            {% endblock body %}
-            <hr class="mb-0">
-        </div>
-    </body>
+    <div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-primary alert-dismissible" role="alert">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        <strong>{{ message }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block body %}
+        {% endblock body %}
+    </div>
     <footer>
         {% block footer %}
         <div class="bg-dark">
