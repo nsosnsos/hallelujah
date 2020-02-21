@@ -62,6 +62,7 @@ def register():
         send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
         flash('A confirmation email has been sent to you, please confirm by the email link.')
         return redirect(url_for('auth.login'))
+    flash('Invalid data, please check it again.')
     return render_template('auth/register.html', form=form)
 
 
@@ -78,6 +79,7 @@ def change_password():
             return redirect(url_for('main.index'))
         else:
             flash('Invalid password.')
+    flash('Invalid data, please check it again.')
     return render_template('auth/change_password.html', form=form)
 
 
@@ -94,6 +96,7 @@ def request_reset_password():
                        site_name=current_app.config['SITE_NAME'], user=user, token=token)
             flash('An email with instructions to reset your password has been sent to you.')
             return redirect(url_for('auth.login'))
+    flash('Invalid data, please check it again.')
     return render_template('auth/reset_password.html', form=form)
 
 
@@ -110,6 +113,7 @@ def reset_password(token):
         else:
             flash('Invalid request.')
             return redirect(url_for('main.index'))
+    flash('Invalid data, please check it again.')
     return render_template('auth/reset_password.html', form=form)
 
 
@@ -127,6 +131,7 @@ def request_change_email():
             return redirect(url_for('main.index'))
         else:
             flash('Invalid password.')
+    flash('Invalid data, please check it again.')
     return render_template('auth/change_email.html', form=form)
 
 
@@ -158,7 +163,7 @@ def request_confirm():
 @login_required
 def confirm(token):
     if current_user.confirmed:
-        return redirect(url_for('main.index'))
+        flash('Your account has already been confirmed.')
     if current_user.confirm(token):
         db.session.commit()
         flash('Your account has been confirmed.')
