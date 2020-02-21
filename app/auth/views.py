@@ -31,7 +31,7 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
-            flash('Welcome {} coming from {}.'.format(user.name, request.remote_addr))
+            flash('Welcome {} [{}].'.format(user.name, request.remote_addr))
             return redirect(next_url)
         flash('Invalid user or password.')
     return render_template('auth/login.html', form=form)
@@ -62,7 +62,6 @@ def register():
         send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
         flash('A confirmation email has been sent to you, please confirm by the email link.')
         return redirect(url_for('auth.login'))
-    flash('Invalid data, please check it again.')
     return render_template('auth/register.html', form=form)
 
 
@@ -77,9 +76,7 @@ def change_password():
             db.session.commit()
             flash('Your password has been updated.')
             return redirect(url_for('main.index'))
-        else:
-            flash('Invalid password.')
-    flash('Invalid data, please check it again.')
+        flash('Invalid password.')
     return render_template('auth/change_password.html', form=form)
 
 
@@ -96,7 +93,7 @@ def request_reset_password():
                        site_name=current_app.config['SITE_NAME'], user=user, token=token)
             flash('An email with instructions to reset your password has been sent to you.')
             return redirect(url_for('auth.login'))
-    flash('Invalid data, please check it again.')
+        flash('Invalid user.')
     return render_template('auth/reset_password.html', form=form)
 
 
@@ -113,7 +110,6 @@ def reset_password(token):
         else:
             flash('Invalid request.')
             return redirect(url_for('main.index'))
-    flash('Invalid data, please check it again.')
     return render_template('auth/reset_password.html', form=form)
 
 
@@ -129,9 +125,7 @@ def request_change_email():
                        site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
             flash('An email with instructions to change your email has been sent to you.')
             return redirect(url_for('main.index'))
-        else:
-            flash('Invalid password.')
-    flash('Invalid data, please check it again.')
+        flash('Invalid password.')
     return render_template('auth/change_email.html', form=form)
 
 
