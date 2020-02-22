@@ -7,14 +7,18 @@
 {% endblock head_title %}
 
 {% block body %}
-<div class="page-header">
-    <h1>Hello {{ current_user.name }}!</h1>
-    <h3>You have not confirmed your account yet.</h3>
-    <p>
-        Before you can access {{ config.SITE_NAME }}, you need to confirm account by email.
-    </p>
-    <p>
-        Need the confirmation letter? <a href="{{ url_for('auth.request_confirm') }}">Click here</a>
-    </p>
+<div class="card col-11 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto mt-5 mb-5 bg-light shadow">
+    <div class="card-header row">
+        <h5 class="my-auto"><i class="fas fa-th"></i> Hello {{ current_user.name }}!</h5>
+        <h5 class="my-auto"><small>You have not confirmed your account yet.</small></h5>
+    </div>
+    <div class="card-body mx-auto">
+        <p>
+            Before you can access {{ config.SITE_NAME }}, you need to confirm account by email.
+        </p>
+        <p>
+            Need the confirmation letter? <a href="{{ url_for('auth.request_confirm') }}">Click here</a>
+        </p>
+    </div>
 </div>
 {% endblock body %}

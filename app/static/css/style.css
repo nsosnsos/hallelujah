@@ -3,6 +3,7 @@ body {
   min-height: 100vh;
   position: relative;
   margin: 0;
+  background-color: #f8f9fa;
   padding-bottom: 3rem;
 }
 

@@ -69,7 +69,10 @@ def admin_required(f):
 
 def send_async_email(app, msg):
     with app.app_context():
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            app.config['LOGGER'].error('send_async_email exception: '.format(str(e)))
 
 
 def send_email(to, subject, template, **kwargs):

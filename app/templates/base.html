@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% extends "bootstrap/base.html" %}
 <html lang="en">
     {% block html %}
     <head>
@@ -51,7 +52,7 @@
                 </h1>
                 <p class="my-auto text-capitalize text-center text-light font-weight-bold">
                     <a class="navbar-brand" href="#">
-                        <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid">
+                        <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid rounded-circle">
                     </a>
                     {{ config.SITE_DESCRIPTION }}
                 </p>

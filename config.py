@@ -19,7 +19,7 @@ _CONFIG_PARSER.read(_CONFIG_FILE)
 
 
 def get_logger(log_switch, log_file, log_name):
-    log_format = logging.Formatter('[%(asctime)s]{0}: %(message)s'.format(log_name))
+    log_format = logging.Formatter('[%(asctime)s][{0}]: %(message)s'.format(log_name))
     logger = logging.getLogger(name=log_name)
 
     stream_handler = logging.StreamHandler()

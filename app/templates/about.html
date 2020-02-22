@@ -1,7 +1,28 @@
 <!DOCTYPE html>
 {% extends "base.html" %}
 {% block body %}
-    author: <script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
+
     <br>
-    email: {{ config['MAIL_USERNAME'] }}
+
+<div class="card col-11 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto mt-5 mb-5 bg-light shadow">
+    <div class="card-header row">
+        <h5 class="my-auto"><i class="fas fa-user-secret"></i> Author: <script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script></h5>
+    </div>
+    <div class="card-body mx-auto">
+        <div class="card-title">
+            <p class="my-auto">Administrator: {{ config['SYS_ADMIN'] }}</p>
+        </div>
+        <div class="card-text">
+            <p class="my-auto">Site Name: {{ config['SITE_NAME'] }}</p>
+            <p class="my-auto">Site Title: {{ config['SITE_TITLE'] }}</p>
+            <p class="my-auto">Site Keywords: {{ config['SITE_KEYWORDS'] }}</p>
+            <p class="my-auto">Site Description: {{ config['SITE_DESCRIPTION'] }}</p>
+        </div>
+    </div>
+    <div class="card-footer row text-muted">
+        <div class="container-fluid">
+            <p class="my-auto">Email: {{ config['MAIL_USERNAME'] }}</p>
+        </div>
+    </div>
+</div>
 {% endblock body %}

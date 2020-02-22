@@ -168,7 +168,8 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except SignatureExpired:
+        except (SignatureExpired, Exception) as e:
+            Config.LOGGER.error('reset_password exception: {}'.format(str(e)))
             return False
         user = User.query.get(data.get('password_reset', None))
         if not user:
@@ -186,7 +187,8 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except SignatureExpired:
+        except (SignatureExpired, Exception) as e:
+            Config.LOGGER.error('confirm exception: {}'.format(str(e)))
             return False
         if data.get('confirm') != self.id:
             return False
@@ -202,7 +204,8 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.decode('utf-8'))
-        except SignatureExpired:
+        except (SignatureExpired, Exception) as e:
+            Config.LOGGER.error('change_email exception: {}'.format(str(e)))
             return False
         if data.get('email_change') != self.id:
             return False

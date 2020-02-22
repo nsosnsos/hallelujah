@@ -9,21 +9,26 @@ from ..models import User
 
 
 class LoginForm(FlaskForm):
-    id = StringField('Id/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
-    password = PasswordField('Password', validators=[DataRequired()])
+    id = StringField('Username/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)],
+                     render_kw={'autofocus': True, 'placeholder': 'Username or Email'})
+    password = PasswordField('Password', validators=[DataRequired()], render_kw={'placeholder': 'Password'})
     remember = BooleanField('Keep me login in')
     submit = SubmitField('Login')
 
 
 class RegistrationForm(FlaskForm):
-    id = StringField('Id', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
+    id = StringField('Username', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
                      Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
-                            'having only letters, numbers, dots or underscores.')])
-    email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
-    password = PasswordField('Password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
+                            'having only letters, numbers, dots or underscores.')],
+                     render_kw={'autofocus': True, 'placeholder': 'Username'})
+    email = StringField('Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()],
+                        render_kw={'placeholder': 'Email'})
+    password = PasswordField('Password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)],
+                             render_kw={'placeholder': 'Password'})
     confirm_password = PasswordField('Confirm password',
                                      validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
-                                                 EqualTo('password', message='Passwords must match.')])
+                                                 EqualTo('password', message='Passwords must match.')],
+                                     render_kw={'placeholder': 'Confirm password'})
     submit = SubmitField('Register')
 
     def validate_id(self, field):
@@ -36,30 +41,38 @@ class RegistrationForm(FlaskForm):
 
 
 class ChangePasswordForm(FlaskForm):
-    old_password = PasswordField('Old password', validators=[DataRequired()])
-    new_password = PasswordField('New password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
+    old_password = PasswordField('Old password', validators=[DataRequired()],
+                                 render_kw={'autofocus': True, 'placeholder': 'Old password'})
+    new_password = PasswordField('New password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)],
+                                 render_kw={'placeholder': 'New password'})
     confirm_new_password = PasswordField('Confirm new password',
                                          validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
-                                                     EqualTo('new_password', message='Passwords mush match.')])
+                                                     EqualTo('new_password', message='Passwords mush match.')],
+                                         render_kw={'placeholder': 'Confirm new password'})
     submit = SubmitField('Change password')
 
 
 class PasswordResetRequestForm(FlaskForm):
-    id = StringField('Id/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
+    id = StringField('Username/Email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)],
+                     render_kw={'autofocus': True, 'placeholder': 'Username or Email'})
     submit = SubmitField('Reset password')
 
 
 class PasswordResetForm(FlaskForm):
-    new_password = PasswordField('New password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)])
+    new_password = PasswordField('New password', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN)],
+                                 render_kw={'autofocus': True, 'placeholder': 'New password'})
     confirm_new_password = PasswordField('Confirm new password',
                                          validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
-                                                     EqualTo('new_password', message='Passwords mush match.')])
+                                                     EqualTo('new_password', message='Passwords mush match.')],
+                                         render_kw={'placeholder': 'Confirm new password'})
     submit = SubmitField('Reset password')
 
 
 class ChangeEmailForm(FlaskForm):
-    new_email = StringField('New email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    new_email = StringField('New email', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN), Email()],
+                            render_kw={'autofocus': True, 'placeholder': 'New email'})
+    password = PasswordField('Password', validators=[DataRequired()],
+                             render_kw={'placeholder': 'Password'})
     submit = SubmitField('Change email')
 
     @staticmethod

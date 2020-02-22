@@ -7,15 +7,25 @@
 {% endblock head_title %}
 
 {% block body %}
-<div class="page-header">
-    <h1>User Info</h1>
-</div>
-<div class="col-md-4">
-    <p>ID: {{ current_user.name}}</p>
-    <p>Email: {{ current_user.email}}</p>
-    <p>
-        <a href="{{ url_for('auth.change_password') }}">Change Password</a>
-        <a href="{{ url_for('auth.request_change_email') }}">Change Email</a>
-    </p>
+<div class="card col-11 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto mt-5 mb-5 bg-light shadow">
+    <div class="card-header row">
+        <h5 class="my-auto"><i class="fas fa-th"></i> {{ current_user.name}}</h5>
+    </div>
+    <div class="card-body mx-auto">
+        <div class="card-title">
+            Description: {{ current_user.description }}
+        </div>
+        <div class="card-text">
+            Email: {{ current_user.email}}
+        </div>
+    </div>
+    <div class="card-footer row text-muted">
+        <div class="container-fluid">
+            <a href="{{ url_for('auth.change_password') }}">Change Password</a>
+        </div>
+        <div class="container-fluid">
+            <a href="{{ url_for('auth.request_change_email') }}">Change Email</a>
+        </div>
+    </div>
 </div>
 {% endblock body %}
