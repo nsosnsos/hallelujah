@@ -67,7 +67,7 @@
             </button>
             <div class="collapse navbar-collapse" id="CollapsingNavbar">
                 <ul class="nav navbar-nav align-items-center">
-                    <li class="{{ 'nav-item active' if request.path == '/' or request.path == '/index/' else 'nav-item' }}">
+                    <li class="{{ 'nav-item active' if request.path == '/' or request.path == '/index' else 'nav-item' }}">
                         <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
                     </li>
                     <li class="nav-item">
@@ -79,7 +79,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i> Diary</a>
                     </li>
-                    <li class="{{ 'nav-item active' if request.path == '/about/' else 'nav-item' }}">
+                    <li class="{{ 'nav-item active' if request.path == '/about' else 'nav-item' }}">
                         <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i> About</a>
                     </li>
                     <li class="nav-item">
