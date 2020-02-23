@@ -1,8 +1,9 @@
 # !/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from flask import current_app, request, render_template
+from flask import current_app, request, render_template, redirect, url_for
 
+from ..utilities import split_key_words, string_to_url
 from . import main
 from app.models import Blog
 
@@ -20,3 +21,10 @@ def index():
 @main.route('/about')
 def about():
     return render_template('about.html')
+
+
+@main.route('/search', methods=['GET', 'POST'])
+def search():
+    data = request.form.get('search', None)
+    keywords = string_to_url(' '.join(split_key_words(data))) if data else None
+    return render_template('search.html', keywords=keywords)
