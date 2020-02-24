@@ -6,8 +6,8 @@ from flask import Blueprint
 main = Blueprint(name='main', import_name=__name__)
 
 try:
-    from . import views, errors
     from ..models import Permission
+    from . import views, errors
 except Exception:
     raise
 

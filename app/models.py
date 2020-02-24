@@ -13,9 +13,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
 
+from config import Config
 from . import db, loginMgr, whoosh
 from .utilities import Permission, split_key_words, markdown2html, unused_param
-from config import Config
 
 
 class RoleName:
@@ -219,6 +219,20 @@ class User(UserMixin, db.Model):
         self.avatar_hash = self.generate_avatar_hash()
         db.session.add(self)
         return True
+
+    def get_auth_token(self, expiration=Config.EXPIRATION_TIME):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'auth': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.decode('utf-8'))
+        except (SignatureExpired, Exception) as e:
+            Config.LOGGER.error('verify_auth_toke exception: {}'.format(str(e)))
+            return None
+        return User.query.get(data.get('auth'))
 
     @property
     def url(self):

@@ -3,8 +3,8 @@
 
 from flask import render_template, request, jsonify
 
-from . import main
 from ..utilities import unused_param
+from . import main
 
 
 @main.app_errorhandler(403)

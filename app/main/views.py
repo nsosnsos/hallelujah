@@ -4,12 +4,12 @@
 from flask import current_app, request, render_template, redirect, url_for
 
 from ..utilities import split_key_words, string_to_url
+from ..models import Blog
 from . import main
-from app.models import Blog
 
 
 @main.route('/')
-@main.route('/index')
+@main.route('/index/')
 def index():
     page_num = request.args.get('page', 1, type=int)
     pagination = Blog.query.order_by(Blog.create_datetime.desc())\
@@ -18,12 +18,12 @@ def index():
     return render_template('index.html', blogs=blogs, pagination=pagination, endpoint='.index')
 
 
-@main.route('/about')
+@main.route('/about/')
 def about():
     return render_template('about.html')
 
 
-@main.route('/search', methods=['GET', 'POST'])
+@main.route('/search/', methods=['GET', 'POST'])
 def search():
     data = request.form.get('search', None)
     keywords = string_to_url(' '.join(split_key_words(data))) if data else None

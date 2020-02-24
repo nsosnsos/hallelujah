@@ -4,14 +4,14 @@ body {
   position: relative;
   margin: 0;
   background-color: #f8f9fa;
-  padding-bottom: 3rem;
+  padding-bottom: 3.0625rem;
 }
 
 footer {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 3rem;
+  height: 3.0625rem;
 }
 
 /* banner height 6rem */

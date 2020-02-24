@@ -21,7 +21,7 @@ def before_request():
             return redirect(url_for('auth.unconfirmed'))
 
 
-@auth.route('/login', methods=['GET', 'POST'])
+@auth.route('/login/', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -37,7 +37,7 @@ def login():
     return render_template('auth/login.html', form=form)
 
 
-@auth.route('/logout')
+@auth.route('/logout/')
 @login_required
 def logout():
     logout_user()
@@ -45,13 +45,13 @@ def logout():
     return redirect(url_for('main.index'))
 
 
-@auth.route('/info')
+@auth.route('/info/')
 @login_required
 def info():
     return render_template('auth/info.html')
 
 
-@auth.route('/register', methods=['GET', 'POST'])
+@auth.route('/register/', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -65,7 +65,7 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
-@auth.route('/change_password', methods=['GET', 'POST'])
+@auth.route('/change_password/', methods=['GET', 'POST'])
 @login_required
 def change_password():
     form = ChangePasswordForm()
@@ -80,7 +80,7 @@ def change_password():
     return render_template('auth/change_password.html', form=form)
 
 
-@auth.route('/reset_password', methods=['GET', 'POST'])
+@auth.route('/reset_password/', methods=['GET', 'POST'])
 def request_reset_password():
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
@@ -113,7 +113,7 @@ def reset_password(token):
     return render_template('auth/reset_password.html', form=form)
 
 
-@auth.route('/change_email', methods=['GET', 'POST'])
+@auth.route('/change_email/', methods=['GET', 'POST'])
 @login_required
 def request_change_email():
     form = ChangeEmailForm()
@@ -140,7 +140,7 @@ def change_email(token):
     return redirect(url_for('main.index'))
 
 
-@auth.route('/confirm')
+@auth.route('/confirm/')
 @login_required
 def request_confirm():
     if current_user.confirmed:
@@ -166,7 +166,7 @@ def confirm(token):
     return redirect(url_for('main.index'))
 
 
-@auth.route('/unconfirmed')
+@auth.route('/unconfirmed/')
 def unconfirmed():
     if current_user.is_anonymous or current_user.confirmed:
         return redirect(url_for('main.index'))
