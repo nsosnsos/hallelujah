@@ -236,15 +236,15 @@ class User(UserMixin, db.Model):
 
     @property
     def url(self):
-        return url_for('api.get_user', id=self.id)
+        return url_for('api.get_user', name=self.name)
 
     @property
     def blogs_url(self):
-        return url_for('api.get_user_blogs', id=self.id)
+        return url_for('api.get_user_blogs', name=self.name)
 
     @property
     def followed_blogs_url(self):
-        return url_for('api.get_user_followed_blogs', id=self.id)
+        return url_for('api.get_user_followed_blogs', name=self.name)
 
     def to_json(self):
         json_str = {
@@ -528,10 +528,19 @@ class Blog(db.Model):
 
     @staticmethod
     def from_json(json_str):
+        category_id = json_str.get('category_id', None)
+        if category_id is None:
+            raise ValidationError('json blog does not have category_id')
+        is_private = json_str.get('is_private', None)
+        if is_private is None:
+            raise ValidationError('json blog does not have is_private')
+        title = json_str.get('title', None)
+        if title is None or title == '':
+            raise ValidationError('json blog does not have title')
         content = json_str.get('content', None)
         if content is None or content == '':
             raise ValidationError('json blog does not have content')
-        return Blog(content=content)
+        return Blog(category_id=category_id, is_private=is_private, title=title, content=content)
 
     @property
     def has_more(self):

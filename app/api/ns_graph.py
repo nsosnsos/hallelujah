@@ -16,7 +16,7 @@ from . import ns_datanalysis
 from config import Config
 
 
-class NsNode(Node):
+class __NsNode(Node):
     @property
     def alarm_pos(self):
         return self.__alarm_pos
@@ -257,7 +257,7 @@ def __node_graph_test():
     return
 
 
-def graph_cycle_test():
+def __graph_cycle_test():
     link_cols = [u'SRC_ID', u'SRC_TYPE', u'DST_ID', u'DST_TYPE']
     matrix = [[1, 'A', 2, 'A'], [2, 'A', 1, 'A'], [1, 'A', 3, 'A'], [3, 'A', 1, 'A'],
               [2, 'A', 3, 'A'], [3, 'A', 2, 'A'], [2, 'A', 4, 'B'], [5, 'B', 2, 'A'],
