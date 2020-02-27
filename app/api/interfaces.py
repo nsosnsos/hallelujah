@@ -4,7 +4,7 @@
 from flask import jsonify, request, g, current_app, url_for
 
 from .. import db
-from ..models import User, Blog
+from ..models import User, Blog, Comment
 from ..utilities import Permission
 from . import api
 from .authentication import permission_required
@@ -85,14 +85,6 @@ def get_blogs():
     })
 
 
-@api.route('/blogs/<int:blog_id>')
-def get_blog(blog_id):
-    blog = Blog.query.get_or_404(blog_id)
-    if blog.is_private and blog.user_id != g.current_user.id:
-        return forbidden('Insufficient permissions')
-    return jsonify(blog.to_json())
-
-
 @api.route('/blogs/', methods=['POST'])
 @permission_required(Permission.BLOG)
 def new_blog():
@@ -100,10 +92,17 @@ def new_blog():
     blog.user_id = g.current_user.id
     db.session.add(blog)
     db.session.commit()
-    return jsonify(blog.to_json())
+    return jsonify(blog.to_json()), 201, {'Location': url_for('api.get_blog', blog_id=blog.id)}
 
 
-@api.route('/blogs/<int:id>', methods=['PUT'])
+@api.route('/blogs/<int:blog_id>')
+def get_blog(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    if blog.is_private and blog.user_id != g.current_user.id:
+        return forbidden('Insufficient permissions')
+
+
+@api.route('/blogs/<int:blog_id>', methods=['PUT'])
 @permission_required(Permission.BLOG)
 def edit_blog(blog_id):
     blog = Blog.query.get_or_404(blog_id)
@@ -116,3 +115,66 @@ def edit_blog(blog_id):
     db.session.add(blog)
     db.session.commit()
     return jsonify(blog.to_json())
+
+
+@api.route('/blogs/<int:blog_id>/comments/')
+def get_blog_comments(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    if blog.is_private and blog.user_id != g.current_user.id:
+        return forbidden('Insufficient permissions')
+    page = request.args.get('page', 1, type=int)
+    pagination = blog.comments.query.order_by(Comment.datetime.desc()).paginate(
+        page, per_page=current_app.config['SYS_ITEMS_PER_PAGE'], error_out=False)
+    comments = pagination.items
+    prev_page = None
+    if pagination.has_prev:
+        prev_page = url_for('api.get_blogs', page=page-1)
+    next_page = None
+    if pagination.has_next:
+        next_page = url_for('api.get_blogs', page=page+1)
+    return jsonify({
+        'comments': [comment.to_json() for comment in comments],
+        'prev': prev_page,
+        'next': next_page,
+        'count': pagination.total,
+    })
+
+
+@api.route('/blogs/<int:blog_id>/comment', methods=['POST'])
+@permission_required(Permission.COMMENT)
+def new_blog_comment(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    if blog.is_private and blog.user_id != g.current_user.id:
+        return forbidden('Insufficient permissions')
+    comment = Comment.from_json(request.json)
+    comment.user_id = g.current_user.id
+    comment.blog_id = blog_id
+    db.session.add(comment)
+    db.session.commit()
+    return jsonify(comment.to_json()), 201, {'Location': url_for('api.get_comment', comment_id=comment.id)}
+
+
+@api.route('/comments/', methods=['POST'])
+def get_comments():
+    page = request.args.get('page', 1, type=int)
+    pagination = Comment.query.order_by(Comment.datetime.desc()).paginate(
+        page, per_page=current_app.config['SYS_ITEMS_PER_PAGE'], error_out=False)
+    comments = pagination.items
+    prev_page = None
+    if pagination.has_prev:
+        prev_page = url_for('api.get_comments', page=page-1)
+    next_page = None
+    if pagination.has_next:
+        next_page = url_for('api.get_comments', page=page+1)
+    return jsonify({
+        'comments': [comment.to_json() for comment in comments],
+        'prev': prev_page,
+        'next': next_page,
+        'count': pagination.total,
+    })
+
+
+@api.route('/comments/<int:comment_id>', methods=['POST'])
+def get_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    return jsonify(comment.to_json())

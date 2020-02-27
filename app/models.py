@@ -683,5 +683,8 @@ class Comment(db.Model):
     def from_json(json_str):
         content = json_str.get('content', None)
         if content is None or content == '':
-            raise ValidationError('json blog does not have content')
-        return Comment(content=content)
+            raise ValidationError('json comment does not have content')
+        reply_to = Comment.query.get(json_str.get('reply_to', None))
+        if reply_to is None:
+            raise ValidationError('json comment does not have reply_to')
+        return Comment(content=content, reply_to=reply_to)
