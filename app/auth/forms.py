@@ -76,7 +76,6 @@ class ChangeEmailForm(FlaskForm):
                              render_kw={'placeholder': 'Password'})
     submit = SubmitField('Change email')
 
-    @staticmethod
-    def validate_email(self, field):
+    def validate_new_email(self, field):
         if not self.is_submitted() or User.query.filter_by(email=field.data.lower()).first():
             raise ValidationError('Email already registered.')
