@@ -6,6 +6,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
+from flask_babel import Babel, lazy_gettext as _l
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
 from flask_whooshee import Whooshee
@@ -18,6 +19,7 @@ bootstrap = Bootstrap()
 loginMgr = LoginManager()
 mail = Mail()
 moment = Moment()
+babel = Babel()
 pagedown = PageDown()
 db = SQLAlchemy()
 whoosh = Whooshee()
@@ -30,7 +32,7 @@ def create_app(config_name='default'):
     config[config_name].init_app(app)
 
     loginMgr.login_view = 'auth.login'
-    loginMgr.login_message = 'Unauthorized User'
+    loginMgr.login_message = _l('Unauthorized User')
     loginMgr.login_message_category = 'info'
     loginMgr.session_protection = 'strong'
 
@@ -38,6 +40,7 @@ def create_app(config_name='default'):
     loginMgr.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
+    babel.init_app(app)
     pagedown.init_app(app)
     db.init_app(app)
     whoosh.init_app(app)

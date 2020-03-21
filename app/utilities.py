@@ -3,13 +3,13 @@
 
 import bleach
 from markdown import markdown
-from flask import abort, current_app, render_template
+from flask import abort, current_app, render_template, g, request
 from flask_login import current_user
 from flask_mail import Message
 from functools import wraps
 from threading import Thread
 
-from . import mail
+from . import mail, babel
 
 
 class Permission:
@@ -88,3 +88,19 @@ def send_email(to, subject, template, **kwargs):
     thread = Thread(target=send_async_email, args=[current_app._get_current_object(), msg])
     thread.start()
     return thread
+
+
+@babel.localeselector
+def get_locale():
+    user = getattr(g, 'user', None)
+    if user is not None:
+        return user.locale
+    config_locales = current_app.config['LOCALES']
+    return request.accept_languages.best_match(config_locales)
+
+
+@babel.timezoneselector
+def get_timezone():
+    user = getattr(g, 'user', None)
+    if user is not None:
+        return user.timezone

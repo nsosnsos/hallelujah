@@ -3,6 +3,8 @@
 
 from flask import render_template, redirect, request, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
+# noinspection PyProtectedMember
+from flask_babel import _
 
 from .. import db
 from ..models import User
@@ -31,9 +33,9 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
-            flash('Welcome {} [{}].'.format(user.name, request.remote_addr))
+            flash(_('Welcome {} from {}, last seen at {}'.format(user.name, request.remote_addr, user.last_seen)))
             return redirect(next_url)
-        flash('Invalid user or password.')
+        flash(_('Invalid user or password.'))
     return render_template('auth/login.html', form=form)
 
 
@@ -41,14 +43,14 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.')
+    flash(_('You have been logged out.'))
     return redirect(url_for('main.index'))
 
 
-@auth.route('/info/')
+@auth.route('/setting/')
 @login_required
-def info():
-    return render_template('auth/info.html')
+def setting():
+    return render_template('auth/setting.html')
 
 
 @auth.route('/register/', methods=['GET', 'POST'])
@@ -60,7 +62,7 @@ def register():
         db.session.commit()
         confirm_token = user.get_confirm_token()
         send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
-        flash('A confirmation email has been sent to you, please confirm by the email link.')
+        flash(_('A confirmation email has been sent to you, please confirm by the email link.'))
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
 
@@ -74,9 +76,9 @@ def change_password():
             current_user.password = form.new_password.data
             db.session.add(current_user)
             db.session.commit()
-            flash('Your password has been updated.')
+            flash(_('Your password has been updated.'))
             return redirect(url_for('main.index'))
-        flash('Invalid password.')
+        flash(_('Invalid password.'))
     return render_template('auth/change_password.html', form=form)
 
 
@@ -91,9 +93,9 @@ def request_reset_password():
             token = user.get_password_reset_token()
             send_email(user.email, 'Reset your password', 'auth/email/reset_password',
                        site_name=current_app.config['SITE_NAME'], user=user, token=token)
-            flash('An email with instructions to reset your password has been sent to you.')
+            flash(_('An email with instructions to reset your password has been sent to you.'))
             return redirect(url_for('auth.login'))
-        flash('Invalid user.')
+        flash(_('Invalid user.'))
     return render_template('auth/reset_password_request.html', form=form)
 
 
@@ -105,10 +107,10 @@ def reset_password(token):
     if form.validate_on_submit():
         if User.reset_password(token, form.new_password.data):
             db.session.commit()
-            flash('Your password has been updated.')
+            flash(_('Your password has been updated.'))
             return redirect(url_for('auth.login'))
         else:
-            flash('Invalid request.')
+            flash(_('Invalid request.'))
             return redirect(url_for('main.index'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -123,9 +125,9 @@ def request_change_email():
             token = current_user.get_email_change_token(new_email)
             send_email(current_user.email, 'Change your email', 'auth/email/change_email',
                        site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
-            flash('An email with instructions to change your email has been sent to you.')
+            flash(_('An email with instructions to change your email has been sent to you.'))
             return redirect(url_for('main.index'))
-        flash('Invalid password.')
+        flash(_('Invalid password.'))
     return render_template('auth/change_email.html', form=form)
 
 
@@ -134,9 +136,9 @@ def request_change_email():
 def change_email(token):
     if current_user.change_email(token):
         db.session.commit()
-        flash('Your email has been updated.')
+        flash(_('Your email has been updated.'))
     else:
-        flash('Invalid request.')
+        flash(_('Invalid request.'))
     return redirect(url_for('main.index'))
 
 
@@ -144,12 +146,12 @@ def change_email(token):
 @login_required
 def request_confirm():
     if current_user.confirmed:
-        flash('Your account has already been confirmed.')
+        flash(_('Your account has already been confirmed.'))
         return redirect(url_for('main.index'))
     token = current_user.get_confirm_token()
     send_email(current_user.email, 'Confirm your account', 'auth/email/confirm',
                site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
-    flash('A confirmation email has been resent to you, please confirm by the email link.')
+    flash(_('A confirmation email has been resent to you, please confirm by the email link.'))
     return redirect(url_for('main.index'))
 
 
@@ -157,12 +159,12 @@ def request_confirm():
 @login_required
 def confirm(token):
     if current_user.confirmed:
-        flash('Your account has already been confirmed.')
+        flash(_('Your account has already been confirmed.'))
     if current_user.confirm(token):
         db.session.commit()
-        flash('Your account has been confirmed.')
+        flash(_('Your account has been confirmed.'))
     else:
-        flash('The confirmation link is invalid or has expired.')
+        flash(_('The confirmation link is invalid or has expired.'))
     return redirect(url_for('main.index'))
 
 

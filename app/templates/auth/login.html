@@ -3,13 +3,13 @@
 
 
 {% block head_title %}
-    {{ config.SITE_NAME }} - Login
+    {{ config.SITE_NAME }} - {{ _('Login') }}
 {% endblock head_title %}
 
 {% block body %}
 <div class="card col-11 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto mt-5 mb-5 bg-light shadow">
     <div class="card-header row">
-        <h5 class="my-auto"><i class="fas fa-th"></i> Login</h5>
+        <h5 class="my-auto"><i class="fas fa-th"></i>{{ _(' Login') }}</h5>
     </div>
     <div class="card-body mx-auto">
         <form method="post" action="" class="form" role="form">
@@ -29,7 +29,7 @@
             </div>
             <div class="checkbox mb-3">
                 <label>
-                    <input id="remember" name="remember" type="checkbox" checked> Keep Login in
+                    <input id="remember" name="remember" type="checkbox" checked>{{ _(' Keep Login in') }}
                 </label>
             </div>
             <input type="submit" name="Submit" class="btn btn-secondary btn-block">
@@ -37,10 +37,14 @@
     </div>
     <div class="card-footer row text-muted">
         <div class="container-fluid">
-            <p class="my-auto">Forget your password? <a href="{{ url_for('auth.request_reset_password') }}">Click here</a> to reset.</p>
+            <p class="my-auto">
+                {{ _('Forget your password? ') }}<a href="{{ url_for('auth.request_reset_password') }}">{{ _('Click here') }}</a>{{ _(' to reset.') }}
+            </p>
         </div>
         <div class="container-fluid">
-            <p class="my-auto">New user? <a href="{{ url_for('auth.register') }}">Click here</a> to register.</p>
+            <p class="my-auto">
+                {{ _('New user? ') }}<a href="{{ url_for('auth.register') }}">{{ _('Click here') }}</a>{{ _(' to register.') }}
+            </p>
         </div>
     </div>
 </div>

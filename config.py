@@ -42,6 +42,7 @@ class Config:
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 1024
     EXPIRATION_TIME = 3600
+    LOCALES = ['en', 'zh', 'zh_CN', 'zh_TW', 'es', 'pt', 'fr', 'de', 'it', 'el', 'ja', 'ko']
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -142,7 +143,6 @@ class ProductionConfig(Config):
     @classmethod
     def init_app(cls, app):
         super().init_app(app)
-        Config.init_app(app)
         app.logger.addHandler(cls.__get_mail_handler())
 
 

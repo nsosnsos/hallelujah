@@ -28,6 +28,7 @@
             <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
             <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script> -->
             <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+            {{ moment.include_moment() }}
             <script type="text/javascript" src="{{ url_for('static', filename='js/style.js') }}"></script>
         {% endblock head_script %}
         <title>
@@ -44,17 +45,23 @@
         {% block header %}
             <div class="banner banner-fluid bg-dark">
                 <h1 class="display-5 my-auto text-capitalize text-center text-light font-weight-bold">
-                    {% if site_title %}
-                        {{ site_title }}
-                    {% else %}
-                        {{ config.SITE_TITLE }}
-                    {% endif %}
+                    {% set title %}
+                        {% if site_title %}
+                            {{ site_title }}
+                        {% else %}
+                            {{ config.SITE_TITLE }}
+                        {% endif %}
+                    {% endset %}
+                    {{ _('%(title)s', title=title) }}
                 </h1>
                 <p class="my-auto text-capitalize text-center text-light font-weight-bold">
                     <a class="navbar-brand" href="#">
                         <img src="{{ url_for('static', filename='img/favicon16.ico') }}" alt="logo" class="img-fluid rounded-circle">
                     </a>
-                    {{ config.SITE_DESCRIPTION }}
+                    {% set description %}
+                        {{ config.SITE_DESCRIPTION }}
+                    {% endset %}
+                    {{ _('%(description)s', description=description) }}
                 </p>
             </div>
         {% endblock header %}
@@ -68,19 +75,19 @@
             <div class="collapse navbar-collapse" id="CollapsingNavbar">
                 <ul class="nav navbar-nav align-items-center">
                     <li class="{{ 'nav-item active' if request.path == '/' or request.path == '/index/' else 'nav-item' }}">
-                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i>{{ _(' Home') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-coffee"></i> Blog</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-coffee"></i>{{ _(' Blog') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-camera"></i> Gallery</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-camera"></i>{{ _(' Gallery') }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i> Diary</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}"><i class="fas fa-key"></i>{{ _(' Diary') }}</a>
                     </li>
                     <li class="{{ 'nav-item active' if request.path == '/about/' else 'nav-item' }}">
-                        <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i> About</a>
+                        <a class="nav-link" href="{{ url_for('main.about') }}"><i class="fas fa-address-book"></i>{{ _(' About') }}</a>
                     </li>
                     <li class="nav-item">
                         <form class="form has-search input-group-sm" action="{{ url_for('main.search') }}" method="post" role="form">
@@ -97,16 +104,16 @@
                             </a>
                             <ul class="dropdown-menu bg-dark" aria-labelledby="DropdownMenu">
                                 <li>
-                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.info') }}" role="button"><i class="fas fa-address-card"></i> Info</a>
+                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.setting') }}" role="button"><i class="fas fa-address-card"></i>{{ _(' Setting') }}</a>
                                 </li>
                                 <li>
-                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.logout') }}" role="button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                                    <a class="btn btn-block btn-sm btn-dark text-left" href="{{ url_for('auth.logout') }}" role="button"><i class="fas fa-sign-out-alt"></i>{{ _(' Logout') }}</a>
                                 </li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="btn btn-sm btn-dark" href="{{ url_for('auth.login') }}" role="button"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            <a class="btn btn-sm btn-dark" href="{{ url_for('auth.login') }}" role="button"><i class="fas fa-sign-in-alt"></i>{{ _(' Login') }}</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -140,7 +147,7 @@
             </div>
             <p class="container-fluid text-center text-muted mb-0">
                 &copy;Copyright <script>document.write(new Date().getFullYear())</script>
-                &reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
+                &nbsp;&reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
                 All Rights Reserved.
             </p>
         {% endblock footer %}

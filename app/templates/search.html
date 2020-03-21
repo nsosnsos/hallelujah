@@ -3,11 +3,11 @@
 {% block body %}
 <div class="card col-11 col-sm-10 col-md-8 col-lg-6 col-xl-4 mx-auto mt-5 mb-5 bg-light shadow">
     <div class="card-header row">
-        <h5 class="my-auto"><i class="fas fa-search"></i> Search</h5>
+        <h5 class="my-auto"><i class="fas fa-search"></i>{{ _(' Search') }}</h5>
     </div>
     <div class="card-body mx-auto">
         <div class="card-title">
-            <p class="my-auto">Result</p>
+            <p class="my-auto">{{ _('Result') }}</p>
         </div>
         <div class="card-text">
             <p class="my-auto">...</p>
@@ -18,9 +18,9 @@
         <div class="container-fluid">
             <p class="my-auto">
                 {% if keywords %}
-                    <a href="https://www.google.com/search?q={{ keywords }}" target="_blank" rel="noopener">Search on google</a>
+                    <a href="https://www.google.com/search?q={{ keywords }}" target="_blank" rel="noopener">{{ _('Search on google') }}</a>
                 {% else %}
-                    <a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">Search on google</a>
+                    <a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">{{ _('Search on google') }}</a>
                 {% endif %}
             </p>
         </div>
