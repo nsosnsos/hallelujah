@@ -228,11 +228,11 @@ def __node_graph_test():
     alarm_a = [1, 2, 3]
     alarm_b = [4, 5, 6]
     alarm_c = [7]
-    a = NsNode('name', parent=None, alarm_list=alarm_a)
-    a1 = NsNode('name', parent=None, alarm_list=alarm_a)
+    a = __NsNode('name', parent=None, alarm_list=alarm_a)
+    a1 = __NsNode('name', parent=None, alarm_list=alarm_a)
     a2 = a
-    b = NsNode('b', parent=a, alarm_list=alarm_b)
-    c = NsNode('c', parent=a, alarm_list=alarm_c)
+    b = __NsNode('b', parent=a, alarm_list=alarm_b)
+    c = __NsNode('c', parent=a, alarm_list=alarm_c)
     print(a is a1)
     print(a is a2)
     print(a == a1)
