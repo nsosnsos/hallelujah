@@ -21,7 +21,7 @@ class EditProfileForm(FlaskForm):
 
 
 class EditProfileAdminForm(FlaskForm):
-    id = StringField('Username', validators=[DataRequired(), Length(5, Config.SHORT_STR_LEN),
+    id = StringField('Username', validators=[DataRequired(), Length(1, Config.SHORT_STR_LEN),
                      Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Username must start with letters, '
                             'having only letters, numbers, dots or underscores.')],
                      render_kw={'autofocus': True, 'placeholder': 'Username'})

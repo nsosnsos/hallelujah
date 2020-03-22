@@ -33,9 +33,9 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
-            flash(_('Welcome {} from {}, last seen at {}'.format(user.name, request.remote_addr, user.last_seen)))
+            flash(_('Welcome {} from {}, last seen on {}'.format(user.name, request.remote_addr, user.last_seen)))
             return redirect(next_url)
-        flash(_('Invalid user or password.'))
+        flash(_('Invalid username or password.'))
     return render_template('auth/login.html', form=form)
 
 
@@ -47,23 +47,30 @@ def logout():
     return redirect(url_for('main.index'))
 
 
-@auth.route('/setting/')
+@auth.route('/profile/')
 @login_required
-def setting():
-    return render_template('auth/setting.html')
+def profile():
+    return render_template('auth/profile.html')
 
 
 @auth.route('/register/', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(name=form.id.data, email=form.email.data, password=form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        confirm_token = user.get_confirm_token()
-        send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
-        flash(_('A confirmation email has been sent to you, please confirm by the email link.'))
-        return redirect(url_for('auth.login'))
+        if User.query.filter_by(name=form.id.data).first():
+            flash(_('This id has already been registered.'))
+        elif User.query.filter_by(email=form.email.data.lower()).first():
+            flash(_('This email has already been registered.'))
+        elif form.password.data != form.confirm_password.data:
+            flash(_('The passwords don\'t match.'))
+        else:
+            user = User(name=form.id.data, email=form.email.data, password=form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            confirm_token = user.get_confirm_token()
+            send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
+            flash(_('Success! A confirmation link has been sent to your email, please confirm your account first!'))
+            return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
 
 
@@ -72,13 +79,16 @@ def register():
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.old_password.data):
-            current_user.password = form.new_password.data
+        if not current_user.verify_password(form.old_password.data):
+            flash(_('Invalid password.'))
+        elif form.password.data != form.confirm_password.data:
+            flash(_('The passwords don\'t match.'))
+        else:
+            current_user.password = form.password.data
             db.session.add(current_user)
             db.session.commit()
             flash(_('Your password has been updated.'))
             return redirect(url_for('main.index'))
-        flash(_('Invalid password.'))
     return render_template('auth/change_password.html', form=form)
 
 
@@ -89,13 +99,14 @@ def request_reset_password():
     form = PasswordResetRequestForm()
     if form.validate_on_submit():
         user = User.query.filter(db.or_(User.email == form.id.data.lower(), User.name == form.id.data)).first()
-        if user:
+        if not user:
+            flash(_('Invalid user.'))
+        else:
             token = user.get_password_reset_token()
             send_email(user.email, 'Reset your password', 'auth/email/reset_password',
                        site_name=current_app.config['SITE_NAME'], user=user, token=token)
             flash(_('An email with instructions to reset your password has been sent to you.'))
             return redirect(url_for('auth.login'))
-        flash(_('Invalid user.'))
     return render_template('auth/reset_password_request.html', form=form)
 
 
@@ -105,7 +116,9 @@ def reset_password(token):
         return redirect(url_for('main.index'))
     form = PasswordResetForm()
     if form.validate_on_submit():
-        if User.reset_password(token, form.new_password.data):
+        if form.password.data != form.confirm_password.data:
+            flash(_('The passwords don\'t match.'))
+        if User.reset_password(token, form.password.data):
             db.session.commit()
             flash(_('Your password has been updated.'))
             return redirect(url_for('auth.login'))
@@ -120,14 +133,17 @@ def reset_password(token):
 def request_change_email():
     form = ChangeEmailForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.password.data):
+        if not current_user.verify_password(form.password.data):
+            flash(_('Invalid password.'))
+        elif User.query.filter_by(email=form.new_email.data.lower()).first():
+            flash(_('This email has already been registered.'))
+        else:
             new_email = form.new_email.data.lower()
             token = current_user.get_email_change_token(new_email)
             send_email(current_user.email, 'Change your email', 'auth/email/change_email',
                        site_name=current_app.config['SITE_NAME'], user=current_user, token=token)
             flash(_('An email with instructions to change your email has been sent to you.'))
             return redirect(url_for('main.index'))
-        flash(_('Invalid password.'))
     return render_template('auth/change_email.html', form=form)
 
 

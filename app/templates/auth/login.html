@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% import "forms.html" as wtf %}
 
 
 {% block head_title %}
@@ -12,27 +12,27 @@
         <h5 class="my-auto"><i class="fas fa-th"></i>{{ _(' Login') }}</h5>
     </div>
     <div class="card-body mx-auto">
-        <form method="post" action="" class="form" role="form">
+        <form method="post" role="form" action="" class="form needs-validation" novalidate>
             {{ form.hidden_tag() }}
             {{ wtf.form_errors(form, hiddens="only") }}
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                 </div>
-                <input autofocus="" class="form-control" id="id" name="id" placeholder="Username/Email" required="" type="text" value="">
+                {{ wtf.form_field(form.id) }}
+                <div class="invalid-feedback">{{ _('Please input valid username or email.') }}</div>
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                 </div>
-                <input class="form-control" id="password" name="password" placeholder="Password" required="" type="password" value="">
+                {{ wtf.form_field(form.password) }}
+                <div class="invalid-feedback">{{ _('Password should be more than 6 characters without space.') }}</div>
             </div>
             <div class="checkbox mb-3">
-                <label>
-                    <input id="remember" name="remember" type="checkbox" checked>{{ _(' Keep Login in') }}
-                </label>
+                {{ wtf.form_field(form.remember) }}
             </div>
-            <input type="submit" name="Submit" class="btn btn-secondary btn-block">
+            {{ wtf.form_field(form.submit, class="btn btn-secondary btn-block") }}
         </form>
     </div>
     <div class="card-footer row text-muted">

@@ -39,6 +39,7 @@ class Config:
     CSRF_ENABLED = True
     SECRET_KEY = os.urandom(32)
     LOCALHOST = '127.0.0.1'
+    MIN_STR_LEN = 5
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 1024
     EXPIRATION_TIME = 3600
