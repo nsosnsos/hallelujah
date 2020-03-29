@@ -1,3 +1,9 @@
+<!-- form.html is used for form_field rendering,
+     original from bootstrap/wtf.html in flask_bootstrap/templates.
+     Changes: 1. Remove from-group div with field error, field flags for normal form field.
+              2. Remove field label for normal form field.
+-->
+
 {% macro form_errors(form, hiddens=True) %}
   {%- if form.errors %}
     {%- for fieldname, errors in form.errors.items() %}
@@ -83,50 +89,55 @@ the necessary fix for required=False attributes, but will also not set the requi
     {%- endfor %}
   </fieldset>
 {% else -%}
-  {%- if form_type == "inline" %}
-    {{field.label(class="sr-only")|safe}}
-    {% if field.type == 'FileField' %}
-      {{field(**kwargs)|safe}}
-    {% else %}
-      {{field(class="form-control", **kwargs)|safe}}
-    {% endif %}
-  {% elif form_type == "horizontal" %}
-    {{field.label(class="control-label " + (
-      " col-%s-%s" % horizontal_columns[0:2]
-    ))|safe}}
-    <div class=" col-{{horizontal_columns[0]}}-{{horizontal_columns[2]}}">
-      {% if field.type == 'FileField' %}
-        {{field(**kwargs)|safe}}
-      {% else %}
-        {{field(class="form-control", **kwargs)|safe}}
-      {% endif %}
-    </div>
-    {%- if field.errors %}
-      {%- for error in field.errors %}
-        {% call _hz_form_wrap(horizontal_columns, form_type, required=required) %}
-          <p class="help-block">{{error}}</p>
-        {% endcall %}
-      {%- endfor %}
-    {%- elif field.description -%}
-      {% call _hz_form_wrap(horizontal_columns, form_type, required=required) %}
-        <p class="help-block">{{field.description|safe}}</p>
-      {% endcall %}
-    {%- endif %}
-  {%- else -%}
-    {% if field.type == 'FileField' %}
-      {{field(**kwargs)|safe}}
-    {% else %}
-      {{field(class="form-control", **kwargs)|safe}}
-    {% endif %}
+  <!-- <div class="form-group {% if field.errors %} has-error{% endif -%}
+                         {%- if field.flags.required %} required{% endif -%}
+  "> -->
+      {%- if form_type == "inline" %}
+        {{field.label(class="sr-only")|safe}}
+        {% if field.type == 'FileField' %}
+          {{field(**kwargs)|safe}}
+        {% else %}
+          {{field(class="form-control", **kwargs)|safe}}
+        {% endif %}
+      {% elif form_type == "horizontal" %}
+        {{field.label(class="control-label " + (
+          " col-%s-%s" % horizontal_columns[0:2]
+        ))|safe}}
+        <div class=" col-{{horizontal_columns[0]}}-{{horizontal_columns[2]}}">
+          {% if field.type == 'FileField' %}
+            {{field(**kwargs)|safe}}
+          {% else %}
+            {{field(class="form-control", **kwargs)|safe}}
+          {% endif %}
+        </div>
+        {%- if field.errors %}
+          {%- for error in field.errors %}
+            {% call _hz_form_wrap(horizontal_columns, form_type, required=required) %}
+              <p class="help-block">{{error}}</p>
+            {% endcall %}
+          {%- endfor %}
+        {%- elif field.description -%}
+          {% call _hz_form_wrap(horizontal_columns, form_type, required=required) %}
+            <p class="help-block">{{field.description|safe}}</p>
+          {% endcall %}
+        {%- endif %}
+      {%- else -%}
+        <!-- {{field.label(class="control-label")|safe}} -->
+        {% if field.type == 'FileField' %}
+          {{field(**kwargs)|safe}}
+        {% else %}
+          {{field(class="form-control", **kwargs)|safe}}
+        {% endif %}
 
-    {%- if field.errors %}
-      {%- for error in field.errors %}
-        <p class="help-block">{{error}}</p>
-      {%- endfor %}
-    {%- elif field.description -%}
-      <p class="help-block">{{field.description|safe}}</p>
-    {%- endif %}
-  {%- endif %}
+        {%- if field.errors %}
+          {%- for error in field.errors %}
+            <p class="help-block">{{error}}</p>
+          {%- endfor %}
+        {%- elif field.description -%}
+          <p class="help-block">{{field.description|safe}}</p>
+        {%- endif %}
+      {%- endif %}
+  <!-- </div> -->d
 {% endif %}
 {% endmacro %}
 
