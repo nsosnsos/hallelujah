@@ -28,7 +28,7 @@
             <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
             <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script> -->
             <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-            {{ moment.include_moment() }}
+            {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales-2.24.0.min.js')) }}
             <script type="text/javascript" src="{{ url_for('static', filename='js/style.js') }}"></script>
         {% endblock head_script %}
         <title>
