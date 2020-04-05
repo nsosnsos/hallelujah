@@ -33,7 +33,7 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
-            flash(_('Welcome {} from {}, last seen at UTC:{}'.format(user.name, request.remote_addr, user.last_seen)))
+            flash(_('Welcome {} from {}, last seen at {} UTC.'.format(user.name, request.remote_addr, user.last_seen)))
             return redirect(next_url)
         flash(_('Invalid username or password.'))
     return render_template('auth/login.html', form=form)
