@@ -1,0 +1,22 @@
+{% for blog in paginations.items %}
+    <div class="card mt-3 bg-light shadow">
+        <div class="card-header row">
+            <h5 class="my-auto">{{ blog.title }}</h5>
+        </div>
+        <div class="card-body mx-auto">
+            <div class="card-title">
+                <p class="my-auto">{{ blog.user.username }}</p>
+            </div>
+            <div class="card-text">
+                <p class="my-auto">{{ blog.content }}</p>
+            </div>
+        </div>
+        <div class="card-footer row text-muted">
+            <div class="container-fluid">
+                <p class="my-auto">
+                    {{ _('Posted at: %(datetime)s', datetime=moment(blog.create_datetime).format('LLLL')) }}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endfor %}

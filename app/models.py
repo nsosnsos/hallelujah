@@ -10,7 +10,7 @@ from flask_login import UserMixin, AnonymousUserMixin
 from flask_sqlalchemy import BaseQuery
 from wtforms import ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
-from jinja2.filters import do_striptags, do_truncate
+from jinja2.filters import do_striptags
 from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Serializer
 
 from config import Config
@@ -93,8 +93,8 @@ class User(UserMixin, db.Model):
     __table_name__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
-    email = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     description = db.Column(db.Text(), unique=False, nullable=True)
     confirmed = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     password_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
@@ -102,10 +102,12 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), unique=False, nullable=False)
     member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
-    diaries = db.relationship('Diary', backref='user', lazy='dynamic')
+    categories = db.relationship('Category', backref='user', lazy='dynamic')
     blogs = db.relationship('Blog', backref='user', lazy='dynamic')
     galleries = db.relationship('Gallery', backref='user', lazy='dynamic')
+    diaries = db.relationship('Diary', backref='user', lazy='dynamic')
     comments = db.relationship('Comment', backref='user', lazy='dynamic')
+    tags = db.relationship('Tag', backref='user', lazy='dynamic')
     followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'), lazy='dynamic',
                                cascade='all, delete-orphan')
@@ -136,6 +138,7 @@ class User(UserMixin, db.Model):
                     password=current_app.config['SYS_ADMIN'], description=current_app.config['SYS_ADMIN'])
         db.session.add(user)
         db.session.commit()
+        return user.id
 
     @staticmethod
     def add_self_follows():
@@ -300,39 +303,48 @@ class User(UserMixin, db.Model):
             db.session.add(f)
 
     @property
-    def self_diary(self):
-        return Diary.query.filter(Diary.user_id == self.id)
+    def self_blogs(self):
+        return Blog.query.filter(Blog.user_id == self.id)
 
     @property
-    def self_gallery(self):
+    def self_galleries(self):
         return Gallery.query.filter(Gallery.user_id == self.id)
 
     @property
-    def self_blog(self):
-        return Blog.query.filter(Blog.user_id == self.id)
+    def self_diaries(self):
+        return Diary.query.filter(Diary.user_id == self.id)
 
     @property
     def self_comments(self):
         return Comment.query.filter(Comment.user_id == self.id)
 
     @property
-    def followed_diary(self):
-        return Diary.query.join(Follow, Follow.followed_id == Diary.user_id).filter(
-            (not Diary.is_private) and Follow.follower_id == self.id)
+    def self_tags(self):
+        return Tag.query.filter(Tag.user_id == self.id)
 
     @property
-    def followed_gallery(self):
-        return Gallery.query.join(Follow, Follow.followed_id == Gallery.user_id).filter(
-            (not Gallery.is_private) and Follow.follower_id == self.id)
-
-    @property
-    def followed_blog(self):
+    def followed_blogs(self):
         return Blog.query.join(Follow, Follow.followed_id == Blog.user_id).filter(
             (not Blog.is_private) and Follow.follower_id == self.id)
 
     @property
-    def followed_comment(self):
+    def followed_galleries(self):
+        return Gallery.query.join(Follow, Follow.followed_id == Gallery.user_id).filter(
+            (not Gallery.is_private) and Follow.follower_id == self.id)
+
+    @property
+    def followed_diaries(self):
+        return Diary.query.join(Follow, Follow.followed_id == Diary.user_id).filter(
+            (not Diary.is_private) and Follow.follower_id == self.id)
+
+    @property
+    def followed_comments(self):
         return Comment.query.join(Follow, Follow.followed_id == Comment.user_id).filter(
+            Follow.follower_id == self.id)
+
+    @property
+    def followed_tags(self):
+        return Tag.query.join(Follow, Follow.followed_id == Tag.user_id).filter(
             Follow.follower_id == self.id)
 
 
@@ -358,10 +370,18 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+"""
 blog_tags = db.Table(
     'blog_tags',
     db.Column('blog_id', db.Integer, db.ForeignKey('blog.id', ondelete='CASCADE'), primary_key=True),
     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', ondelete='CASCADE'), primary_key=True))
+"""
+
+
+class BlogTags(db.Model):
+    __table_name__ = 'blog_tags'
+    blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'), primary_key=True)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tag.id'), primary_key=True)
 
 
 class TagQuery(BaseQuery):
@@ -375,7 +395,11 @@ class Tag(db.Model):
     query_class = TagQuery
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
+    blogs = db.relationship('BlogTags', foreign_keys=[BlogTags.tag_id],
+                            backref=db.backref('tags', lazy='joined'), lazy='dynamic',
+                            cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(Tag, self).__init__(**kwargs)
@@ -423,7 +447,8 @@ class Category(db.Model):
     __table_name__ = 'category'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
     parent_id = db.Column(db.Integer(), db.ForeignKey('category.id'), unique=False, nullable=True)
     parent = db.relationship('Category', primaryjoin='Category.parent_id == Category.id',
                              remote_side=id, backref=db.backref('children'))
@@ -439,11 +464,11 @@ class Category(db.Model):
         return self.__repr__()
 
     @staticmethod
-    def insert_categories():
+    def insert_categories(user_id):
         categories = ['ALGORITHM', 'CODE', 'TOOL', 'LIFE']
         for c in categories:
             if not Category.query.filter_by(name=c).first():
-                category = Category(name=c)
+                category = Category(user_id=user_id, name=c)
                 db.session.add(category)
                 db.session.commit()
 
@@ -478,8 +503,8 @@ class Blog(db.Model):
     __rex_more_tag = re.compile(r'<!--more-->', re.I)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), unique=False, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), unique=False, nullable=False, index=True)
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=False)
     create_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     modify_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
@@ -487,7 +512,10 @@ class Blog(db.Model):
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=True)
     summary = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
-    tags = db.relationship(Tag, secondary=blog_tags, backref=db.backref('blogs', lazy='dynamic'), lazy='dynamic')
+    # tags = db.relationship(Tag, secondary=blog_tags, backref=db.backref('blogs', lazy='dynamic'), lazy='dynamic')
+    tags = db.relationship('BlogTags', foreign_keys=[BlogTags.blog_id],
+                           backref=db.backref('blogs', lazy='joined'), lazy='dynamic',
+                           cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref=db.backref('blog', lazy='joined'), lazy='dynamic')
 
     def __init__(self, **kwargs):
@@ -499,6 +527,13 @@ class Blog(db.Model):
     def __str__(self):
         return self.__repr__()
 
+    @staticmethod
+    def __truncate_data(s, length, end='...'):
+        if len(s) <= length:
+            return s
+        result = s[:length - len(end)].rsplit(' ', 1)[0]
+        return result + end
+
     def __generate_info(self, value):
         self.content_html = markdown2html(value)
         if self.summary is None or self.summary.strip() == '':
@@ -507,7 +542,7 @@ class Blog(db.Model):
                 html_data = markdown2html(value[:rex_more_tag_match.start()])
             else:
                 html_data = self.content_html
-            self.summary = do_truncate(do_striptags(html_data), length=Config.LONG_STR_LEN)
+            self.summary = Blog.__truncate_data(do_striptags(html_data), length=Config.LONG_STR_LEN)
             self.modify_datetime = datetime.datetime.utcnow()
 
     def to_json(self):
@@ -528,18 +563,25 @@ class Blog(db.Model):
 
     @staticmethod
     def from_json(json_str):
-        category_id = json_str.get('category_id', None)
-        if category_id is None:
-            raise ValidationError('json blog does not have category_id')
-        is_private = json_str.get('is_private', None)
-        if is_private is None:
-            raise ValidationError('json blog does not have is_private')
-        title = json_str.get('title', None)
-        if title is None or title == '':
-            raise ValidationError('json blog does not have title')
-        content = json_str.get('content', None)
-        if content is None or content == '':
-            raise ValidationError('json blog does not have content')
+        try:
+            user_id = json_str.get('user_id', None)
+            if user_id is None:
+                raise ValidationError('json blog does not have user_id')
+            category_id = json_str.get('category_id', None)
+            if category_id is None:
+                raise ValidationError('json blog does not have category_id')
+            is_private = json_str.get('is_private', None)
+            if is_private is None:
+                raise ValidationError('json blog does not have is_private')
+            title = json_str.get('title', None)
+            if title is None or title == '':
+                raise ValidationError('json blog does not have title')
+            content = json_str.get('content', None)
+            if content is None or content == '':
+                raise ValidationError('json blog does not have content')
+        except ValidationError as e:
+            Config.LOGGER.error('Blog.from_json error: {}'.format(str(e)))
+            return None
         return Blog(category_id=category_id, is_private=is_private, title=title, content=content)
 
     @property
@@ -606,7 +648,7 @@ class Gallery(db.Model):
     __table_name__ = 'gallery'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
@@ -630,7 +672,7 @@ class Diary(db.Model):
     __table_name__ = 'diary'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     __mapper_args__ = {'order_by': [id.asc()]}
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
     is_private = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
@@ -653,11 +695,13 @@ class Diary(db.Model):
 class Comment(db.Model):
     __table_name__ = 'comment'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
-    blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'), unique=False, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
+    blog_id = db.Column(db.Integer, db.ForeignKey('blog.id'), unique=False, nullable=False, index=True)
     content = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
-    reply_to = db.Column(db.Integer, unique=False, nullable=True)
+    parent_id = db.Column(db.Integer(), db.ForeignKey('comment.id'), unique=False, nullable=True)
+    parent = db.relationship('Comment', primaryjoin='Comment.parent_id == Comment.id',
+                             remote_side=id, backref=db.backref('children'))
 
     def __init__(self, **kwargs):
         super(Comment, self).__init__(**kwargs)

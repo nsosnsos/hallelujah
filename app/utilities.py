@@ -42,7 +42,8 @@ def markdown2html(text):
     allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
                     'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
                     'h1', 'h2', 'h3', 'p', 'img']
-    extensions = ['fenced_code', 'codehilite(css_class=highlight, linenums=true)', 'admonition', 'tables', 'extra']
+    # extensions = ['fenced_code', 'codehilite(css_class=highlight, linenums=true)', 'admonition', 'tables', 'extra']
+    extensions = ['fenced_code', 'codehilite', 'admonition', 'tables', 'extra']
     return bleach.linkify(bleach.clean(
         markdown(text, extensions=extensions, output_format='html5'), tags=allowed_tags, strip=True))
 
