@@ -370,6 +370,59 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+class Category(db.Model):
+    __table_name__ = 'category'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    __mapper_args__ = {'order_by': [id.asc()]}
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
+    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
+    parent_id = db.Column(db.Integer(), db.ForeignKey('category.id'), unique=False, nullable=True)
+    parent = db.relationship('Category', primaryjoin='Category.parent_id == Category.id',
+                             remote_side=id, backref=db.backref('children'))
+    blogs = db.relationship('Blog', backref='category', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(Category, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
+
+    def __str__(self):
+        return self.__repr__()
+
+    @staticmethod
+    def insert_categories(user_id):
+        categories = ['ALGORITHM', 'CODE', 'TOOL', 'LIFE']
+        for c in categories:
+            if not Category.query.filter_by(name=c).first():
+                category = Category(user_id=user_id, name=c)
+                db.session.add(category)
+                db.session.commit()
+
+    @property
+    def url(self):
+        return url_for('api.get_category', id=self.id)
+
+    @property
+    def count(self):
+        return Blog.query.public().filter_by(category_id=self.id).count()
+
+    @property
+    def count_all(self):
+        categories = Category.query.all()
+        ids = [c.id for c in categories]
+        return Blog.query.public().filter(Blog.category_id.in_(ids)).count()
+
+    @property
+    def parents(self):
+        cur, parent_list = self, []
+        while cur:
+            parent_list.append(cur)
+            cur = cur.parent
+        parent_list.reverse()
+        return parent_list
+
+
 """
 blog_tags = db.Table(
     'blog_tags',
@@ -441,59 +494,6 @@ class BlogQuery(BaseQuery):
 
         q = reduce(db.and_, cond_list)
         return self.public().filter(q)
-
-
-class Category(db.Model):
-    __table_name__ = 'category'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    __mapper_args__ = {'order_by': [id.asc()]}
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False, index=True)
-    name = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
-    parent_id = db.Column(db.Integer(), db.ForeignKey('category.id'), unique=False, nullable=True)
-    parent = db.relationship('Category', primaryjoin='Category.parent_id == Category.id',
-                             remote_side=id, backref=db.backref('children'))
-    blogs = db.relationship('Blog', backref='category', lazy='dynamic')
-
-    def __init__(self, **kwargs):
-        super(Category, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return '{}: id={}, name={}'.format(self.__class__.__name__, self.id, self.name)
-
-    def __str__(self):
-        return self.__repr__()
-
-    @staticmethod
-    def insert_categories(user_id):
-        categories = ['ALGORITHM', 'CODE', 'TOOL', 'LIFE']
-        for c in categories:
-            if not Category.query.filter_by(name=c).first():
-                category = Category(user_id=user_id, name=c)
-                db.session.add(category)
-                db.session.commit()
-
-    @property
-    def url(self):
-        return url_for('api.get_category', id=self.id)
-
-    @property
-    def count(self):
-        return Blog.query.public().filter_by(category_id=self.id).count()
-
-    @property
-    def count_all(self):
-        categories = Category.query.all()
-        ids = [c.id for c in categories]
-        return Blog.query.public().filter(Blog.category_id.in_(ids)).count()
-
-    @property
-    def parents(self):
-        cur, parent_list = self, []
-        while cur:
-            parent_list.append(cur)
-            cur = cur.parent
-        parent_list.reverse()
-        return parent_list
 
 
 @whoosh.register_model('title', 'content')

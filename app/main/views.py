@@ -1,7 +1,7 @@
 # !/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from flask import current_app, request, render_template, flash, redirect, url_for
+from flask import current_app, request, render_template, flash, redirect
 from flask_login import current_user, login_url
 # noinspection PyProtectedMember
 from flask_babel import _
@@ -20,7 +20,7 @@ def index():
     if current_user.is_authenticated:
         blog_query = current_user.followed_blogs
     else:
-        blog_query = Blog.query.filter(Blog.is_private == 0)
+        blog_query = Blog.query.filter_by(is_private=False)
     paginations = blog_query.order_by(Blog.create_datetime.desc())\
         .paginate(page_num, per_page=current_app.config['SYS_ITEMS_PER_PAGE'], error_out=False)
     return render_template('index.html', paginations=paginations)
