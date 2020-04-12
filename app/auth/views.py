@@ -2,11 +2,11 @@
 # -*- coding:utf-8 -*-
 
 from flask import render_template, redirect, request, url_for, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, login_required, login_url, current_user
 # noinspection PyProtectedMember
 from flask_babel import _
 
-from .. import db
+from .. import db, loginMgr
 from ..models import User
 from ..utilities import send_email
 from . import auth
@@ -70,7 +70,7 @@ def register():
             confirm_token = user.get_confirm_token()
             send_email(user.email, 'Confirm your account', 'auth/email/confirm', user=user, token=confirm_token)
             flash(_('Success! A confirmation link has been sent to your email, please confirm your account first!'))
-            return redirect(url_for('auth.login'))
+            return redirect(login_url(loginMgr.login_view))
     return render_template('auth/register.html', form=form)
 
 
@@ -106,7 +106,7 @@ def request_reset_password():
             send_email(user.email, 'Reset your password', 'auth/email/reset_password',
                        site_name=current_app.config['SITE_NAME'], user=user, token=token)
             flash(_('An email with instructions to reset your password has been sent to you.'))
-            return redirect(url_for('auth.login'))
+            return redirect(login_url(loginMgr.login_view))
     return render_template('auth/reset_password_request.html', form=form)
 
 
@@ -121,7 +121,7 @@ def reset_password(token):
         if User.reset_password(token, form.password.data):
             db.session.commit()
             flash(_('Your password has been updated.'))
-            return redirect(url_for('auth.login'))
+            return redirect(login_url(loginMgr.login_view))
         else:
             flash(_('Invalid request.'))
             return redirect(url_for('main.index'))

@@ -1,4 +1,4 @@
-# dynamic data load when scrolling down to bottom of page
+# dynamic loading data when scrolling down to bottom of page
 $(window).scroll(() => {
   var cur_y = $(window).scrollTop();
   var window_height = $(window).height();

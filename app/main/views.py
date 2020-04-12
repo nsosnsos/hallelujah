@@ -2,10 +2,11 @@
 # -*- coding:utf-8 -*-
 
 from flask import current_app, request, render_template, flash, redirect, url_for
-from flask_login import current_user
+from flask_login import current_user, login_url
 # noinspection PyProtectedMember
 from flask_babel import _
 
+from .. import loginMgr
 from ..utilities import split_key_words, string_to_url
 from ..models import Blog
 from ..api.ns_datanalysis import get_cur_func
@@ -29,7 +30,7 @@ def index():
 def blog():
     if not current_user.is_authenticated:
         flash(_('Please login first.'))
-        return redirect(url_for('auth.login'))
+        return redirect(login_url(loginMgr.login_view, next_url=request.url))
     page_num = request.args.get('page', 1, type=int)
     blog_query = Blog.query.filter(Blog.user_id == current_user.id)
     paginations = blog_query.order_by(Blog.create_datetime.desc())\
