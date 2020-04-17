@@ -15,7 +15,7 @@ from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer as Se
 
 from config import Config
 from . import db, loginMgr, whoosh
-from .utilities import Permission, split_key_words, markdown2html, unused_param
+from .utilities import Permission, split_key_words, string_to_url, markdown2html, unused_param
 
 
 class RoleName:
@@ -509,6 +509,7 @@ class Blog(db.Model):
     create_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     modify_datetime = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
     title = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
+    title_url = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=True)
     summary = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=True)
@@ -535,6 +536,7 @@ class Blog(db.Model):
         return result + end
 
     def __generate_info(self, value):
+        self.title_url = string_to_url(self.title)
         self.content_html = markdown2html(value)
         if self.summary is None or self.summary.strip() == '':
             rex_more_tag_match = Blog.__rex_more_tag.search(value)
@@ -727,8 +729,8 @@ class Comment(db.Model):
     def from_json(json_str):
         content = json_str.get('content', None)
         if content is None or content == '':
-            raise ValidationError('json comment does not have content')
-        reply_to = Comment.query.get(json_str.get('reply_to', None))
-        if reply_to is None:
-            raise ValidationError('json comment does not have reply_to')
-        return Comment(content=content, reply_to=reply_to)
+            raise ValidationError('json comment does not exist')
+        parent_id = Comment.query.get(json_str.get('reply_to', None))
+        if parent_id is None:
+            raise ValidationError('json comment does not match legal reply to')
+        return Comment(content=content, parent_id=parent_id)

@@ -1,6 +1,7 @@
 # !/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import re
 import bleach
 from markdown import markdown
 from flask import abort, current_app, render_template, g, request
@@ -22,20 +23,11 @@ class Permission:
 
 
 def split_key_words(keywords):
-    return keywords.replace(u',', ' ') \
-        .replace(u';', ' ') \
-        .replace(u'+', ' ') \
-        .replace(u'；', ' ') \
-        .replace(u'，', ' ') \
-        .replace(u'　', ' ') \
-        .split(' ')
+    return re.sub(r'[,，;；+　]', ' ', keywords).split(' ')
 
 
-def string_to_url(string):
-    return string.replace(u' ', '+') \
-        .replace(u',', '+') \
-        .replace(u'　', '+') \
-        .replace(u'，', '+')
+def string_to_url(s):
+    return re.sub(r'[，　,.:;\s]', '+', s)
 
 
 def markdown2html(text):
