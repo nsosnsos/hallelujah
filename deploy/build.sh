@@ -5,10 +5,12 @@ set -x
 
 
 svc_name=hallelujah
-deploy_dir=/home/${svc_name}
 
 root_dir=$(dirname "$(dirname "$(readlink -f "${0}")")")
+deploy_dir=${root_dir}
 cert_dir=${deploy_dir}/cert
+cert_file=${cert_dir}/cert.pem
+key_file=${cert_dir}/key.pem
 cert_gen_sh=${root_dir}/deploy/cert_gen.sh
 nginx_conf=${root_dir}/deploy/nginx.conf
 req_pkg_txt=${root_dir}/requirements.txt
@@ -26,10 +28,8 @@ function cert_fail(){
 if [ "$#" -gt 1 ]; then
     usage
 elif [ "$#" -eq 1 ]; then
-    if [ "$1" == "deploy" ]; then
-        op="deploy"
-    elif [ "$1" == "clean" ]; then
-        op="clean"
+    if [ "${1}" == "deploy" ] || [ "${1}" == "clean" ]; then
+        op="${1}"
     else
         usage
     fi
@@ -38,36 +38,39 @@ else
 fi
 
 
-if [ $op == "deploy" ]; then
+if [ ${op} == "deploy" ]; then
     pip3 install -r "${req_pkg_txt}"
 
-    mkdir -p ${cert_dir}
-    cert_file=${cert_dir}/cert.pem
-    key_file=${cert_dir}/key.pem
-	  if [ ! -f ${cert_file} ] || [ ! -f ${key_file} ]; then
-	      if /bin/sh "${cert_gen_sh}" ${cert_dir}; then
-		        cert_fail
-		    fi
-	  fi
+    mkdir -p "${cert_dir}"
+    if [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
+        if ! /bin/sh "${cert_gen_sh}" "${cert_dir}"; then
+            cert_fail
+        else
+            cp -rf "${nginx_conf}" /etc/nginx/sites-available/${svc_name}
+            sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
+            sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
+            ln -sf /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
+            systemctl daemon-reload
+            service nginx restart
+        fi
+    fi
 
-    cp -rf "${nginx_conf}" /etc/nginx/sites-available/${svc_name}
-    sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
-    sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" /etc/nginx/sites-available/${svc_name}
-    ln -sf /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
-    mkdir -p ${deploy_dir}
-    cp -rf "${root_dir}"/app ${deploy_dir}/
-    cp -rf "${root_dir}"/config.py ${deploy_dir}/
-    cp -rf "${root_dir}"/manager.py ${deploy_dir}/
-    cp -rf "${root_dir}"/site.conf ${deploy_dir}/
-    sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" ${deploy_dir}/site.conf
-    sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" ${deploy_dir}/site.conf
-    systemctl daemon-reload
-    service nginx restart
-    cd ${deploy_dir} && python3 ${deploy_dir}/manager.py runserver
+
+    if [ "${deploy_dir}" != "${root_dir}" ]; then
+        mkdir -p "${deploy_dir}"
+        cp -rf "${root_dir}/app" "${deploy_dir}"/
+        cp -rf "${root_dir}"/config.py "${deploy_dir}"/
+        cp -rf "${root_dir}"/manager.py "${deploy_dir}"/
+        cp -rf "${root_dir}"/site.conf "${deploy_dir}"/
+
+        sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" "${deploy_dir}"/site.conf
+        sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" "${deploy_dir}"/site.conf
+    fi
+    cd "${deploy_dir}" && python3 "${deploy_dir}"/manager.py runserver
 else
-    rm -rf ${cert_dir}
+    rm -rf "${cert_dir}"
     rm -rf /etc/nginx/sites-available/${svc_name} /etc/nginx/sites-enabled/${svc_name}
-    rm -rf ${deploy_dir}
+    rm -rf "${deploy_dir}"
     systemctl daemon-reload
     service nginx stop
 fi
