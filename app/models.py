@@ -592,7 +592,7 @@ class Blog(db.Model):
 
     @property
     def url(self):
-        return url_for('api.get_blog', id=self.id)
+        return url_for('api.get_blog', title_url=self.title_url)
 
     @property
     def user_url(self):
@@ -715,8 +715,9 @@ class Comment(db.Model):
         return self.__repr__()
 
     def to_json(self):
+        blog_url = Blog.query.filter_by(id=self.blog_id).first().title_url
         json_str = {
-            'blog_url': url_for('api.get_blog', id=self.blog_id),
+            'blog_url': url_for('api.get_blog', title_url=blog_url),
             'user_id': self.user_url,
             'blog_id': self.blog_id,
             'content': self.content,
