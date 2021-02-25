@@ -76,14 +76,14 @@ def get_blogs():
     if pagination.has_next:
         next_page = url_for('.'.join(('api', get_blogs.__name__)), page=page+1)
     return jsonify({
-        'blogs': [blog.digest_json() for blog in blogs],
+        'blogs': [blog.to_json() for blog in blogs],
         'prev': prev_page,
         'next': next_page,
         'count': pagination.total,
     })
 
 
-@api.route('/get_blog/<str:title_url>')
+@api.route('/get_blog/<title_url>')
 def get_blog(title_url):
     blog = Blog.query.filter_by(title_url=title_url).first()
     if not blog or (blog.is_private and blog.user_id != g.current_user.id):
@@ -102,7 +102,7 @@ def new_blog():
         {'Location': url_for('.'.join(('api', get_blog.__name__)), title_url=blog.title_url)}
 
 
-@api.route('/edit_blog/<str:title_url>', methods=['POST'])
+@api.route('/edit_blog/<title_url>', methods=['POST'])
 @permission_required(Permission.BLOG)
 def edit_blog(title_url):
     blog = Blog.query.filter_by(title_url=title_url).first()
@@ -120,7 +120,7 @@ def edit_blog(title_url):
         {'Location': url_for('.'.join(('api', get_blog.__name__)), title_url=blog.title_url)}
 
 
-@api.route('/delete_blog/<str:title_url>', methods=['POST'])
+@api.route('/delete_blog/<title_url>', methods=['POST'])
 @permission_required(Permission.BLOG)
 def delete_blog(title_url):
     confirm_url = request.json.get('title_url', None)
@@ -136,7 +136,7 @@ def delete_blog(title_url):
     return jsonify({'delete_blog': title_url})
 
 
-@api.route('/get_blog_comments/<str:title_url>')
+@api.route('/get_blog_comments/<title_url>')
 def get_blog_comments(title_url):
     blog = Blog.query.filter_by(title_url=title_url).first()
     if not blog or blog.is_private:
@@ -161,7 +161,7 @@ def get_blog_comments(title_url):
     })
 
 
-@api.route('/get_user_comments/<str:user_name>')
+@api.route('/get_user_comments/<user_name>')
 def get_user_comments(user_name):
     user = User.query.filter_by(name=user_name).first()
     if not user:
@@ -185,7 +185,7 @@ def get_user_comments(user_name):
     })
 
 
-@api.route('/new_blog_comment/<str:title_url>', methods=['POST'])
+@api.route('/new_blog_comment/<title_url>', methods=['POST'])
 @permission_required(Permission.COMMENT)
 def new_blog_comment(title_url):
     blog = Blog.query.filter_by(title_url=title_url).first()
