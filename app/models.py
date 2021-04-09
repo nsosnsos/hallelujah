@@ -325,17 +325,17 @@ class User(UserMixin, db.Model):
     @property
     def followed_blogs(self):
         return Blog.query.join(Follow, Follow.followed_id == Blog.user_id).filter(
-            (not Blog.is_private) and Follow.follower_id == self.id)
+            (Blog.is_private.is_(False)) & (Follow.follower_id == self.id))
 
     @property
     def followed_galleries(self):
         return Gallery.query.join(Follow, Follow.followed_id == Gallery.user_id).filter(
-            (not Gallery.is_private) and Follow.follower_id == self.id)
+            (Gallery.is_private.is_(False)) & (Follow.follower_id == self.id))
 
     @property
     def followed_diaries(self):
         return Diary.query.join(Follow, Follow.followed_id == Diary.user_id).filter(
-            (not Diary.is_private) and Follow.follower_id == self.id)
+            (Diary.is_private.is_(False)) & (Follow.follower_id == self.id))
 
     @property
     def followed_comments(self):
