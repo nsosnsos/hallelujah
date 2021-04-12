@@ -6,9 +6,9 @@ from flask_login import current_user, login_url
 # noinspection PyProtectedMember
 from flask_babel import _
 
-from .. import loginMgr
+from .. import loginMgr, db
 from ..utilities import split_key_words, string_to_url
-from ..models import Blog
+from ..models import Blog, Follow
 from ..api.ns_datanalysis import get_cur_func
 from . import main
 
@@ -17,10 +17,7 @@ from . import main
 @main.route('/index/')
 def index():
     page_num = request.args.get('page', 1, type=int)
-    if current_user.is_authenticated:
-        blog_query = current_user.followed_blogs
-    else:
-        blog_query = Blog.query.filter_by(is_private=False)
+    blog_query = Blog.query.filter_by(is_private=False)
     paginations = blog_query.order_by(Blog.create_datetime.desc())\
         .paginate(page_num, per_page=current_app.config['SYS_ITEMS_PER_PAGE'], error_out=False)
     return render_template('index.html', paginations=paginations)
@@ -32,7 +29,8 @@ def blog():
         flash(_('Please login first.'))
         return redirect(login_url(loginMgr.login_view, next_url=request.url))
     page_num = request.args.get('page', 1, type=int)
-    blog_query = Blog.query.filter(Blog.user_id == current_user.id)
+    sub_query = db.session.query(Follow.followed_id).filter(Follow.follower_id == current_user.id).subquery()
+    blog_query = Blog.query.filter((Blog.user_id == current_user.id) | (Blog.user_id.in_(sub_query)))
     paginations = blog_query.order_by(Blog.create_datetime.desc())\
         .paginate(page_num, per_page=current_app.config['SYS_ITEMS_PER_PAGE'], error_out=False)
     return render_template('blog.html', paginations=paginations)
