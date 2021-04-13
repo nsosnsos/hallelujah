@@ -17,7 +17,6 @@ from .forms import LoginForm, RegistrationForm, ChangePasswordForm, ChangeEmailF
 @auth.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.update_last_seen()
         if not current_user.confirmed and request.endpoint and \
                 request.blueprint != 'auth' and request.endpoint != 'static':
             return redirect(url_for('auth.unconfirmed'))
@@ -33,6 +32,8 @@ def login():
             next_url = request.args.get('next')
             if next_url is None or not next_url.startswith('/'):
                 next_url = url_for('main.index')
+            current_user.update_last_seen()
+            db.session.commit()
             flash(_('Welcome {} from {}, last seen at {} UTC.'.format(user.name, request.remote_addr, user.last_seen)))
             return redirect(next_url)
         flash(_('Invalid username or password.'))
