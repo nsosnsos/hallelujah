@@ -39,10 +39,10 @@ fi
 
 
 if [ ${op} == "deploy" ]; then
-    pip3 install -r "${req_pkg_txt}"
-
-    mkdir -p "${cert_dir}"
-    if [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
+    if [ ! -d "${deploy_dir}" ] || [ ! -f "${cert_file}" ] || [ ! -f "${key_file}" ]; then
+        mkdir -p "${deploy_dir}"
+        mkdir -p "${cert_dir}"
+        pip3 install -r "${req_pkg_txt}"
         if ! /bin/sh "${cert_gen_sh}" "${cert_dir}"; then
             cert_fail
         else
@@ -55,17 +55,13 @@ if [ ${op} == "deploy" ]; then
         fi
     fi
 
+    cp -rf "${root_dir}/app" "${deploy_dir}"/
+    cp -rf "${root_dir}"/config.py "${deploy_dir}"/
+    cp -rf "${root_dir}"/manager.py "${deploy_dir}"/
+    cp -rf "${root_dir}"/site.conf "${deploy_dir}"/
+    sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" "${deploy_dir}"/site.conf
+    sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" "${deploy_dir}"/site.conf
 
-    if [ "${deploy_dir}" != "${root_dir}" ]; then
-        mkdir -p "${deploy_dir}"
-        cp -rf "${root_dir}/app" "${deploy_dir}"/
-        cp -rf "${root_dir}"/config.py "${deploy_dir}"/
-        cp -rf "${root_dir}"/manager.py "${deploy_dir}"/
-        cp -rf "${root_dir}"/site.conf "${deploy_dir}"/
-
-        sed -i -e "s/ssl_cert_path/${cert_file//\//\\/}/g" "${deploy_dir}"/site.conf
-        sed -i -e "s/ssl_key_path/${key_file//\//\\/}/g" "${deploy_dir}"/site.conf
-    fi
     cd "${deploy_dir}" && python3 "${deploy_dir}"/manager.py runserver
 else
     rm -rf "${cert_dir}"
@@ -74,3 +70,4 @@ else
     systemctl daemon-reload
     service nginx stop
 fi
+
