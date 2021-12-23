@@ -9,6 +9,10 @@ from app import create_app, db
 from app.models import Role, User, Category, Blog, Gallery, Diary, Comment, Tag, Follow, BlogTags
 
 
+# Avoid GDK_IS_DISPLAY assertion failure
+import matplotlib
+matplotlib.use('Agg')
+
 app = create_app()
 manager = Manager(app)
 migrate = Migrate(app, db)
