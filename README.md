@@ -14,5 +14,14 @@ based on python 3.7.3
 * deploy
   - python3 manager.py deploy
 
+* generate test data
+  - python3 manager.py shell
+  - from app.fake import fake_users()
+  - from app.fake import fake_blogs()
+  - fake_users(10)
+  - fake_blogs(200)
+  - exit()
+
 * run server
   - sudo deploy/build.sh
+
