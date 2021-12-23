@@ -7,7 +7,7 @@ set -x
 svc_name=hallelujah
 
 root_dir=$(dirname "$(dirname "$(readlink -f "${0}")")")
-deploy_dir=${root_dir}
+deploy_dir=/home/${svc_name}
 cert_dir=${deploy_dir}/cert
 cert_file=${cert_dir}/cert.pem
 key_file=${cert_dir}/key.pem
