@@ -25,9 +25,13 @@ def make_shell_context():
 
 manager.add_command('db', MigrateCommand)
 manager.add_command('shell', Shell(make_context=make_shell_context))
-manager.add_command('runserver', Server(host=app.config['SYS_HOST'], port=app.config['SYS_PORT'],
-                                        use_debugger=app.config['DEBUG'], ssl_crt=app.config['SSL_CRT'],
-                                        ssl_key=app.config['SSL_KEY']))
+if app.config['SSL_SWITCH']:
+    manager.add_command('runserver', Server(host=app.config['SYS_HOST'], port=app.config['SYS_PORT'],
+                                            use_debugger=app.config['DEBUG'], ssl_crt=app.config['SSL_CRT'],
+                                            ssl_key=app.config['SSL_KEY']))
+else:
+    manager.add_command('runserver', Server(host=app.config['SYS_HOST'], port=app.config['SYS_PORT'],
+                                            use_debugger=app.config['DEBUG']))
 
 
 @manager.command
