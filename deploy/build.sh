@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# nginx_conf is set to http version by default.
+
 set -e
 set -x
 
@@ -12,7 +14,7 @@ cert_dir=${deploy_dir}/cert
 cert_file=${cert_dir}/cert.pem
 key_file=${cert_dir}/key.pem
 cert_gen_sh=${root_dir}/deploy/cert_gen.sh
-nginx_conf=${root_dir}/deploy/nginx.conf
+nginx_conf=${root_dir}/deploy/nginx.conf.http
 req_pkg_txt=${root_dir}/requirements.txt
 
 function usage(){

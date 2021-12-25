@@ -6,15 +6,21 @@ upstream hallelujah_backend {
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
+
 	server_name _;
+	index index.html;
+	root /home/hallelujah;
+
 	return 307 https://$host$request_uri;
 }
 
 server {
 	listen 443 ssl;
+
 	server_name _;
 	index index.html;
-	root /root/service;
+	root /home/hallelujah;
+
 	ssl_certificate ssl_cert_path;
 	ssl_certificate_key ssl_key_path;
 	ssl_session_timeout 1d;
@@ -29,6 +35,5 @@ server {
 		proxy_set_header X-Forward-For   $proxy_add_x_forwarded_for;
 		proxy_set_header Connection      "";
 	}
-
 }
 
