@@ -1,27 +1,32 @@
 ## hallelujah
-flask full function website project
-based on python 3.7.3
+### flask website project based on python 3.8.1
 
-## deploy
-* database init
-  - login mysql/mariadb: mysql -u root -p
-  - create database: CREATE DATABASE IF NOT EXISTS hallelujah DEFAULT CHARSET utf8 COLLATE utf8_bin;
-  - python3 manager.py db init
-  - python3 manager.py db migrate -m "init"
-  - python3 manager.py db upgrade
-  - sudo rm -rf migrations
+## about
+* database suport
+  - mysql/mariadb/sqlite
 
-* deploy
-  - python3 manager.py deploy
+* Usage
+  - Initialization, including database creation and add administrator, fake user and fake articles.
+  ```shell
+  bash flasky.sh init
+  ```
+  > You could also manually create database, then use flask migration utility.
+  ```shell
+  flask db init
+  flask db migrate
+  flask db upgrade
+  ```
 
-* generate test data
-  - python3 manager.py shell
-  - from app.fake import fake_users()
-  - from app.fake import fake_blogs()
-  - fake_users(10)
-  - fake_blogs(200)
-  - exit()
-
-* run server
-  - sudo deploy/build.sh
+  - Deploy application.
+  ```shell
+  bash flasky.sh deploy
+  ```
+  - Test application.
+  ```shell
+  bash flasky.sh test
+  ```
+  - Clean on the repository.
+  ```shell
+  bash flasky.sh clean
+  ```
 

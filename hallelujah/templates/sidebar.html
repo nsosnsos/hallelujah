@@ -1,0 +1,69 @@
+<div class="container-fluid">
+    <form class="input-group mb-3" method="post" role="form" action="{{ url_for('main.search', _external=True) }}">
+        <input class="form-control" type="search" id="search" name="search" placeholder="Search" required>
+        <button class="btn btn-primary" type="submit"><i class="bi-search"></i></button>
+    </form>
+</div>
+
+<div class="container-fluid">
+    <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
+        <caption>Favorites</caption>
+        <thead class="table-primary">
+            <tr>
+                <th class="text-center"><strong>Culture</strong></th>
+                <th class="text-center"><strong>Code</strong></th>
+                <th class="text-center"><strong>Fun</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center"><a href="https://www.zdic.net/">Chinese</a></td>
+                <td class="text-center"><a href="https://github.com/">Github</a></td>
+                <td class="text-center"><a href="http://www.dapenti.com/">Dapenti</a></td>
+            </tr>
+            <tr>
+                <td class="text-center"><a href="https://dict.cn/">English</a></td>
+                <td class="text-center"><a href="https://python3-cookbook.readthedocs.io/">Python</a></td>
+                <td class="text-center"><a href="https://www.zhibo8.cc/">zhibo8</a></td>
+            </tr>
+            <tr>
+                <td class="text-center"><a href="https://www.bbc.co.uk/sounds/play/live:bbc_world_service">Radio</a></td>
+                <td class="text-center"><a href="https://www.cplusplus.com/">C/C++</a></td>
+                <td class="text-center"><a href="https://www.yoozhibo.com/zuqiu/yingchao/">Soccer</a></td>
+            </tr>
+            <tr>
+                <td class="text-center"><a href="https://music.163.com/#/playlist?id=2519429498">Music</a></td>
+                <td class="text-center"><a href="https://leetcode.com/">Leetcode</a></td>
+                <td class="text-center"><a href="https://91mjw.vip/">91Meiju</a></td>
+            </tr>
+            <tr>
+                <td class="text-center"><a href="http://www.00txt.com/santi/santixiaoshuo.html">Novel</a></td>
+                <td class="text-center"><a href="https://www.onlinegdb.com/">GDB</a></td>
+                <td class="text-center"><a href="https://www.99meiju2.com">99Meiju</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!--
+<div class="container-fluid mt-5 d-none">
+<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=337 height=280 src="//www.bbc.co.uk/sounds/player/bbc_world_service"></iframe>
+</div>
+-->
+
+<div class="container-fluid mt-5">
+    <form class="form-check form-switch mb-3" method="post" role="form" id="toggleForm" name="toggleForm" action="{{ url_for('main.theme_switch', _external=True) }}">
+        <input class="form-check-input" type="checkbox" id="toggle" name="toggle"{% if request.cookies.get('theme') and request.cookies['theme'] == config.SYS_THEME_NIGHT %} checked="y"{% endif %}>
+        <label class="form-check-label" for="themeToggle">&nbsp;<i class="bi-moon-stars"></i>&nbsp;Night Mode</label>
+    </form>
+</div>
+
+<div class="container-fluid drop-down mt-5 d-none">
+    <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Themes</a>
+    <div class="dropdown-menu dropdown-scroll">
+        {% for theme_name, theme_uri in config.SYS_THEMES.items() %}
+            <a class="dropdown-item" href="{{ url_for('main.theme_choose', theme_name=theme_name, _external=True) }}">{{ theme_name }}</a>
+        {% endfor %}
+    </div>
+</div>
+

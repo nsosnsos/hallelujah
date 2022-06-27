@@ -1,0 +1,27 @@
+{% extends '_base.html' %}
+{% from '_form.html' import render_field %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h3>Setting</h3></div>
+            <div class="card-body">
+                <form method="post" role="form" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    {{ render_field(form.old_password, form_group_classes='form-group has-success has-danger form-floating mb-3', type='password', placeholder='Old Password') }}
+                    {{ render_field(form.new_password, form_group_classes='form-group has-success has-danger form-floating mb-3', type='password', placeholder='New Password') }}
+                    {{ render_field(form.confirm_password, form_group_classes='form-group has-success has-danger form-floating mb-3', type='password', placeholder='Confirm Password') }}
+                    {{ render_field(form.submit, class='container-fluid btn-primary') }}
+                </form>
+            </div>
+            <div class="card-footer">
+                <h5 class="text-end">
+                    <a href="{{ url_for('auth.profile', _external=True) }}">Profile</a>
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+

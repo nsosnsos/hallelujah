@@ -1,0 +1,15 @@
+/* footer bottom */
+.flex-wrapper {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* dropdown scroll */
+.dropdown-scroll {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
