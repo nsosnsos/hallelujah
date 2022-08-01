@@ -15,7 +15,7 @@ from .forms import LoginForm, RegisterForm, SettingForm
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    return redirect(url_for('auth.login', _external=True))
+    return redirect(url_for('auth.login', next=request.endpoint, _external=True))
 
 @bp_auth.route('login', methods=['GET', 'POST'])
 def login():
