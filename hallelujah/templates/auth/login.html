@@ -7,7 +7,6 @@
         <div class="card">
             <div class="card-header text-center"><h3>Login</h3></div>
             <div class="card-body">
-                {# render_form(form) #}
                 <form method="post" role="form" class="needs-validation" novalidate>
                     {{ form.hidden_tag() }}
                     {{ render_field(form.username, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='Username') }}

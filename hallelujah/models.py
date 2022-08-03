@@ -54,7 +54,7 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.get('LOGGER').error('update_last_seen: {}'.format(str(e)))
+            Config.LOGGER.error('update_last_seen: {}'.format(str(e)))
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -83,7 +83,9 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.get('LOGGER').error('add_user: {}'.format(str(e)))
+            Config.LOGGER.error('add_user: {}'.format(str(e)))
+            return None
+        return user
 
     @staticmethod
     def add_fake_users(count=1):
@@ -145,7 +147,9 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.get('LOGGER').error('add_article: {}'.format(str(e)))
+            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            return None
+        return article
 
 
     @staticmethod

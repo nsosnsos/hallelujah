@@ -39,7 +39,11 @@ elif [ ${OPTION} == 'test' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     flask test
+elif [ ${OPTION} == 'deploy' ]; then
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()'
 else
-    echo "Usage: ${SCRIPT_FILE} [run|clean|test|init]"
+    echo "Usage: ${SCRIPT_FILE} [run|clean|test|init|deploy]"
 fi
 

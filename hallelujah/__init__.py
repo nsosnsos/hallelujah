@@ -6,7 +6,6 @@ import click
 import unittest
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, redirect, url_for, jsonify
-from flask_migrate import upgrade
 
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment

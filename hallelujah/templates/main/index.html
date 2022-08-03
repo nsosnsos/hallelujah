@@ -21,7 +21,7 @@
 <script type="text/javascript">
     var data_div = document.querySelector("#data_div");
     var sentinel = document.querySelector("#sentinel");
-    var limit = {{ config.ITEMS_PER_PAGE | tojson }}
+    var limit = {{ config.ITEMS_PER_PAGE | tojson }};
     var load_url = {{ url_for('api.get_articles', _external=True) | tojson }};
     var offset = 0;
 
