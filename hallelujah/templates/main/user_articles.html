@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="col-sm-3">
-        {% include 'sidebar.html' %}
+        {% include 'main/sidebar.html' %}
     </div>
 </div>
 {% endblock content %}
@@ -21,8 +21,9 @@
 <script type="text/javascript">
     var data_div = document.querySelector("#data_div");
     var sentinel = document.querySelector("#sentinel");
-    var limit = {{ config.ITEMS_PER_PAGE | tojson }}
-    var load_url = {{ url_for('api.get_articles', _external=True) | tojson }};
+    var user_name = {{ user.name | tojson }};
+    var limit = {{ config.ITEMS_PER_PAGE | tojson }};
+    var load_url = {{ url_for('api.get_user_articles', _external=True) | tojson }};
     var offset = 0;
 
     var intersectionObserver = new IntersectionObserver(entries => {
@@ -34,7 +35,7 @@
     intersectionObserver.observe(sentinel);
 
     function load_data() {
-        var fetch_url = `${load_url}?offset=${offset}`
+        var fetch_url = `${load_url}?name=${user_name}&offset=${offset}`
         fetch(fetch_url).then(response => response.json()).then(data => {
             offset = offset + data.length;
             if (!data.length || data.length < limit) {

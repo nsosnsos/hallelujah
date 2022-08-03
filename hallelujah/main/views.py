@@ -12,40 +12,40 @@ from . import bp_main
 
 @bp_main.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('main/index.html')
 
 @bp_main.route('/user/<user_name>')
 def user(user_name):
     user = User.query.filter(User.name == user_name).first_or_404()
-    return render_template('user.html', user=user)
+    return render_template('main/user.html', user=user)
 
 @bp_main.route('/user_articles/<user_name>')
 def user_articles(user_name):
     user = User.query.filter(User.name == user_name).first_or_404()
-    return render_template('user_articles.html', user=user)
+    return render_template('main/user_articles.html', user=user)
 
 @bp_main.route('/article/<article_url>')
 def article(article_url):
     article = Article.query.filter(Article.url == article_url).first_or_404()
-    return render_template('article.html', article=article)
+    return render_template('main/article.html', article=article)
 
 @bp_main.route('/articles')
 @login_required
 def articles():
-    return render_template('articles.html')
+    return render_template('main/articles.html')
 
 @bp_main.route('/medias')
 def medias():
-    return render_template('index.html')
+    return render_template('main/index.html')
 
 @bp_main.route('/about')
 def about():
-    return render_template('index.html')
+    return render_template('main/index.html')
 
 @bp_main.route('/search', methods=['POST'])
 def search():
     data = request.form.get('search', None)
-    return render_template('search.html', data=data)
+    return render_template('main/search.html', data=data)
 
 @bp_main.route('/theme', methods=['POST'])
 def theme_switch():
