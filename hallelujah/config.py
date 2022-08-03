@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+
 import os
 import re
 import sys
@@ -14,7 +15,6 @@ from logging import handlers
 def _is_valid_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     return re.fullmatch(regex, email)
-
 
 def _get_logger(log_switch, log_file, log_name):
     log_format = logging.Formatter('[%(asctime)s][{0}]: %(message)s'.format(log_name))
@@ -31,7 +31,6 @@ def _get_logger(log_switch, log_file, log_name):
         file_handler.setLevel(logging.ERROR)
         logger.addHandler(file_handler)
     return logger
-
 
 def _get_themes():
     themes = None
@@ -80,7 +79,7 @@ class Config():
     MAIL_PORT = 587
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'test@test.com'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'MAIL_USERNAME'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None) or 'MAIL_PASSWORD'
     if not _is_valid_email(MAIL_USERNAME):
         print('Invalid MAIL_USERNAME.')

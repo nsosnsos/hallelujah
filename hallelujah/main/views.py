@@ -9,6 +9,7 @@ from ..utility import redirect_back
 from ..models import User, Article, Media
 from . import bp_main
 
+
 @bp_main.route('/')
 def index():
     return render_template('index.html')
