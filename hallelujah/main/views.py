@@ -3,7 +3,7 @@
 
 
 from flask_login import login_required
-from flask import render_template, request, session, current_app, abort, make_response
+from flask import render_template, request, session, current_app, abort, make_response, redirect, url_for
 
 from ..utility import redirect_back
 from ..models import User, Article, Media
@@ -42,13 +42,17 @@ def medias():
 def about():
     return render_template('main/index.html')
 
-@bp_main.route('/search', methods=['POST'])
+@bp_main.route('/search', methods=['GET', 'POST'])
 def search():
+    if request.method == 'GET':
+        return redirect(url_for('main.index', _external=True))
     data = request.form.get('search', None)
     return render_template('main/search.html', data=data)
 
-@bp_main.route('/theme', methods=['POST'])
+@bp_main.route('/theme', methods=['GET', 'POST'])
 def theme_switch():
+    if request.method == 'GET':
+        return redirect(url_for('main.index', _external=True))
     status = request.form.get('toggle', False)
     theme_day = current_app.config.get('SYS_THEME_DAY')
     theme_night = current_app.config.get('SYS_THEME_NIGHT')

@@ -40,11 +40,7 @@ def get_timestamp(t=None):
     return t.strftime('%Y-%m-%d %H:%M:%S')
 
 def redirect_back(default='main.index', **kwargs):
-    if request and request.args.get('next'):
-        target = request.args.get('next')
-        if target and not target.startswith('/'):
-            return redirect(url_for(target, _external=True))
-    elif request.referrer:
+    if request.referrer:
         return redirect(request.referrer)
     return redirect(url_for(default, _external=True, **kwargs))
 

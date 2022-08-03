@@ -8,7 +8,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from .. import db, login_manager
 from ..models import User
-from ..utility import redirect_before, redirect_save
+from ..utility import redirect_before, redirect_save, redirect_back
 from . import bp_auth
 from .forms import LoginForm, RegisterForm, SettingForm
 
@@ -44,7 +44,7 @@ def login():
 def logout():
     logout_user()
     flash('You are logged out.')
-    return redirect(url_for('main.index', _external=True))
+    return redirect_back()
 
 @bp_auth.route('profile')
 @login_required
