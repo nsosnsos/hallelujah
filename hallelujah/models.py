@@ -2,6 +2,7 @@
 # -*- coding;utf-8 -*-
 
 
+import uuid
 import hashlib
 import datetime
 from faker import Faker
@@ -12,7 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from . import db, login_manager
-from .utility import string_to_url, markdown_to_html
+from .utility import markdown_to_html
 from .config import Config
 
 
@@ -125,8 +126,14 @@ class Article(db.Model):
     def __str__(self):
         return __repr__()
 
+    def _generate_url(self):
+        while True:
+            url = uuid.uuid4().hex
+            if not Article.query.filter(Article.url == url).first():
+                return url
+
     def _generate_url_html(self):
-        self.url = string_to_url(self.title)
+        self.url = self._generate_url()
         self.content_html = markdown_to_html(self.content)
 
     def to_json(self):
