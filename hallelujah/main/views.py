@@ -65,6 +65,7 @@ def about():
 def search():
     if request.method == 'GET':
         return redirect(url_for('main.index', _external=True))
+    redirect_save(request.referrer)
     data = request.form.get('search', None)
     return render_template('main/search.html', data=data)
 
@@ -72,6 +73,7 @@ def search():
 def theme_switch():
     if request.method == 'GET':
         return redirect(url_for('main.index', _external=True))
+    redirect_save(request.referrer)
     status = request.form.get('toggle', False)
     theme_day = current_app.config.get('SYS_THEME_DAY')
     theme_night = current_app.config.get('SYS_THEME_NIGHT')
