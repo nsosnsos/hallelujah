@@ -1,6 +1,22 @@
 {#  This file was part of Flask-Bootstrap and was modified under the terms of
  its BSD License. Copyright (c) 2013, Marc Brinkmann. All rights reserved. #}
 
+
+{% macro render_simple(field, form_group_classes) %}
+    <div class="{{ form_group_classes }}{%- if field.flags.required %} required{% endif -%}">
+        {% if field.errors %}
+            {{ field(class="form-control is-invalid")|safe }}
+        {% else %}
+            {{ field(class="form-control")|safe }}
+        {% endif %}
+        {%- if field.errors %}
+            {%- for error in field.errors %}
+                <div class="invalid-feedback" style="display: block;">{{ error }}</div>
+            {%- endfor %}
+        {%- endif %}
+    </div>
+{%- endmacro %}
+
 {% macro render_hidden_errors(form) %}
     {%- if form.errors %}
         {%- for fieldname, errors in form.errors.items() %}

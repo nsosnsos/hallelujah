@@ -2,12 +2,13 @@
 # -*- coding:utf-8 -*-
 
 
-from flask_login import login_required
-from flask import render_template, request, session, current_app, abort, make_response, redirect, url_for
+from flask_login import login_required, current_user
+from flask import render_template, request, session, current_app, abort, make_response, redirect, url_for, flash
 
-from ..utility import redirect_back
+from ..utility import redirect_back, redirect_save
 from ..models import User, Article, Media
 from . import bp_main
+from .forms import ArticleForm
 
 
 @bp_main.route('/')
@@ -27,12 +28,30 @@ def user_articles(user_name):
 @bp_main.route('/article/<article_url>')
 def article(article_url):
     article = Article.query.filter(Article.url == article_url).first_or_404()
+    if not article.is_public and (not current_user.is_authenticated or article.user_id != current_user.id):
+        return redirect(url_for('main.index', _external=True))
     return render_template('main/article.html', article=article)
 
 @bp_main.route('/articles')
 @login_required
 def articles():
     return render_template('main/articles.html')
+
+@bp_main.route('/new_article', methods=['GET', 'POST'])
+@login_required
+def new_article():
+    if not current_user.is_authenticated:
+        redirect(url_for('auth.login', _external=True))
+    form = ArticleForm()
+    if form.validate_on_submit():
+        article = Article.add_article(user_id=current_user.id, title=form.title.data, content=form.content.data, is_public=form.is_public.data)
+        if article:
+            return redirect(url_for('main.article', article_url=article.url, _external=True))
+        else:
+            flash('Failed to post the article!')
+            return redirect(url_for('main.index', _external=True))
+    redirect_save(request.referrer)
+    return render_template('main/new_article.html', form=form)
 
 @bp_main.route('/medias')
 def medias():
