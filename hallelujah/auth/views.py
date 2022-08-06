@@ -94,5 +94,6 @@ def register():
                 return
             flash('Success! Welcome {}!'.format(user.name))
             return redirect(url_for('auth.login', _external=True))
+    redirect_save(request.referrer)
     return render_template('auth/register.html', form=form)
 
