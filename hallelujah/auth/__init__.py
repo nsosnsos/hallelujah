@@ -2,13 +2,5 @@
 # -*- coding:utf-8 -*-
 
 
-from flask import Blueprint
-
-
-bp_auth = Blueprint('auth', __name__)
-
-try:
-    from . import views
-except Exception:
-    raise
+from .views import bp_auth
 
