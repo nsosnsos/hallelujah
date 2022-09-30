@@ -124,7 +124,7 @@ class Article(db.Model):
         return '{}: id={}, user_id={}, url={}'.format(self.__class__.__name__, self.id, self.user_id, self.url)
 
     def __str__(self):
-        return __repr__()
+        return self.__repr__()
 
     def _generate_url(self):
         while True:
@@ -187,7 +187,7 @@ class Media(db.Model):
         return '{}: id={}, user_id={}, uri={}'.format(self.__class__.__name__, self.id, self.user_id, self.uri)
 
     def __str__(self):
-        return __repr__()
+        return self.__repr__()
 
     def _generate_uri(self):
         self.uri = 'IMG_' + self.timestamp.strftime('%Y%m%d_%H%M%S')
