@@ -11,9 +11,9 @@ from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment
 from .models import User, AnonymousUser, Article, Media
 from .utility import mariadb_is_in_use, mariadb_is_exist_db, mariadb_create_db, send_email
-from .main import bp_main
-from .auth import bp_auth
-from .api import bp_api
+from .main.views import bp_main
+from .auth.views import bp_auth
+from .api.views import bp_api
 
 
 login_manager.anonymous_user = AnonymousUser
