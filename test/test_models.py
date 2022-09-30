@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 
+import uuid
 import time
 import datetime
 import unittest
@@ -80,7 +81,11 @@ class ArticleModelTestCase(unittest.TestCase):
 
     def test_url_html(self):
         a = Article(title='asd /sd\s\tdf\\sdf', content='#Head\n1. first\n2. second\n3. third\n')
-        self.assertTrue(a.url == 'asd+sd+s+df+sdf')
+        try:
+            u = uuid.UUID(a.url)
+        except ValueError:
+            u = None
+        self.assertIsNotNone(a.url)
         self.assertTrue(a.content_html == '<h1>Head</h1>\n<ol>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ol>')
 
 class MediaModelTestCase(unittest.TestCase):

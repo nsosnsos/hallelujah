@@ -12,7 +12,7 @@ from markdown.extensions.codehilite import CodeHiliteExtension
 from flask import current_app, request, redirect, url_for, session
 from flask_mail import Message
 
-from . import mail
+from .extensions import mail
 
 
 def string_to_url(s):

@@ -12,7 +12,7 @@ from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
-from . import db, login_manager
+from .extensions import db, login_manager
 from .utility import markdown_to_html
 from .config import Config
 

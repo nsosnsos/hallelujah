@@ -4,11 +4,12 @@
 
 from sqlalchemy import and_
 from flask_login import current_user
-from flask import current_app, request, jsonify
+from flask import Blueprint, current_app, request, jsonify
 
 from ..models import Article, User
-from . import bp_api
 
+
+bp_api = Blueprint('api', __name__)
 
 @bp_api.route('/get_articles')
 def get_articles():

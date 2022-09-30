@@ -3,13 +3,14 @@
 
 
 from flask_login import login_required, current_user
-from flask import render_template, request, session, current_app, abort, make_response, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, current_app, abort, make_response, redirect, url_for, flash
 
 from ..utility import redirect_back, redirect_save
 from ..models import User, Article, Media
-from . import bp_main
 from .forms import ArticleForm
 
+
+bp_main = Blueprint('main', __name__)
 
 @bp_main.route('/')
 def index():
