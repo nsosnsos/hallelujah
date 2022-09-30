@@ -79,7 +79,7 @@ class Config():
     MAIL_PORT = 587
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'MAIL_USERNAME'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'MAIL_USERNAME@SERVER.COM'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None) or 'MAIL_PASSWORD'
     if not _is_valid_email(MAIL_USERNAME):
         print('Invalid MAIL_USERNAME.')
