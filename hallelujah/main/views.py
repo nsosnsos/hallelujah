@@ -2,8 +2,11 @@
 # -*- coding:utf-8 -*-
 
 
+import os
+import datetime
+
 from flask_login import login_required, current_user
-from flask import Blueprint, render_template, request, session, current_app, abort, make_response, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, current_app, abort, make_response, redirect, url_for, flash, jsonify, Response
 
 from ..utility import redirect_back, redirect_save
 from ..models import User, Article, Media
@@ -69,6 +72,23 @@ def search():
     redirect_save(request.referrer)
     data = request.form.get('search', None)
     return render_template('main/search.html', data=data)
+
+@bp_main.route('/upload', methods=['GET', 'POST'])
+def upload():
+    file = request.files.get('upload_file')
+    if not file:
+        res = {'success': 0, 'message': 'file format error'}
+    else:
+        ext = os.path.splitext(file.filename)[1]
+        filename = datetime.now().strftime('%Y%m%d%H%M%S') + ext
+        file.save(os.path.join(current_app.config.get('SYS_UPLOAD'), filename))
+        res = {'success': 1, 'message': 'file upload success', 'url': url_for('main.file', filename=filename, _external=True)}
+    return jsonify(res)
+
+@bp_main.route('/file/<filename>')
+def file(filename):
+    with open(os.path.join(current_app.config.get('SYS_UPLOAD'), filename), 'rb') as f:
+        return Response(f.read(), mimetype="image/jpeg")
 
 @bp_main.route('/theme', methods=['GET', 'POST'])
 def theme_switch():
