@@ -72,7 +72,7 @@
                         <div class="alert alert-dismissible alert-primary mb-0">
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             {% if category == 'login' %}
-                                <strong>Welcome {{ message.get('user_name', '') }} from {{ message.get('ip_addr', '') }}, last seen at {{ moment(message.get('last_seen', '')).format('LLLL') }}.</strong>
+                                <strong>Welcome {{ message.get('user_name', '') }} from {{ message.get('ip_addr', '') }}, last seen at {{ moment(message.get('last_seen', '')).format('YYYY-MM-DD HH:mm:ss') }}!</strong>
                             {% else %}
                                 <strong>{{ message }}</strong>
                             {% endif %}
