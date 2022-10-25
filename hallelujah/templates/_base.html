@@ -9,10 +9,10 @@
             <meta name="author" content="{{ config.SITE_AUTHOR }}">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes, shrink-to-fit=no">
         {% endblock metas %}
-        {% block icon %}
+        {% block icons %}
             <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico', _external=True) }}">
             <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico', _external=True) }}">
-        {% endblock icon %}
+        {% endblock icons %}
         {% block styles %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
             <link rel="stylesheet" href="{{ request.cookies.get('theme', config.SYS_THEME_DAY) }}">
@@ -100,12 +100,12 @@
                 </div>
             </div>
         </footer>
-        {% block script %}
-            <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        {% block scripts %}
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
             {{ moment.include_moment() }}
             <script type="text/javascript" src="{{ url_for('static', filename='js/style.js', _external=True) }}"></script>
-        {% endblock script %}
+        {% endblock scripts %}
     </body>
 </html>
 
