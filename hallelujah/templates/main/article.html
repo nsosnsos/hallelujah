@@ -1,5 +1,10 @@
 {% extends '_base.html' %}
 
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/styles/github.min.css">
+{% endblock styles %}
+
 {% block content %}
 <div class="row justify-content-center my-5">
     <div class="col-md-9">
@@ -20,4 +25,14 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <script type="text/javascript">
+        hljs.highlightAll();
+        hljs.initLineNumbersOnLoad();
+    </script>
+{% endblock scripts %}
 
