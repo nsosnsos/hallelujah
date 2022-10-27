@@ -8,7 +8,6 @@ import datetime
 import subprocess
 from threading import Thread
 from markdown import markdown
-from markdown.extensions.codehilite import CodeHiliteExtension
 from flask import current_app, request, redirect, url_for, session
 from flask_mail import Message
 
@@ -22,17 +21,8 @@ def string_to_url(s):
     return r
 
 def markdown_to_html(text):
-    allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
-                    'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
-                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                    'dl', 'dd', 'dt', 'tt', 'cite',
-                    'br', 'img', 'span', 'div', 'pre', 'p',
-                    'table', 'col', 'tr', 'td', 'th', 'tbody', 'thead',
-                    'sup', 'sub', 'colgroup']
-    extensions = ['fenced_code', CodeHiliteExtension(css_class='highlight', linenums=True),
-                  'admonition', 'tables', 'extra']
-    return bleach.linkify(bleach.clean(
-        markdown(text, extensions=extensions, output_format='html5'), tags=allowed_tags, strip=True))
+    extensions = ['fenced_code', 'admonition', 'tables', 'extra']
+    return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
 
 def get_timestamp(t=None):
     if not t:
