@@ -1,38 +1,23 @@
-{% extends '_base.html' %}
-
-{% block styles %}
-    {{ super() }}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/styles/github.min.css">
-{% endblock styles %}
+{% extends '_highlight.html' %}
 
 {% block content %}
-<div class="row justify-content-center my-5">
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header"><h3>{{ article.title }}</h3></div>
-            <div class="card-body">
-                {{ article.content_html | safe }}
-            </div>
-            <div class="card-footer">
-                <h5 class="text-end">
-                    {{ moment(article.timestamp).format('LLLL') }}
-                </h5>
+    <div class="row justify-content-center my-5">
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header"><h3>{{ article.title }}</h3></div>
+                <div class="card-body">
+                    {{ article.content_html | safe }}
+                </div>
+                <div class="card-footer">
+                    <h5 class="text-end">
+                        {{ moment(article.timestamp).format('LLLL') }}
+                    </h5>
+                </div>
             </div>
         </div>
+        <div class="col-md-3">
+            {% include "main/sidebar.html" %}
+        </div>
     </div>
-    <div class="col-md-3">
-        {% include "main/sidebar.html" %}
-    </div>
-</div>
 {% endblock content %}
-
-{% block scripts %}
-    {{ super() }}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/highlight.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
-    <script type="text/javascript">
-        hljs.highlightAll();
-        hljs.initLineNumbersOnLoad();
-    </script>
-{% endblock scripts %}
 

@@ -70,8 +70,8 @@ class Config():
     SYS_UPLOAD = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'upload')
     SYS_GALLERY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'gallery')
     SYS_THEMES = _get_themes()
-    SYS_THEME_DAY = SYS_THEMES.get('Flatly')
-    SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
+    SYS_THEME_DAY = SYS_THEMES.get('United')
+    SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
     SYS_MARIADB = False
 
     AUTH_URL_PREFIX = '/auth'

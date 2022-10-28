@@ -10,11 +10,13 @@ $("#toggle").change(function() {
     $("#toggleForm").submit();
 });
 
-/* textarea auto height */
-$('textarea').each(function () {
-  this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
-}).on('input', function () {
-  this.style.height = 'auto';
-  this.style.height = (this.scrollHeight) + 'px';
-});
+/* load css to end of head */
+function loadcssfile(filename) {
+    var head = document.getElementsByTagName('head')[0];
+    var link = document.createElement('link');
+    link.setAttribute('rel', 'stylesheet');
+    link.setAttribute('type', 'text/css');
+    link.setAttribute('href', filename);
+    head.appendChild(link);
+}
 

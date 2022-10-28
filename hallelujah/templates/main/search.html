@@ -1,13 +1,13 @@
 {% extends "_base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-sm-9">
-        Search Result: {{ data }}
+    <div class="row">
+        <div class="col-sm-9">
+            Search Result: {{ data }}
+        </div>
+        <div class="col-sm-3">
+            {% include 'main/sidebar.html' %}
+        </div>
     </div>
-    <div class="col-sm-3">
-        {% include 'main/sidebar.html' %}
-    </div>
-</div>
 {% endblock content %}
 

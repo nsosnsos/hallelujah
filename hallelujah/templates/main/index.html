@@ -1,65 +1,39 @@
 {% extends "_base.html" %}
 
 {% block content %}
-<div class="row mt-5">
-    <div class="col-sm-9">
-        <div id="data_div">
+    <div class="row mt-5">
+        <div class="col-sm-9">
+            <div id="data_div">
+            </div>
+            <div class="d-flex justify-content-center mb-5" id="sentinel">
+                <div class="spinner-border" role="status"></div>
+            </div>
         </div>
-        <div class="d-flex justify-content-center mb-5" id="sentinel">
-            <div class="spinner-border" role="status"></div>
+        <div class="col-sm-3">
+            {% include 'main/sidebar.html' %}
         </div>
     </div>
-    <div class="col-sm-3">
-        {% include 'main/sidebar.html' %}
-    </div>
-</div>
 {% endblock content %}
 
 
 {% block scripts %}
-{{ super() }}
-<script type="text/javascript">
-    var data_div = document.querySelector("#data_div");
-    var sentinel = document.querySelector("#sentinel");
-    var limit = {{ config.ITEMS_PER_PAGE | tojson }};
-    var load_url = {{ url_for('api.get_articles', _external=True) | tojson }};
-    var offset = 0;
+    {{ super() }}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/dynamic_load.js', _external=True) }}"></script>
+    <script type="text/javascript">
+        var load_url = {{ url_for('api.get_articles', _external=True) | tojson }};
+        var data_div = document.querySelector("#data_div");
+        var sentinel = document.querySelector("#sentinel");
+        var offset = 0;
+        var limit = {{ config.ITEMS_PER_PAGE | tojson }};
 
-    var intersectionObserver = new IntersectionObserver(entries => {
-        if (entries[0].intersectionRatio <= 0) {
-            return;
-        }
-        load_data();
-    });
-    intersectionObserver.observe(sentinel);
-
-    function load_data() {
-        var fetch_url = `${load_url}?offset=${offset}`
-        fetch(fetch_url).then(response => response.json()).then(data => {
-            offset = offset + data.length;
-            if (!data.length || data.length < limit) {
-                sentinel.innerHTML = '<div class="text-muted">No more articles.</div>';
-                intersectionObserver.unobserve(sentinel);
+        var intersectionObserver = new IntersectionObserver(entries => {
+            if (entries[0].intersectionRatio <= 0) {
+                return;
             }
-
-            for (var index = 0; index < data.length; index++) {
-                var page = `
-                    <div class="card mb-5">
-                        <div class="card-header">
-                            <h5><a href="` + data[index].url + `">` + data[index].title +`</a></h5>
-                        </div>
-                        <div class="card-body">
-                            ` + data[index].truncated_content + `
-                        </div>
-                        <div class="card-footer d-flex justify-content-between text-muted">
-                            <div><a href="` + data[index].author_url + `">` + data[index].author + `</a></div>
-                            <div>` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
-                        </div>
-                    </div>`;
-                $('#data_div').append(page);
-            }
+            var fetch_url = `${load_url}?offset=${offset}`;
+            load_data(fetch_url, data_div, sentinel, limit);
         });
-    }
-</script>
+        intersectionObserver.observe(sentinel);
+    </script>
 {% endblock scripts %}
 
