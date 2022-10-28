@@ -1,0 +1,21 @@
+{% extends '_highlight.html' %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+{% endblock styles %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script type="text/javascript">
+        var mde = new SimpleMDE({
+            element: document.getElementById("content"),
+            hideIcons: ["guide", "side-by-side", "fullscreen"],
+            renderingConfig: {
+                codeSyntaxHighlighting: true,
+            },
+        });
+    </script>
+{% endblock scripts %}
+

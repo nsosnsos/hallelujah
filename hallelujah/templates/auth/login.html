@@ -2,26 +2,26 @@
 {% from '_form.html' import render_field %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header text-center"><h3>Login</h3></div>
-            <div class="card-body">
-                <form method="post" role="form" class="needs-validation" novalidate>
-                    {{ form.hidden_tag() }}
-                    {{ render_field(form.username, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='Username') }}
-                    {{ render_field(form.password, form_group_classes='form-group has-success has-danger form-floating mb-3', type='password', placeholder='Password') }}
-                    {{ render_field(form.remember, form_group_classes='mb-3', type='checkbox', checked=True) }}
-                    {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
-                </form>
-            </div>
-            <div class="card-footer">
-                <h5 class="text-end">
-                    <a href="{{ url_for('auth.register', _external=True) }}">Register</a>
-                </h5>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center"><h3>Login</h3></div>
+                <div class="card-body">
+                    <form method="post" role="form" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        {{ render_field(form.username, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='Username') }}
+                        {{ render_field(form.password, form_group_classes='form-group has-success has-danger form-floating mb-3', type='password', placeholder='Password') }}
+                        {{ render_field(form.remember, form_group_classes='mb-3', type='checkbox', checked=True) }}
+                        {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <h5 class="text-end">
+                        <a href="{{ url_for('auth.register', _external=True) }}">Register</a>
+                    </h5>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}
 

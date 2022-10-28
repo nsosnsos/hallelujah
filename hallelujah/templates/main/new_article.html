@@ -1,45 +1,21 @@
-{% extends '_base.html' %}
+{% extends '_simplemde.html' %}
 {% from '_form.html' import render_simple, render_field %}
 
-{% block styles %}
-    {{ super() }}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/styles/github.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-{% endblock styles %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-9">
-        <div class="card my-5">
-            <div class="card-body">
-                <form method="post" role="form" class="needs-validation" novalidate>
-                    {{ form.hidden_tag() }}
-                    {{ render_field(form.title, form_group_classes='form_group form-floating has-success has-danger mb-3', type='text') }}
-                    {{ render_simple(form.content, form_group_classes='form_group has-success has-danger mb-3') }}
-                    {{ render_field(form.is_public, form_group_classes='mb-3', type='checkbox', checked=False) }}
-                    {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
-                </form>
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card my-5">
+                <div class="card-body">
+                    <form method="post" role="form" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        {{ render_field(form.title, form_group_classes='form_group form-floating has-success has-danger mb-3', type='text') }}
+                        {{ render_simple(form.content, form_group_classes='form_group has-success has-danger mb-3') }}
+                        {{ render_field(form.is_public, form_group_classes='mb-3', type='checkbox', checked=False) }}
+                        {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock content %}
-
-{% block scripts %}
-    {{ super() }}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/highlight.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
-    <script type="text/javascript">
-        hljs.highlightAll();
-        hljs.initLineNumbersOnLoad();
-        var mde = new SimpleMDE({
-            element: document.getElementById("content"),
-            hideIcons: ["guide", "side-by-side", "fullscreen"],
-            renderingConfig: {
-                codeSyntaxHighlighting: true,
-            },
-        });
-    </script>
-{% endblock scripts %}
 
