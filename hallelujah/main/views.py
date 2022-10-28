@@ -17,7 +17,7 @@ bp_main = Blueprint('main', __name__)
 
 @bp_main.route('/')
 def index():
-    return render_template('main/index.html')
+    return render_template('main/articles.html', user=None, is_self=False)
 
 @bp_main.route('/user/<user_name>')
 def user(user_name):
@@ -27,19 +27,19 @@ def user(user_name):
 @bp_main.route('/user_articles/<user_name>')
 def user_articles(user_name):
     user = User.query.filter(User.name == user_name).first_or_404()
-    return render_template('main/user_articles.html', user=user)
+    return render_template('main/articles.html', user=user, is_self=False)
 
 @bp_main.route('/article/<article_url>')
 def article(article_url):
     article = Article.query.filter(Article.url == article_url).first_or_404()
     if not article.is_public and (not current_user.is_authenticated or article.user_id != current_user.id):
         return redirect(url_for('main.index', _external=True))
-    return render_template('main/article.html', article=article)
+    return render_template('main/view_article.html', article=article)
 
 @bp_main.route('/articles')
 @login_required
 def articles():
-    return render_template('main/articles.html')
+    return render_template('main/articles.html', user=current_user, is_self=True)
 
 @bp_main.route('/new_article', methods=['GET', 'POST'])
 @login_required
@@ -55,15 +55,15 @@ def new_article():
             flash('Failed to post the article!')
             return redirect(url_for('main.index', _external=True))
     redirect_save(request.referrer)
-    return render_template('main/new_article.html', form=form)
+    return render_template('main/edit_article.html', form=form)
 
 @bp_main.route('/medias')
 def medias():
-    return render_template('main/index.html')
+    return render_template('main/articles.html')
 
 @bp_main.route('/about')
 def about():
-    return render_template('main/index.html')
+    return render_template('main/articles.html')
 
 @bp_main.route('/search', methods=['GET', 'POST'])
 def search():
