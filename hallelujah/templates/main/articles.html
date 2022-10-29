@@ -23,7 +23,6 @@
 
 {% block scripts %}
     {{ super() }}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/dynamic_load.js', _external=True) }}"></script>
     <script type="text/javascript">
         var data_div = document.querySelector("#data_div");
         var sentinel = document.querySelector("#sentinel");
@@ -49,9 +48,33 @@
             {% else %}
                 var fetch_url = `${load_url}?offset=${offset}`;
             {% endif %}
-            load_data(fetch_url, data_div, sentinel, limit);
+            load_data(fetch_url);
         });
         intersectionObserver.observe(sentinel);
+
+        function load_data(fetch_url) {
+            fetch(fetch_url).then(response => response.json()).then(data => {
+                offset += data.length;
+                if (!data.length || data.length < limit) {
+                    sentinel.innerHTML = '<div class="text-muted">No more articles.</div>';
+                    intersectionObserver.unobserve(sentinel);
+                }
+                for (var index = 0; index < data.length; index++) {
+                    var data_item = `
+                        <div class="card mb-5">
+                            <div class="card-header">
+                                <h5><a href="` + data[index].url + `" class="stretched-link">` + data[index].title +`</a></h5>
+                            </div>
+                            <div class="card-body"> ` + data[index].truncated_content + ` </div>
+                            <div class="card-footer d-flex justify-content-between text-muted">
+                                <div>` + data[index].author + `</div>
+                                <div>` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
+                            </div>
+                        </div>`;
+                    $('#data_div').append(data_item);
+                }
+            });
+        };
     </script>
 {% endblock scripts %}
 

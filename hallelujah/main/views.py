@@ -34,7 +34,7 @@ def article(article_url):
     article = Article.query.filter(Article.url == article_url).first_or_404()
     if not article.is_public and (not current_user.is_authenticated or article.user_id != current_user.id):
         return redirect(url_for('main.index', _external=True))
-    return render_template('main/view_article.html', article=article)
+    return render_template('main/view_article.html', article=article, is_self=(current_user==article.author))
 
 @bp_main.route('/articles')
 @login_required
@@ -56,6 +56,41 @@ def new_article():
             return redirect(url_for('main.index', _external=True))
     redirect_save(request.referrer)
     return render_template('main/edit_article.html', form=form)
+
+@bp_main.route('/article/<article_url>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_article(article_url):
+    if not current_user.is_authenticated:
+        redirect(url_for('auth.login', _external=True))
+    article = Article.query.filter(Article.url == article_url).first()
+    if not article or article.user_id != current_user.id:
+        flash('Failed to find the article!')
+        return redirect_back()
+    form = ArticleForm()
+    if form.validate_on_submit():
+        article = Article.edit_article(article_id=article.id, title=form.title.data, content=form.content.data, is_public=form.is_public.data)
+        if article:
+            return redirect(url_for('main.article', article_url=article.url, _external=True))
+        else:
+            flash('Failed to post the article!')
+            return redirect(url_for('main.index', _external=True))
+    redirect_save(request.referrer)
+    form.title.data = article.title
+    form.content.data = article.content
+    form.is_public.data = article.is_public
+    return render_template('main/edit_article.html', form=form)
+
+@bp_main.route('/article/<article_url>/delete')
+@login_required
+def delete_article(article_url):
+    if not current_user.is_authenticated:
+        redirect(url_for('auth.login', _external=True))
+    article = Article.query.filter(Article.url == article_url).first()
+    if not article or article.user_id != current_user.id or not Article.delete_article(article_id=article.id):
+        flash('Failed to find the article!')
+        return redirect_back()
+    flash('Article ' + article.title +' is deleted!')
+    return redirect_back()
 
 @bp_main.route('/medias')
 def medias():
