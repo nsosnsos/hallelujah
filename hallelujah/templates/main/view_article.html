@@ -4,14 +4,13 @@
     <div class="row justify-content-center my-5">
         <div class="col-md-9">
             <div class="card">
-                <div class="card-header"><h3>{{ article.title }}</h3></div>
+                <div class="card-header"><h5>{{ article.title }}</h5></div>
                 <div class="card-body">
                     {{ article.content_html | safe }}
                 </div>
-                <div class="card-footer">
-                    <h5 class="text-end">
-                        {{ moment(article.timestamp).format('LLLL') }}
-                    </h5>
+                <div class="card-footer d-flex justify-content-between text-muted">
+                    <div><a href="{{ url_for('main.user', user_name=article.author.name, _external=True) }}">{{ article.author.name }}</a></div>
+                    <div>{{ moment(article.timestamp).format('YYYY-MM-DD HH:mm:ss') }}</div>
                 </div>
             </div>
         </div>
