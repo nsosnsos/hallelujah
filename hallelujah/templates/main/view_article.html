@@ -4,7 +4,36 @@
     <div class="row justify-content-center my-5">
         <div class="col-md-9">
             <div class="card">
-                <div class="card-header"><h5>{{ article.title }}</h5></div>
+                <div class="card-header d-flex justify-content-between">
+                    <div>
+                        <h5>{{ article.title }}</h5>
+                    </div>
+                    {% if is_self %}
+                        <div>
+                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm">Edit</a>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#delete_article">Delete</button>
+                            <div class="modal fade" id="delete_article" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="delete_label">Delete Artitle</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true"></span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Do you want to delete article {{ article.title }}?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="{{ article.url }}/delete" class="btn btn-primary">Yes</a>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     {{ article.content_html | safe }}
                 </div>

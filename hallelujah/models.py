@@ -158,6 +158,35 @@ class Article(db.Model):
             return None
         return article
 
+    @staticmethod
+    def edit_article(article_id, is_public, title, content):
+        article = Article.query.filter(Article.id==article_id).first()
+        if not article:
+            return None
+        article.is_public = is_public
+        article.title = title
+        article.content = content
+        article.content_html = markdown_to_html(content)
+        db.session.add(article)
+        try:
+            db.session.commit()
+        except exc.SQLAlchemyError as e:
+            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            return None
+        return article
+
+    @staticmethod
+    def delete_article(article_id):
+        article = Article.query.filter(Article.id==article_id).first()
+        if not article:
+            return False
+        db.session.delete(article)
+        try:
+            db.session.commit()
+        except exc.SQLAlchemyError as e:
+            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            return False
+        return True
 
     @staticmethod
     def add_fake_articles(count=1):
