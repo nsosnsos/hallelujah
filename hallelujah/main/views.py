@@ -98,7 +98,7 @@ def medias():
 
 @bp_main.route('/about')
 def about():
-    return render_template('main/articles.html')
+    return render_template('main/about.html')
 
 @bp_main.route('/search', methods=['GET', 'POST'])
 def search():
