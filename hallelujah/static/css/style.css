@@ -13,6 +13,11 @@
     overflow-x: hidden;
 }
 
+/* dropdown overlap sticky-top */
+.sticky-top-container {
+    z-index: 1;
+}
+
 /* code block */
 code.hljs {
     white-space: pre-wrap;
