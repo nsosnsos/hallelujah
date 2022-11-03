@@ -10,8 +10,8 @@
                     </div>
                     {% if is_self %}
                         <div>
-                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm">Edit</a>
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#delete_article">Delete</button>
+                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm"><i class="bi-vector-pen">Edit</i></a>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#delete_article"><i class="bi-trash">Delete</i></button>
                             <div class="modal fade" id="delete_article" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
