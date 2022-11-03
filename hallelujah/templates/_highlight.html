@@ -13,6 +13,7 @@
     <script type="text/javascript">
         hljs.highlightAll();
         hljs.initLineNumbersOnLoad();
+        loadcssfile("{{ url_for('static', filename='css/markdown_patch.css', _external=True) }}");
     </script>
 {% endblock scripts %}
 
