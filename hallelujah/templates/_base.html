@@ -106,9 +106,6 @@
             <script type="text/javascript" src="{{ url_for('static', filename='js/style.js', _external=True) }}"></script>
             {{ moment.include_moment() }}
         {% endblock scripts %}
-            <script type="text/javascript">
-                loadcssfile("{{ url_for('static', filename='css/markdown_patch.css', _external=True) }}");
-            </script>
     </body>
 </html>
 
