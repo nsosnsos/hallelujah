@@ -14,8 +14,9 @@
             <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon16.ico', _external=True) }}">
         {% endblock icons %}
         {% block styles %}
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.min.css">
             <link rel="stylesheet" href="{{ request.cookies.get('theme', config.SYS_THEME_DAY) }}">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', _external=True) }}">
         {% endblock styles %}
         <title>
         {% block title %}
@@ -100,13 +101,13 @@
             </div>
         </footer>
         {% block scripts %}
-            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
             <script type="text/javascript" src="{{ url_for('static', filename='js/style.js', _external=True) }}"></script>
             {{ moment.include_moment() }}
         {% endblock scripts %}
             <script type="text/javascript">
-                loadcssfile("{{ url_for('static', filename='css/style.css', _external=True) }}");
+                loadcssfile("{{ url_for('static', filename='css/markdown_patch.css', _external=True) }}");
             </script>
     </body>
 </html>
