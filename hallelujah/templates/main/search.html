@@ -6,10 +6,18 @@
             Search Result: {{ data }}
         </div>
         <div class="col-sm-3 sticky-top-container">
-            <div class="sticky-top">
+            <div class="container sticky-top">
                 {% include 'main/sidebar.html' %}
             </div>
         </div>
     </div>
 {% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        window.addEventListener("load", data_container_adaption);
+        window.addEventListener("resize", data_container_adaption);
+    </script>
+{% endblock scripts %}
 
