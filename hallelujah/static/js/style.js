@@ -20,3 +20,16 @@ function loadcssfile(filename) {
     head.appendChild(link);
 }
 
+/* data content adaption */
+function data_container_adaption() {
+    header = document.querySelector("header");
+    footer = document.querySelector("footer");
+    data_container = document.querySelector("#data_container");
+    header_style = getComputedStyle(header);
+    footer_style = getComputedStyle(footer);
+    header_height = header.clientHeight + parseInt(header_style.marginTop) + parseInt(header_style.marginBottom);
+    footer_height = footer.clientHeight + parseInt(footer_style.marginTop) + parseInt(footer_style.marginBottom);
+    data_container_height = window.innerHeight - header_height - footer_height;
+    data_container.style.minHeight = data_container_height + "px";
+}
+
