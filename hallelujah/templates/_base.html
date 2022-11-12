@@ -40,9 +40,10 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbtn">
                         <ul class="navbar-nav me-auto">
-                            {{ render_nav_item(endpoint='main.articles', text='Articles', use_li=True, icon='book-fill', _external=True) }}
-                            {{ render_nav_item(endpoint='main.medias', text='Medias', use_li=True, icon='camera-fill', _external=True) }}
-                            {{ render_nav_item(endpoint='main.about', text='About', use_li=True, icon='yin-yang', _external=True) }}
+                            {{ render_nav_item(endpoint='main.articles', text='Articles', use_li=True, icon='bi-book-fill', _external=True) }}
+                            {{ render_nav_item(endpoint='main.medias', text='Medias', use_li=True, icon='bi-camera-fill', _external=True) }}
+                            {{ render_nav_item(endpoint='main.resources', text='Resources', use_li=True, icon='bi-folder-fill', _external=True) }}
+                            {{ render_nav_item(endpoint='main.about', text='About', use_li=True, icon='bi-star-fill', _external=True) }}
                         </ul>
                         <ul class="navbar-nav ms-auto">
                             {% if current_user.is_authenticated %}
@@ -72,7 +73,7 @@
                         <div class="alert alert-dismissible alert-primary mb-0">
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             {% if category == 'login' %}
-                                <strong>Welcome {{ message.get('user_name', '') }} from {{ message.get('ip_addr', '') }}, last seen at {{ moment(message.get('last_seen', '')).format('YYYY-MM-DD HH:mm:ss') }}!</strong>
+                                <strong>Welcome {{ message.get('user_name', '') }} from {{ message.get('ip_addr', '') }}, last seen at {{ moment(message.get('last_seen', '')).format('YYYY-MM-DD HH:mm:ss') }}</strong>
                             {% else %}
                                 <strong>{{ message }}</strong>
                             {% endif %}

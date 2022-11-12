@@ -3,7 +3,7 @@
     {% if use_li %}<li class="nav-item">{% endif %}
     <a class="{% if not use_li %}nav-item {% endif %}nav-link{% if active %} active" aria-current="page{% endif %}"
         href="{{ url_for(endpoint, **kwargs) }}">
-        {% if icon %}<i class="bi-{{ icon }}"></i>{% endif %} {{ text }} {% if badge %}<span class="badge badge-light">{{ badge }}</span>{% endif %}
+        {% if icon %}<i class="{{ icon }}"></i>{% endif %} {{ text }} {% if badge %}<span class="badge badge-light">{{ badge }}</span>{% endif %}
     </a>
     {% if use_li %}</li>{% endif %}
 {% endmacro %}
