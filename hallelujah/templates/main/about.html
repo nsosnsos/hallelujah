@@ -1,7 +1,18 @@
 {% extends '_base.html' %}
 
 {% block content %}
-    <div class="row justify-content-center">
+    <div class="row">
+        <div class="row mt-5">
+            <p class="text-center">f902a108-81db-4c8c-bdd7-9c6963b5ec8z</p>
+            <p class="text-center">155248-2462-2153</p>
+        </div>
+        <div class="row mt-5 mb-5">
+            <p class="text-center"><i class="bi-pin-angle-fill"></i>&nbsp;San Jose, United States</p>
+            <p class="text-center"><i class="bi-envelope-fill"></i>&nbsp;{{ config.SITE_NAME }}</p>
+            <p class="text-center"><i class="bi-house-fill"></i>&nbsp;{{ config.SITE_DESCRIPTION }}</p>
+            <p class="text-center"><i class="bi-person-fill"></i>&nbsp;{{ config.SITE_AUTHOR }}</p>
+        </div>
+        <!--
         <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
             <caption>Favorites</caption>
             <thead class="table-primary">
@@ -39,6 +50,7 @@
                 </tr>
             </tbody>
         </table>
+        -->
     </div>
 {% endblock content %}
 

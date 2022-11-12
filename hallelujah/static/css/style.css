@@ -3,6 +3,11 @@ a {
     text-decoration: none;
 }
 
+/* minimized width for card */
+.card {
+    min-width: 300px;
+}
+
 /* footer always at bottom */
 .flex-wrapper {
     display: flex;
