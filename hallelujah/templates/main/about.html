@@ -1,56 +1,43 @@
 {% extends '_base.html' %}
 
 {% block content %}
-    <div class="row">
-        <div class="row mt-5">
-            <p class="text-center">f902a108-81db-4c8c-bdd7-9c6963b5ec8z</p>
-            <p class="text-center">155248-2462-2153</p>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><h3>About</h3></div>
+                <div class="card-body">
+                    <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
+                        <caption>Freeland</caption>
+                        <thead>
+                            <tr>
+                                <th><i class="bi-send-fill"></i></th>
+                                <th>f902a108-81db-4c8c-bdd7-9c6963b5ec8z</th>
+                            </tr>
+                        </thead>
+                        <thead>
+                            <tr>
+                                <th><i class="bi-geo-alt-fill"></i></th>
+                                <th>155248-2462-2153</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="bi-house-fill"></i></td>
+                                <td>{{ config.SITE_NAME }}</td>
+                            </tr>
+                            <tr>
+                                <td><i class="bi-envelope-fill"></i></td>
+                                <td>{{ config.SITE_DESCRIPTION }}</td>
+                            </tr>
+                            <tr>
+                                <td><i class="bi-person-fill"></i></td>
+                                <td>{{ config.SITE_AUTHOR }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="row mt-5 mb-5">
-            <p class="text-center"><i class="bi-pin-angle-fill"></i>&nbsp;San Jose, United States</p>
-            <p class="text-center"><i class="bi-envelope-fill"></i>&nbsp;{{ config.SITE_NAME }}</p>
-            <p class="text-center"><i class="bi-house-fill"></i>&nbsp;{{ config.SITE_DESCRIPTION }}</p>
-            <p class="text-center"><i class="bi-person-fill"></i>&nbsp;{{ config.SITE_AUTHOR }}</p>
-        </div>
-        <!--
-        <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
-            <caption>Favorites</caption>
-            <thead class="table-primary">
-                <tr>
-                    <th class="text-center"><strong>Culture</strong></th>
-                    <th class="text-center"><strong>Code</strong></th>
-                    <th class="text-center"><strong>Fun</strong></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="text-center"><a href="https://www.zdic.net/">Chinese</a></td>
-                    <td class="text-center"><a href="https://github.com/">Github</a></td>
-                    <td class="text-center"><a href="http://www.dapenti.com/">Dapenti</a></td>
-                </tr>
-                <tr>
-                    <td class="text-center"><a href="https://dict.cn/">English</a></td>
-                    <td class="text-center"><a href="https://python3-cookbook.readthedocs.io/">Python</a></td>
-                    <td class="text-center"><a href="https://www.zhibo8.cc/">zhibo8</a></td>
-                </tr>
-                <tr>
-                    <td class="text-center"><a href="https://www.bbc.co.uk/sounds/play/live:bbc_world_service">Radio</a></td>
-                    <td class="text-center"><a href="https://www.cplusplus.com/">C/C++</a></td>
-                    <td class="text-center"><a href="https://www.yoozhibo.com/zuqiu/yingchao/">Soccer</a></td>
-                </tr>
-                <tr>
-                    <td class="text-center"><a href="https://music.163.com/#/playlist?id=2519429498">Music</a></td>
-                    <td class="text-center"><a href="https://leetcode.com/">Leetcode</a></td>
-                    <td class="text-center"><a href="https://91mjw.vip/">91Meiju</a></td>
-                </tr>
-                <tr>
-                    <td class="text-center"><a href="http://www.00txt.com/santi/santixiaoshuo.html">Novel</a></td>
-                    <td class="text-center"><a href="https://www.onlinegdb.com/">GDB</a></td>
-                    <td class="text-center"><a href="https://www.99meiju2.com">99Meiju</a></td>
-                </tr>
-            </tbody>
-        </table>
-        -->
     </div>
 {% endblock content %}
 

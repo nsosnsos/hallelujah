@@ -29,7 +29,7 @@
         </title>
     </head>
     <body class="flex-wrapper">
-        <header>
+        <header class="mw-320">
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
                 <div class="container">
                     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index', _external=True) }}">
@@ -82,11 +82,11 @@
                 {% endif %}
             {% endwith %}
         </header>
-        <div class="container" id="data_container">
+        <div class="container mw-320" id="data_container">
             {% block content %}
             {% endblock content %}
         </div>
-        <footer class="container footer">
+        <footer class="container mw-320 footer">
             <hr class="my-0">
             <div class="d-flex justify-content-between">
                 <div>
