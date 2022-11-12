@@ -72,7 +72,7 @@
                             <div class="card-body"> ` + data[index].truncated_content + ` </div>
                             <div class="card-footer d-flex justify-content-between text-muted">
                                 <div>` + data[index].author + `</div>
-                                <div>` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
+                                <div><i class="bi-calendar3"></i>&nbsp;` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
                             </div>
                         </div>`;
                     $('#data_div').append(data_item);
