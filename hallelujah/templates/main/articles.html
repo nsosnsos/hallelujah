@@ -67,11 +67,11 @@
                     var data_item = `
                         <div class="card mb-5">
                             <div class="card-header">
-                                <h5><a href="` + data[index].url + `" class="stretched-link">` + data[index].title +`</a></h5>
+                                <h5><a href="` + data[index].url + `" class="stretched-link"><i class="bi-justify"></i>&nbsp;` + data[index].title +`</a></h5>
                             </div>
                             <div class="card-body"> ` + data[index].truncated_content + ` </div>
                             <div class="card-footer d-flex justify-content-between text-muted">
-                                <div>` + data[index].author + `</div>
+                                <div><i class="bi-people-fill"></i>&nbsp;` + data[index].author + `</div>
                                 <div><i class="bi-calendar3"></i>&nbsp;` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
                             </div>
                         </div>`;
