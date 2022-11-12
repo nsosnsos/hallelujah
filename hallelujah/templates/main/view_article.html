@@ -10,8 +10,8 @@
                     </div>
                     {% if is_self %}
                         <div>
-                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm"><i class="bi-vector-pen">Edit</i></a>
-                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#delete_article"><i class="bi-trash">Delete</i></button>
+                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-1"><i class="bi-vector-pen">Edit</i></a>
+                            <button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_article"><i class="bi-trash">Delete</i></button>
                             <div class="modal fade" id="delete_article" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
@@ -43,7 +43,7 @@
                             <img src="{{ article.author.get_gravatar_icon(size=20) }}">&nbsp;{{ article.author.name }}
                         </a>
                     </div>
-                    <div>{{ moment(article.timestamp).format('YYYY-MM-DD HH:mm:ss') }}</div>
+                    <div><i class="bi-calendar3"></i>&nbsp;{{ moment(article.timestamp).format('YYYY-MM-DD HH:mm:ss') }}</div>
                 </div>
             </div>
         </div>
