@@ -1,4 +1,4 @@
-<div class="container-fluid card border-0 pt-2">
+<div class="container-fluid pt-2">
     <form method="post" role="form" class="input-group mb-3" action="{{ url_for('main.search', _external=True) }}">
         <input class="form-control" type="search" id="search" name="search" placeholder="Search" required>
         <button class="btn btn-primary" type="submit"><i class="bi-search"></i></button>
@@ -6,19 +6,19 @@
 </div>
 
 <!--
-<div class="container-fluid card border-0 mt-5 d-none">
+<div class="container-fluid mt-5 d-none">
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=337 height=280 src="//www.bbc.co.uk/sounds/player/bbc_world_service"></iframe>
 </div>
 -->
 
-<div class="container-fluid card border-0 mt-5">
+<div class="container-fluid mt-5">
     <form method="post" role="form" class="form-check form-switch mb-3" id="toggleForm" action="{{ url_for('main.theme_switch', _external=True) }}">
         <input class="form-check-input" type="checkbox" id="toggle" name="toggle"{% if request.cookies.get('theme') and request.cookies['theme'] == config.SYS_THEME_NIGHT %} checked="y"{% endif %}>
         <label class="form-check-label" for="themeToggle">&nbsp;<i class="bi-moon-stars"></i>&nbsp;Night Mode</label>
     </form>
 </div>
 
-<div class="container-fluid card border-0 drop-down mt-5 d-none">
+<div class="container-fluid drop-down mt-5 d-none">
     <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Themes</a>
     <div class="dropdown-menu dropdown-scroll">
         {% for theme_name, theme_uri in config.SYS_THEMES.items() %}

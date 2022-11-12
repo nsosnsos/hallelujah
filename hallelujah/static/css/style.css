@@ -4,8 +4,8 @@ a {
 }
 
 /* minimized width for card */
-.card {
-    min-width: 300px;
+.mw-320 {
+    min-width: 320px;
 }
 
 /* footer always at bottom */
