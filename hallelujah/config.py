@@ -67,8 +67,7 @@ class Config():
     SYS_PORT = 4100
     SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
     SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates')
-    SYS_UPLOAD = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'upload')
-    SYS_GALLERY = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'gallery')
+    SYS_STORAGE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
