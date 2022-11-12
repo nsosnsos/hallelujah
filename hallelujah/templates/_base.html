@@ -33,7 +33,7 @@
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
                 <div class="container">
                     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index', _external=True) }}">
-                        <img src="{{ url_for('static', filename='img/favicon16.ico', _external=True) }}" alt="logo" class="img-fluid rounded-circle">&nbsp;{{ config.SITE_NAME | capitalize }}
+                        <img src="{{ url_for('static', filename='img/favicon16.ico', _external=True) }}" alt="logo" class="img-fluid rounded-circle mx-1">{{ config.SITE_NAME | capitalize }}
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbtn" aria-controls="navbtn" aria-expanded="false" aria-label="toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -49,7 +49,7 @@
                             {% if current_user.is_authenticated %}
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-                                        <i class="bi-person"></i>&nbsp;{{ current_user.name }}
+                                        <i class="bi-person mx-1"></i>{{ current_user.name }}
                                     </a>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="{{ url_for('auth.profile', _external=True) }}"><i class="bi-lock"></i>{{ ' Profile' }}</a>
@@ -91,9 +91,10 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <small class="text-muted">
-                        &copy;Copyright&nbsp;<script>document.write(new Date().getFullYear())</script>
-                        &nbsp;&nbsp;&reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script>
-                        &nbsp;All Rights Reserved.
+                        <span>&copy;Copyright</span>
+                        <span><script>document.write(new Date().getFullYear())</script></span>
+                        <span class="mx-1">&reg;<script>document.write(document.getElementsByTagName('meta')['author'].getAttribute('content'));</script></span>
+                        <span>All Rights Reserved.</span>
                     </small>
                 </div>
                 <div>

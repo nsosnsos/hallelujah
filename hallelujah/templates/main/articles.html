@@ -5,7 +5,7 @@
         <div class="col-sm-9">
             {% if is_self %}
                 <div class="d-flex justify-content-center mb-5">
-                    <a href="{{ url_for('main.new_article', _external=True) }}" class="btn btn-primary"><i class="bi bi-pencil-square"></i>&nbsp;New Article</a>
+                    <a href="{{ url_for('main.new_article', _external=True) }}" class="btn btn-primary"><i class="bi bi-pencil-square mx-1"></i>New Article</a>
                 </div>
             {% endif %}
             <div id="data_div">
@@ -67,12 +67,12 @@
                     var data_item = `
                         <div class="card mb-5">
                             <div class="card-header">
-                                <h5><a href="` + data[index].url + `" class="stretched-link"><i class="bi-justify"></i>&nbsp;` + data[index].title +`</a></h5>
+                                <h5><a href="` + data[index].url + `" class="stretched-link"><i class="bi-justify mx-1"></i>` + data[index].title +`</a></h5>
                             </div>
                             <div class="card-body"> ` + data[index].truncated_content + ` </div>
                             <div class="card-footer d-flex justify-content-between text-muted">
-                                <div><i class="bi-people-fill"></i>&nbsp;` + data[index].author + `</div>
-                                <div><i class="bi-calendar3"></i>&nbsp;` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
+                                <div><i class="bi-people-fill mx-1"></i>` + data[index].author + `</div>
+                                <div><i class="bi-calendar3 mx-1"></i>` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
                             </div>
                         </div>`;
                     $('#data_div').append(data_item);
