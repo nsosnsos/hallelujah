@@ -9,7 +9,7 @@ from flask import Flask, request, redirect, url_for, jsonify
 
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment
-from .models import User, AnonymousUser, Article, Media
+from .models import User, AnonymousUser, Article, Media, Resource
 from .utility import mariadb_is_in_use, mariadb_is_exist_db, mariadb_create_db, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
@@ -111,9 +111,11 @@ def register_commands(app):
         print(f'Adding user: {user_name} ...')
         User.add_user(name=user_name, email=mail_address, password=mail_password)
         print('Adding fake users ...')
-        User.add_fake_users(10)
+        User.add_fake_users(5)
         print('Adding fake articles ...')
-        Article.add_fake_articles(50)
+        Article.add_fake_articles(20)
+        print('Adding fake resources ...')
+        Resource.add_fake_resources(20)
         print(f'Sending email to {mail_address} ...')
         thread = send_email(to=mail_address, subject=app.config.get('SITE_NAME'),
                            msg='Hello, {}. Thanks for register.'.format(user_name))

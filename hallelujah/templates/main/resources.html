@@ -1,0 +1,120 @@
+{% if resources %}
+    {% extends '_base.html' %}
+{% else %}
+    {% extends '_gridjs.html' %}
+{% endif %}
+
+{% block content %}
+    <div class="d-flex justify-content-center mt-5">
+        {% if resources %}
+            <a href="{{ url_for('main.manage_resources', _external=True) }}" class="btn btn-primary"><i class="bi-wrench-adjustable mx-1"></i>Manage Resources</a>
+        {% else %}
+            <a href="{{ url_for('main.resources', _external=True) }}" class="btn btn-primary"><i class="bi-link-45deg mx-1"></i>View Resources</a>
+        {% endif %}
+    </div>
+    {% if resources %}
+        {% for category, items in resources.items() %}
+            <div class="row justify-content-center mt-5">
+                <p><i class="bi-bookmark-star mx-1"></i>{{ category }}</p>
+                <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
+                    <tbody>
+                        <tr>
+                            {% for item in items %}
+                                <td class="text-center">
+                                    <a href="{{ item.get('uri') }}">
+                                        <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
+                                        {{ item.get('title', '') }}
+                                    </a>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="my-5" id="manage_resources"></div>
+    {% endif %}
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if not resources %}
+        <script type="text/javascript">
+            const tableDiv = document.getElementById("manage_resources");
+            const editableCellAttr = (data, row, col) => {
+                if (row) {
+                    return {contentEditable: "true", "data-element-id": row.cells[0].data};
+                } else {
+                    return {};
+                }
+            };
+
+            new gridjs.Grid({
+                columns: [
+                    {% if columns %}
+                        {% for column in columns %}
+                            {id: "{{ column }}"
+                            {%- if column == 'id' or column == 'user_id' -%}
+                                , "hidden": true
+                            {%- else -%}
+                                , name: "{{ column }}", "attributes": editableCellAttr
+                            {%- endif -%}},
+                        {% endfor %}
+                    {% endif %}
+                ],
+                style: {
+                    table: {
+                        width: "100%"
+                    }
+                },
+                server: {
+                    url: "{{ url_for('api.get_self_resources', _external=True) }}",
+                    then: results => results,
+                },
+                fixedHeader: true,
+                search: true,
+                sort: true,
+                resizable: true,
+                pagination: false,
+            }).render(tableDiv);
+
+            let savedValue;
+
+            tableDiv.addEventListener("focusin", ev => {
+                if (ev.target.tagName === "TD") {
+                    savedValue = ev.target.textContent;
+                }
+            });
+
+            tableDiv.addEventListener("focusout", ev => {
+                if (ev.target.tagName === "TD") {
+                    if (savedValue !== ev.target.textContent) {
+                        fetch("{{ url_for('api.modify_resource', _external=True) }}", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                id: ev.target.dataset.elementId,
+                                [ev.target.dataset.columnId]: ev.target.textContent
+                            }),
+                        });
+                    }
+                    savedValue = undefined;
+                }
+            });
+
+            tableDiv.addEventListener("keydown", ev => {
+                if (ev.target.tagName === "TD") {
+                    if (ev.key === "Escape") {
+                        ev.target.textContent = savedValue;
+                        ev.target.blur();
+                    } else if (ev.key === "Enter") {
+                        ev.preventDefault();
+                        ev.target.blur();
+                    }
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock scripts %}
+

@@ -9,7 +9,7 @@ from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, session, current_app, abort, make_response, redirect, url_for, flash, jsonify, Response
 
 from ..utility import redirect_back, redirect_save
-from ..models import User, Article, Media
+from ..models import User, Article, Media, Resource
 from .forms import ArticleForm
 
 
@@ -92,9 +92,53 @@ def delete_article(article_url):
     flash('Article ' + article.title +' is deleted!')
     return redirect_back()
 
-@bp_main.route('/medias')
+def get_valid_path(path):
+    root = path.split('/')[0]
+    if root != 'public' and root != current_user.name:
+        return None
+    base = current_app.config.get('SYS_STORAGE')
+    full_path = os.path.join(base, path)
+    if not os.path.isdir(full_path):
+        return None 
+    return full_path
+
+@bp_main.route('/medias', methods=['GET', 'POST'])
+@login_required
 def medias():
-    return render_template('main/articles.html')
+    return render_template('main/medias.html', path=None, manage_medias=False)
+
+@bp_main.route('/medias/<path:path>', methods=['GET', 'POST'])
+@login_required
+def show_medias(path):
+    full_path = get_valid_path(path)
+    if not full_path:
+        return redirect_back()
+    return render_template('main/medias.html', path=path, manage_medias=False)
+
+@bp_main.route('/manage_medias/<path:path>', methods=['GET', 'POST'])
+@login_required
+def manage_medias(path):
+    full_path = get_valid_path(path)
+    if not full_path:
+        return redirect_back()
+    return render_template('main/medias.html', path=path, manage_medias=True)
+
+@bp_main.route('/resources')
+@login_required
+def resources():
+    user_resources = Resource.query.filter(Resource.user_id == current_user.id).order_by(Resource.rank.desc(), Resource.id.asc())
+    json_resources = [resource.to_json() for resource in user_resources]
+    categories = sorted(list(set([resource['category'] for resource in json_resources])))
+    resources = {category: [] for category in categories}
+    for resource in json_resources:
+        resources[resource['category']].append(resource)
+    return render_template('main/resources.html', resources=resources)
+
+@bp_main.route('/manage_resources')
+@login_required
+def manage_resources():
+    columns = [col.key for col in Resource.__table__.columns]
+    return render_template('main/resources.html', columns=columns) 
 
 @bp_main.route('/about')
 def about():
@@ -112,12 +156,12 @@ def search():
 def upload():
     file = request.files.get('upload_file')
     if not file:
-        res = {'success': 0, 'message': 'file format error'}
+        res = {'success': False, 'message': 'file format error'}
     else:
         ext = os.path.splitext(file.filename)[1]
         filename = datetime.now().strftime('%Y%m%d%H%M%S') + ext
         file.save(os.path.join(current_app.config.get('SYS_UPLOAD'), filename))
-        res = {'success': 1, 'message': 'file upload success', 'url': url_for('main.file', filename=filename, _external=True)}
+        res = {'success': True, 'message': 'file upload success', 'url': url_for('main.file', filename=filename, _external=True)}
     return jsonify(res)
 
 @bp_main.route('/file/<filename>')
