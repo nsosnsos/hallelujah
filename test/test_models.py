@@ -8,7 +8,7 @@ import datetime
 import unittest
 from faker import Faker
 
-from hallelujah import create_app, db, User, Article, Media
+from hallelujah import create_app, db, User, Article, Media, Resource
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -104,4 +104,21 @@ class MediaModelTestCase(unittest.TestCase):
         t = datetime.datetime(2000, 1, 1, 1, 1, 1, 0)
         a = Media(timestamp=t)
         self.assertTrue(a.uri == 'IMG_20000101_010101')
+
+class ResourceModelTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app('testing')
+        self.fake = Faker()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    def test_uri(self):
+        a = Resource(uri=self.fake.url())
+        self.assertTrue(a.uri.startswith('http'))
 

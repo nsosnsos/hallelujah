@@ -1,0 +1,92 @@
+{% if manage_medias %}
+    {% extends "_dropzone.html" %}
+{% else %}
+    {% extends "_base.html" %}
+{% endif %}
+
+{% block content %}
+    <div class="row mb-5">
+        {% if not path %}
+            <div class="row mt-5">
+                <div class="col-sm-3">
+                    <a class="btn btn-primary" href="{{ url_for('main.show_medias', path='public', manage_medias=False, _external=True) }}">Public</a>
+                </div>
+                <div class="col-sm-3">
+                    <a class="btn btn-primary" href="{{ url_for('main.show_medias', path=current_user.name, manage_medias=False, _external=True) }}">{{ current_user.name }}</a>
+                </div>
+            </div>
+        {% else %}
+            {% if manage_medias %}
+                <div class="row mt-5">
+                    <form method="post" role="form" class="dropzone" id="dropzone"></form>
+                </div>
+                <div class="row mt-5">
+                    <a class="btn btn-primary" href="{{ url_for('main.show_medias', path=path, manage_medias=False, _external=True) }}">Show</a>
+                </div>
+            {% else %}
+                <div class="row mt-5">
+                    <a class="btn btn-primary" href="{{ url_for('main.manage_medias', path=path, manage_medias=True, _external=True) }}">Manage</a>
+                </div>
+            {% endif %}
+            <div class="row mt-5">
+                <ol class="breadcrumb">
+                    {% set path_list = path.split('/') %}
+                    {% for dir_name in path_list %}
+                        {% if loop.last %}
+                            <li class="breadcrumb-item">{{ dir_name }}</li>
+                        {% else %}
+                            <li class="breadcrumb-item active">
+                                {% if manage_medias %}
+                                    <a href="{{ url_for('main.manage_medias', path=os.path.join(path_list[:loop.index]), manage_medias=True, _external=True) }}">{{ dir_name }}</a>
+                                {% else %}
+                                    <a href="{{ url_for('main.show_medias', path=os.path.join(path_list[:loop.index]), manage_medias=False, _external=True) }}">{{ dir_name }}</a>
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="row mt-5">
+                <p>Show medias in current directory...</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        window.addEventListener("load", data_container_adaption);
+        window.addEventListener("resize", data_container_adaption);
+        {% if manage_medias %}
+            var app = function() {
+                var defaultDropzoneOpts = {
+                    maxFilesize: 1024 * 1024 * 1024,
+                    addRemoveLinks: true,
+                    parallelUploads: 10,
+                };
+                var handlerInitDropzone = function(opts) {
+                    Dropzone.autoDiscover = false;
+                    $.extend(defaultDropzoneOpts, opts);
+                    return new Dropzone(defaultDropzoneOpts.id, defaultDropzoneOpts);
+                };
+                return {
+                    initDropzone:function(opts) {
+                        return handlerInitDropzone(opts);
+                    }
+                }
+            } ();
+            var dz = app.initDropzone({
+                id: "#dropzone",
+                url: "upload",
+                init: function() {
+                    this.on("success", function(file, data) {
+                        $("#dropzone").val(data.filename);
+                    });
+                }
+            });
+        {% endif %}
+    </script>
+{% endblock scripts %}
+
