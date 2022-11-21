@@ -1,4 +1,5 @@
 {% extends '_highlight.html' %}
+{% from "_modal.html" import render_modal %}
 
 {% block content %}
     <div class="row justify-content-center my-5">
@@ -11,26 +12,7 @@
                     {% if is_self %}
                         <div>
                             <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-1"><i class="bi-vector-pen">Edit</i></a>
-                            <button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_article"><i class="bi-trash">Delete</i></button>
-                            <div class="modal fade" id="delete_article" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="delete_label">Delete Artitle</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true"></span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>Do you want to delete article {{ article.title }}?</p>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <a href="{{ article.url }}/delete" class="btn btn-primary">Yes</a>
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            {{ render_modal('Delete Article', article.title, article.url) }}
                         </div>
                     {% endif %}
                 </div>
