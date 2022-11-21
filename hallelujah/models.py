@@ -273,8 +273,9 @@ class Resource(db.Model):
         self._uri_adaption()
 
     def _uri_adaption(self):
-        if not self.uri.startswith('http://') or not self.uri.startswith('https://'):
+        if not self.uri.startswith('http://') and not self.uri.startswith('https://'):
             self.uri = 'https://' + self.uri
+        return self.uri
 
     def __repr__(self):
         return '{}: id={}, user_id={}, uri={}'.format(self.__class__.__name__, self.id, self.user_id, self.uri)
@@ -307,19 +308,22 @@ class Resource(db.Model):
     def modify_resource(json_data, current_user):
         resource = Resource.query.get(json_data.get('id', -1))
         if not resource or resource.user_id != current_user.id:
-            return False
+            return None
         columns = [column.key for column in Resource.__table__.columns]
         for col in columns:
             if col in json_data:
                 setattr(resource, col, json_data[col])
-        resource._uri_adaption()
+                if col == 'uri':
+                    ret = resource._uri_adaption()
+                else:
+                    ret = json_data[col]
         db.session.add(resource)
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
             Config.LOGGER.error('modify_resource: {}'.format(str(e)))
-            return False
-        return True
+            return None
+        return ret
 
     @staticmethod
     def delete_resource(resource_uri):

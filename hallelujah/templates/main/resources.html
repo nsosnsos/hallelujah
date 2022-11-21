@@ -97,7 +97,13 @@
                                 id: ev.target.dataset.elementId,
                                 [ev.target.dataset.columnId]: ev.target.textContent
                             }),
-                        });
+                        }).then(
+                            response => response.json()
+                        ).then(
+                            json => {
+                                if (json.length !== 0) {ev.target.textContent = json[0]}
+                            }
+                        );
                     }
                     savedValue = undefined;
                 }
