@@ -53,8 +53,8 @@ def get_self_resources():
 @bp_api.route('/modify_resource', methods=['POST'])
 def modify_resource():
     if not current_user.is_authenticated:
-        return jsonify(False)
+        return jsonify([])
     data = request.get_json()
     ret = Resource.modify_resource(data, current_user)
-    return jsonify(ret)
+    return jsonify([ret]) if ret else jsonify([])
 
