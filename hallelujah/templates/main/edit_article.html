@@ -3,17 +3,15 @@
 
 {% block content %}
     <div class="row justify-content-center">
-        <div class="col-md-9">
-            <div class="card my-5">
-                <div class="card-body">
-                    <form method="post" role="form" class="needs-validation" novalidate>
-                        {{ form.hidden_tag() }}
-                        {{ render_field(form.title, form_group_classes='form_group form-floating has-success has-danger mb-3', type='text') }}
-                        {{ render_simple(form.content, form_group_classes='form_group has-success has-danger mb-3') }}
-                        {{ render_field(form.is_public, form_group_classes='mb-3', type='checkbox', checked=False) }}
-                        {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
-                    </form>
-                </div>
+        <div class="card my-5">
+            <div class="card-body">
+                <form method="post" role="form" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+                    {{ render_field(form.title, form_group_classes='form_group form-floating has-success has-danger mb-3', type='text') }}
+                    {{ render_simple(form.content, form_group_classes='form_group has-success has-danger mb-3') }}
+                    {{ render_field(form.is_public, form_group_classes='mb-3', type='checkbox', checked=False) }}
+                    {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
+                </form>
             </div>
         </div>
     </div>
