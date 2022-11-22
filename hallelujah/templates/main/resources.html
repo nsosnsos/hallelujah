@@ -64,8 +64,7 @@
                         {
                             name: "operation",
                             formatter: (cell, row) => {
-                                return gridjs.html(`
-                                    <button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_` + row.cells[0].data + `"><i class="bi-trash mx-1">Delete</i></button>
+                                var modal_raw = `
                                     <div class="modal fade" data-backdrop="true" id="delete_` + row.cells[0].data + `" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
@@ -84,8 +83,11 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                `)
+                                    </div>`;
+                                data_container = document.querySelector("#data_container");
+                                data_container.insertAdjacentHTML("afterend", modal_raw);
+                                return gridjs.html(`<button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_` +
+                                    row.cells[0].data + `"><i class="bi-trash mx-1">Delete</i></button> `)
                             }
                         },
                     {% endif %}
