@@ -6,6 +6,7 @@ from sqlalchemy import and_
 from flask_login import current_user
 from flask import Blueprint, current_app, request, jsonify
 
+from ..extensions import db
 from ..models import Article, User, Media, Resource
 
 
@@ -47,8 +48,29 @@ def get_self_medias():
 @bp_api.route('/get_self_resources')
 def get_self_resources():
     user_id = current_user.id if current_user.is_authenticated else -1
-    resources = Resource.query.filter(Resource.user_id== user_id).order_by(Resource.rank.desc(), Resource.id.asc())
-    return jsonify([resource.to_json() for resource in resources])
+    query = Resource.query.filter(Resource.user_id== user_id)
+    search = request.args.get('search')
+    if search:
+        query = query.filter(db.or_(
+            Resource.uri.like(f'%{search}%'),
+            Resource.category.like(f'%{search}%'),
+            Resource.title.like(f'%{search}%')
+        ));
+    sort = request.args.get('sort')
+    if sort:
+        order_options = []
+        for s in sort.split(','):
+            direction = s[0]
+            item = s[1:]
+            col = getattr(Resource, item)
+            if direction == '-':
+                col = col.desc()
+            order_options.append(col)
+        if order_options:
+            print(order_options)
+            query = query.order_by(*order_options)
+    data = [resource.to_json() for resource in query]
+    return jsonify([resource.to_json() for resource in query])
 
 @bp_api.route('/modify_resource', methods=['POST'])
 def modify_resource():
