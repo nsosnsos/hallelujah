@@ -58,18 +58,18 @@ def get_self_resources():
         ));
     sort = request.args.get('sort')
     if sort:
+        column_names = Resource.__table__.columns.keys()
         order_options = []
         for s in sort.split(','):
             direction = s[0]
             item = s[1:]
-            col = getattr(Resource, item)
-            if direction == '-':
-                col = col.desc()
-            order_options.append(col)
+            if item in column_names:
+                col = getattr(Resoure, item)
+                if direction == '-':
+                    col = col.desc()
+                order_options.append(col)
         if order_options:
-            print(order_options)
             query = query.order_by(*order_options)
-    data = [resource.to_json() for resource in query]
     return jsonify([resource.to_json() for resource in query])
 
 @bp_api.route('/modify_resource', methods=['POST'])
