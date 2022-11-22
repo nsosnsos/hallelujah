@@ -290,6 +290,7 @@ class Resource(db.Model):
             'rank': self.rank,
             'category': self.category,
             'title': self.title,
+            'delete_uri': url_for('main.delete_resource', resource_id=self.id, _external=True),
         }
         return json_resource
 
@@ -326,8 +327,8 @@ class Resource(db.Model):
         return ret
 
     @staticmethod
-    def delete_resource(resource_uri):
-        resource = Resource.query.filter(Resource.uri==resource_uri).first()
+    def delete_resource(resource_id):
+        resource = Resource.query.filter(Resource.id==resource_id).first()
         if not resource:
             return False
         db.session.delete(resource)

@@ -88,8 +88,8 @@ def delete_article(article_url):
     article = Article.query.filter(Article.url == article_url).first()
     if not article or article.user_id != current_user.id or not Article.delete_article(article_id=article.id):
         flash('Failed to find the article!')
-        return redirect_back()
-    flash('Article ' + article.title +' is deleted!')
+    else:
+        flash('Article ' + article.title +' is deleted!')
     return redirect_back()
 
 def get_valid_path(path):
@@ -137,8 +137,20 @@ def resources():
 @bp_main.route('/manage_resources')
 @login_required
 def manage_resources():
-    columns = [col.key for col in Resource.__table__.columns]
+    columns = list(Resource(id=-1, uri=request.url_root).to_json().keys())
     return render_template('main/resources.html', columns=columns) 
+
+@bp_main.route('/delete_resource/<resource_id>')
+@login_required
+def delete_resource(resource_id):
+    if not current_user.is_authenticated:
+        redirect(url_for('auth.login', _external=True))
+    resource = Resource.query.filter(Resource.id == resource_id).first()
+    if not resource or resource.user_id != current_user.id or not Resource.delete_resource(resource_id=resource_id):
+        flash('Failed to find the resource!')
+    else:
+        flash('Resource ' + resource.title + ' ' + resource.uri +' is deleted!')
+    return redirect_back()
 
 @bp_main.route('/about')
 def about():
