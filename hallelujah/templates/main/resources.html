@@ -42,6 +42,9 @@
     {% if not resources %}
         <script type="text/javascript">
             const tableDiv = document.getElementById("manage_resources");
+            const updateUrl = (prev, query) => {
+                return prev + (prev.indexOf("?") >=0 ? "&": "?") + new URLSearchParams(query).toString();
+            }
             const editableCellAttr = (data, row, col) => {
                 if (row) {
                     return {contentEditable: "true", "data-element-id": row.cells[0].data};
@@ -84,8 +87,7 @@
                                             </div>
                                         </div>
                                     </div>`;
-                                data_container = document.querySelector("#data_container");
-                                data_container.insertAdjacentHTML("afterend", modal_raw);
+                                tableDiv.insertAdjacentHTML("beforeend", modal_raw);
                                 return gridjs.html(`<button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_` +
                                     row.cells[0].data + `"><i class="bi-trash mx-1">Delete</i></button> `)
                             }
@@ -102,8 +104,25 @@
                     then: results => results,
                 },
                 fixedHeader: true,
-                search: true,
-                sort: true,
+                search: {
+                    enabled: true,
+                    server: {
+                        url: (prev, search) => {
+                            return updateUrl(prev, {search});
+                        },
+                    },
+                },
+                sort: {
+                    enabled: true,
+                    multiColumn: true,
+                    server: {
+                        url: (prev, columns) => {
+                            const columnIds = {{ columns | tojson }};
+                            const sort = columns.map(col => (col.direction == 1? '+': '-') + columnIds[col.index]);
+                            return updateUrl(prev, {sort});
+                        },
+                    },
+                },
                 resizable: true,
                 pagination: false,
             }).render(tableDiv);
