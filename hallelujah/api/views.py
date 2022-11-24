@@ -64,7 +64,7 @@ def get_self_resources():
             direction = s[0]
             item = s[1:]
             if item in column_names:
-                col = getattr(Resoure, item)
+                col = getattr(Resource, item)
                 if direction == '-':
                     col = col.desc()
                 order_options.append(col)
