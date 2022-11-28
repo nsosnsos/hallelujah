@@ -35,13 +35,13 @@ def redirect_back(default='main.index', **kwargs):
     return redirect(url_for(default, _external=True, **kwargs))
 
 def redirect_before(default='main.index', **kwargs):
-    if request and request.args.get('next'):
-        target = request.args.get('next')
-        if target and not target.startswith('/'):
-            return redirect(url_for(target, _external=True))
+    target = request.args.get('next')
+    if target and not target.startswith('/'):
+        return redirect(url_for(target, _external=True))
     elif 'url' in session:
         return redirect(session['url'])
-    return redirect(url_for(default, _external=True, **kwargs))
+    else:
+        return redirect(url_for(default, _external=True, **kwargs))
 
 def redirect_save(url=None):
     if not url:
