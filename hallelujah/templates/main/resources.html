@@ -2,6 +2,7 @@
     {% extends '_base.html' %}
 {% else %}
     {% extends '_gridjs.html' %}
+    {% from '_form.html' import render_field %}
 {% endif %}
 
 {% block content %}
@@ -9,13 +10,37 @@
         {% if resources %}
             <a href="{{ url_for('main.manage_resources', _external=True) }}" class="btn btn-primary"><i class="bi-wrench-adjustable mx-1"></i>Manage Resources</a>
         {% else %}
-            <a href="{{ url_for('main.resources', _external=True) }}" class="btn btn-primary"><i class="bi-link-45deg mx-1"></i>View Resources</a>
+            <a href="{{ url_for('main.resources', _external=True) }}" class="btn btn-primary mx-2"><i class="bi-link-45deg mx-1"></i>View Resources</a>
+            <button type="button" class="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#resource_add"><i class="bi-plus-square mx-1"></i>Add Resource</button>
+            <div class="modal fade" id="resource_add" tabindex="-1" role="dialog" aria-labelledby="resource_add" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="resource_add">Add Resource</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true"></span></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" role="form" class="needs-validation" novalidate>
+                                {{ form.hidden_tag() }}
+                                {{ render_field(form.uri, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='uri') }}
+                                {{ render_field(form.title, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='title') }}
+                                {{ render_field(form.rank, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='rank') }}
+                                {{ render_field(form.category, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='category') }}
+                                {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endif %}
     </div>
     {% if resources %}
         {% for category, items in resources.items() %}
-            <div class="row justify-content-center mt-5">
-                <p><i class="bi-bookmark-star mx-1"></i>{{ category }}</p>
+            <div class="row justify-content-center mt-2">
+                <p><b><i class="bi-bookmark-star mx-1"></i>{{ category }}</b></p>
                 <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
                     <tbody>
                         <tr>
@@ -33,7 +58,7 @@
             </div>
         {% endfor %}
     {% else %}
-        <div class="my-5" id="manage_resources"></div>
+        <div class="my-3" id="manage_resources"></div>
     {% endif %}
 {% endblock content %}
 
@@ -72,7 +97,7 @@
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="delete_label">` + `Delete Resource` + `</h5>
+                                                    <h5 class="modal-title" id="delete_` + row.cells[0].data + `">` + `Delete Resource` + `</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                                                         <span aria-hidden="true"></span>
                                                     </button>
@@ -118,7 +143,7 @@
                     server: {
                         url: (prev, columns) => {
                             const columnIds = {{ columns | tojson }};
-                            const sort = columns.map(col => (col.direction == 1? '+': '-') + columnIds[col.index]);
+                            const sort = columns.map(col => (col.direction == 1? "+": "-") + columnIds[col.index]);
                             return updateUrl(prev, {sort});
                         },
                     },

@@ -1,4 +1,4 @@
-{% extends "_base.html" %}
+{% extends '_base.html' %}
 
 {% block content %}
     <div class="row mt-5">
@@ -72,10 +72,10 @@
                             <div class="card-body"> ` + data[index].truncated_content + ` </div>
                             <div class="card-footer d-flex justify-content-between text-muted">
                                 <div><i class="bi-people-fill mx-1"></i>` + data[index].author + `</div>
-                                <div><i class="bi-calendar3 mx-1"></i>` + moment(data[index].timestamp).format('YYYY-MM-DD HH:mm:ss') + `</div>
+                                <div><i class="bi-calendar3 mx-1"></i>` + moment(data[index].timestamp).format("YYYY-MM-DD HH:mm:ss") + `</div>
                             </div>
                         </div>`;
-                    $('#data_div').append(data_item);
+                    $("#data_div").append(data_item);
                 }
             });
         };

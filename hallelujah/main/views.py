@@ -10,7 +10,7 @@ from flask import Blueprint, render_template, request, session, current_app, abo
 
 from ..utility import redirect_back, redirect_save
 from ..models import User, Article, Media, Resource
-from .forms import ArticleForm
+from .forms import ArticleForm, ResourceForm
 
 
 bp_main = Blueprint('main', __name__)
@@ -134,17 +134,25 @@ def resources():
         resources[resource['category']].append(resource)
     return render_template('main/resources.html', resources=resources)
 
-@bp_main.route('/manage_resources')
+@bp_main.route('/manage_resources', methods=['GET', 'POST'])
 @login_required
 def manage_resources():
+    form = ResourceForm()
+    if form.validate_on_submit():
+        if Resource.add_resource(current_user.id, form.uri.data, form.rank.data, form.title.data, form.category.data):
+            flash('Resource is added successfully!')
+        else:
+            flash('Resource is failed to be added!')
+        return redirect(url_for('main.resources', _external=True))
+    redirect_save(request.referrer)
     columns = list(Resource(id=-1, uri=request.url_root).to_json().keys())
-    return render_template('main/resources.html', columns=columns) 
+    return render_template('main/resources.html', columns=columns, form=form)
 
 @bp_main.route('/delete_resource/<resource_id>')
 @login_required
 def delete_resource(resource_id):
     if not current_user.is_authenticated:
-        redirect(url_for('auth.login', _external=True))
+        return redirect(url_for('auth.login', _external=True))
     resource = Resource.query.filter(Resource.id == resource_id).first()
     if not resource or resource.user_id != current_user.id or not Resource.delete_resource(resource_id=resource_id):
         flash('Failed to find the resource!')
