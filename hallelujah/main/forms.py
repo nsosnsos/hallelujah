@@ -13,3 +13,10 @@ class ArticleForm(FlaskForm):
     is_public = BooleanField('Is public')
     submit = SubmitField('Post Article')
 
+class ResourceForm(FlaskForm):
+    uri = StringField('Resource URI', validators=[DataRequired()], render_kw={'autofocus': True})
+    title = StringField('Title')
+    rank = StringField('Rank')
+    category = StringField('Category')
+    submit = SubmitField('Add Resource')
+

@@ -1,5 +1,5 @@
 {% extends '_highlight.html' %}
-{% from "_modal.html" import render_modal %}
+{% from '_modal.html' import render_modal %}
 
 {% block content %}
     <div class="row justify-content-center my-5">
@@ -12,7 +12,7 @@
                     {% if is_self %}
                         <div>
                             <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-1"><i class="bi-vector-pen">Edit</i></a>
-                            {{ render_modal('Delete Article', article.title, article.url) }}
+                            {{ render_modal('Delete Article', article.title, article.url, article.id) }}
                         </div>
                     {% endif %}
                 </div>
