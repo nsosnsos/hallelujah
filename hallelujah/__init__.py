@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 
+import os
 import click
 import unittest
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -32,6 +33,8 @@ def create_app(config_name='default'):
     register_errorhandlers(app)
     register_shell_context_processor(app)
     register_commands(app)
+
+    app.add_template_global(os.path.join, 'os_path_join')
 
     return app
 
@@ -77,7 +80,7 @@ def register_shell_context_processor(app):
     @app.shell_context_processor
     def make_shell_context():
         return dict(db=db, User=User, Article=Article,
-                    Media=Media)
+                    Media=Media, Resource=Resource)
 
 def register_commands(app):
     @app.cli.command()
