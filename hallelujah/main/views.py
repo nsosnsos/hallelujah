@@ -5,10 +5,11 @@
 import os
 import datetime
 
+from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
-from flask import Blueprint, render_template, request, session, current_app, abort, make_response, redirect, url_for, flash, jsonify, Response
+from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_from_directory
 
-from ..utility import redirect_back, redirect_save
+from ..utility import redirect_back
 from ..models import User, Article, Media, Resource
 from .forms import ArticleForm, ResourceForm
 
@@ -33,7 +34,7 @@ def user_articles(user_name):
 def article(article_url):
     article = Article.query.filter(Article.url == article_url).first_or_404()
     if not article.is_public and (not current_user.is_authenticated or article.user_id != current_user.id):
-        return redirect(url_for('main.index', _external=True))
+        return redirect_back('main.index')
     return render_template('main/view_article.html', article=article, is_self=(current_user==article.author))
 
 @bp_main.route('/articles')
@@ -44,37 +45,31 @@ def articles():
 @bp_main.route('/new_article', methods=['GET', 'POST'])
 @login_required
 def new_article():
-    if not current_user.is_authenticated:
-        redirect(url_for('auth.login', _external=True))
     form = ArticleForm()
     if form.validate_on_submit():
         article = Article.add_article(user_id=current_user.id, title=form.title.data, content=form.content.data, is_public=form.is_public.data)
         if article:
-            return redirect(url_for('main.article', article_url=article.url, _external=True))
+            return redirect_back('main.article', article_url=article.url)
         else:
             flash('Failed to post the article!')
-            return redirect(url_for('main.index', _external=True))
-    redirect_save(request.referrer)
+            return redirect_back()
     return render_template('main/edit_article.html', form=form)
 
 @bp_main.route('/article/<article_url>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_article(article_url):
-    if not current_user.is_authenticated:
-        redirect(url_for('auth.login', _external=True))
     article = Article.query.filter(Article.url == article_url).first()
     if not article or article.user_id != current_user.id:
         flash('Failed to find the article!')
-        return redirect_back()
+        return redirect_back('main.index')
     form = ArticleForm()
     if form.validate_on_submit():
         article = Article.edit_article(article_id=article.id, title=form.title.data, content=form.content.data, is_public=form.is_public.data)
         if article:
-            return redirect(url_for('main.article', article_url=article.url, _external=True))
+            return redirect_back('main.article', article_url=article.url)
         else:
             flash('Failed to post the article!')
-            return redirect(url_for('main.index', _external=True))
-    redirect_save(request.referrer)
+            return redirect_back()
     form.title.data = article.title
     form.content.data = article.content
     form.is_public.data = article.is_public
@@ -83,45 +78,74 @@ def edit_article(article_url):
 @bp_main.route('/article/<article_url>/delete')
 @login_required
 def delete_article(article_url):
-    if not current_user.is_authenticated:
-        redirect(url_for('auth.login', _external=True))
     article = Article.query.filter(Article.url == article_url).first()
     if not article or article.user_id != current_user.id or not Article.delete_article(article_id=article.id):
         flash('Failed to find the article!')
     else:
         flash('Article ' + article.title +' is deleted!')
-    return redirect_back()
+    return redirect_back('main.articles')
 
 def get_valid_path(path):
     root = path.split('/')[0]
-    if root != 'public' and root != current_user.name:
+    is_public = bool(root == current_app.config.get('SYS_PUBLIC'))
+    if not is_public and root != current_user.name:
         return None
-    base = current_app.config.get('SYS_STORAGE')
-    full_path = os.path.join(base, path)
-    if not os.path.isdir(full_path):
-        return None 
+    base = current_app.config.get('SYS_STATIC') if is_public else current_app.config.get('SYS_STORAGE')
+    full_path = os.path.join(base, path) if is_public else os.path.join(base, path)
+    if not os.path.exists(full_path):
+        if not is_public:
+            os.makedirs(full_path)
+        else:
+            return None
     return full_path
 
-@bp_main.route('/medias', methods=['GET', 'POST'])
+@bp_main.route('/medias')
 @login_required
 def medias():
-    return render_template('main/medias.html', path=None, manage_medias=False)
+    return render_template('main/medias.html', current_path=None, manage=None)
 
-@bp_main.route('/medias/<path:path>', methods=['GET', 'POST'])
+@bp_main.route('/medias/<path:current_path>')
 @login_required
-def show_medias(path):
-    full_path = get_valid_path(path)
+def show_medias(current_path):
+    full_path = get_valid_path(current_path)
     if not full_path:
         return redirect_back()
-    return render_template('main/medias.html', path=path, manage_medias=False)
+    return render_template('main/medias.html', current_path=current_path, manage=False)
 
-@bp_main.route('/manage_medias/<path:path>', methods=['GET', 'POST'])
+@bp_main.route('/manage_medias/<path:current_path>')
 @login_required
-def manage_medias(path):
-    full_path = get_valid_path(path)
+def manage_medias(current_path):
+    full_path = get_valid_path(current_path)
     if not full_path:
         return redirect_back()
-    return render_template('main/medias.html', path=path, manage_medias=True)
+    return render_template('main/medias.html', current_path=current_path, manage=True)
+
+@bp_main.route('/upload_file/<path:current_path>', methods=['POST'])
+@login_required
+def upload_file(current_path):
+    result_list = []
+    full_path = get_valid_path(current_path)
+    if not full_path:
+        return make_response('file not found', 404)
+    upload_files = request.files
+    for item in upload_files:
+        file = upload_files.get(item)
+        filename = secure_filename(file.filename)
+        if not filename:
+            return make_response('bad request', 400)
+        ext = os.path.splitext(filename)[1]
+        filename = datetime.utcnow().strftime('%Y%m%d%H%M%S') + ext
+        full_name = os.path.join(full_path, filename)
+        file.save(full_name)
+        result_list.append(url_for('main.download_file', current_path=os.path.join(current_path, filename), _external=True))
+    return make_response(jsonify(result_list), 200)
+
+@bp_main.route('/download_file/<path:current_path>')
+def download_file(current_path):
+    full_path = get_valid_path(current_path)
+    if not full_path:
+        return Response('', status=204, mimetype='text/xml')
+    return send_from_directory(full_path, filename)
 
 @bp_main.route('/resources')
 @login_required
@@ -143,16 +167,13 @@ def manage_resources():
             flash('Resource is added successfully!')
         else:
             flash('Resource is failed to be added!')
-        return redirect(url_for('main.resources', _external=True))
-    redirect_save(request.referrer)
+        return redirect_back('main.resources')
     columns = list(Resource(id=-1, uri=request.url_root).to_json().keys())
     return render_template('main/resources.html', columns=columns, form=form)
 
 @bp_main.route('/delete_resource/<resource_id>')
 @login_required
 def delete_resource(resource_id):
-    if not current_user.is_authenticated:
-        return redirect(url_for('auth.login', _external=True))
     resource = Resource.query.filter(Resource.id == resource_id).first()
     if not resource or resource.user_id != current_user.id or not Resource.delete_resource(resource_id=resource_id):
         flash('Failed to find the resource!')
@@ -164,36 +185,13 @@ def delete_resource(resource_id):
 def about():
     return render_template('main/about.html')
 
-@bp_main.route('/search', methods=['GET', 'POST'])
+@bp_main.route('/search', methods=['POST'])
 def search():
-    if request.method == 'GET':
-        return redirect(url_for('main.index', _external=True))
-    redirect_save(request.referrer)
     data = request.form.get('search', None)
     return render_template('main/search.html', data=data)
 
-@bp_main.route('/upload', methods=['GET', 'POST'])
-def upload():
-    file = request.files.get('upload_file')
-    if not file:
-        res = {'success': False, 'message': 'file format error'}
-    else:
-        ext = os.path.splitext(file.filename)[1]
-        filename = datetime.now().strftime('%Y%m%d%H%M%S') + ext
-        file.save(os.path.join(current_app.config.get('SYS_UPLOAD'), filename))
-        res = {'success': True, 'message': 'file upload success', 'url': url_for('main.file', filename=filename, _external=True)}
-    return jsonify(res)
-
-@bp_main.route('/file/<filename>')
-def file(filename):
-    with open(os.path.join(current_app.config.get('SYS_UPLOAD'), filename), 'rb') as f:
-        return Response(f.read(), mimetype="image/jpeg")
-
-@bp_main.route('/theme', methods=['GET', 'POST'])
+@bp_main.route('/theme', methods=['POST'])
 def theme_switch():
-    if request.method == 'GET':
-        return redirect(url_for('main.index', _external=True))
-    redirect_save(request.referrer)
     status = request.form.get('toggle', False)
     theme_day = current_app.config.get('SYS_THEME_DAY')
     theme_night = current_app.config.get('SYS_THEME_NIGHT')
