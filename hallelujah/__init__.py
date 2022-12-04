@@ -6,12 +6,12 @@ import os
 import click
 import unittest
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, request, redirect, url_for, jsonify
+from flask import Flask, request, jsonify
 
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import mariadb_is_in_use, mariadb_is_exist_db, mariadb_create_db, send_email
+from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_create_db, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -56,25 +56,25 @@ def register_errorhandlers(app):
     def bad_request(e):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):
             return jsonify({'error': 'bad request', 'message': str(e)})
-        return redirect(url_for('main.index', _external=True))
+        return redirect_back('main.index')
 
     @app.errorhandler(403)
     def forbidden_error(e):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):
             return jsonify({'error': 'forbidden error', 'message': str(e)})
-        return redirect(url_for('main.index', _external=True))
+        return redirect_back('main.index')
 
     @app.errorhandler(404)
     def page_not_found(e):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):
             return jsonify({'error': 'page not found', 'message': str(e)})
-        return redirect(url_for('main.index', _external=True))
+        return redirect_back('main.index')
 
     @app.errorhandler(500)
     def internal_server_error(e):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):
             return jsonify({'error': 'internal server error', 'message': str(e)})
-        return redirect(url_for('main.index', _external=True))
+        return redirect_back('main.index')
 
 def register_shell_context_processor(app):
     @app.shell_context_processor

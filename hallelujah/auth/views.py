@@ -3,12 +3,12 @@
 
 
 from sqlalchemy import exc
-from flask import Blueprint, current_app, url_for, session, render_template, request, redirect, flash
+from flask import Blueprint, current_app, url_for, session, render_template, request, flash
 from flask_login import current_user, login_user, logout_user, login_required
 
 from ..extensions import db, login_manager
 from ..models import User
-from ..utility import redirect_before, redirect_save, redirect_back
+from ..utility import redirect_save, redirect_back
 from .forms import LoginForm, RegisterForm, SettingForm
 
 
@@ -16,12 +16,13 @@ bp_auth = Blueprint('auth', __name__)
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    return redirect(url_for('auth.login', next=request.endpoint, _external=True))
+    redirect_save(url_for(request.endpoint, **request.view_args, _external=True))
+    return redirect_back('auth.login')
 
 @bp_auth.route('login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect_before()
+        return redirect_back()
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -35,9 +36,8 @@ def login():
             login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
             flash(login_info, category='login')
             current_user.update_last_seen()
-            return redirect_before()
+            return redirect_back(is_auth=True)
         flash('Invalid Username or Password')
-    redirect_save(request.referrer)
     return render_template('auth/login.html', form=form)
 
 @bp_auth.route('logout')
@@ -71,8 +71,7 @@ def setting():
                 current_app.config.get('LOGGER').error('setting: {}'.format(str(e)))
                 return
             flash('Your password has been updated.')
-            return redirect_before()
-    redirect_save(request.referrer)
+            return redirect_back()
     return render_template('auth/setting.html', form=form)
 
 @bp_auth.route('register', methods=['GET', 'POST'])
@@ -94,7 +93,6 @@ def register():
                 current_app.config.get('LOGGER').error('register: {}'.format(str(e)))
                 return
             flash('Success! Welcome {}!'.format(user.name))
-            return redirect(url_for('auth.login', _external=True))
-    redirect_save(request.referrer)
+            return redirect_back('auth.login')
     return render_template('auth/register.html', form=form)
 

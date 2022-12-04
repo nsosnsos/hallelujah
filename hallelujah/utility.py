@@ -29,19 +29,15 @@ def get_timestamp(t=None):
         t = datetime.datetime.now()
     return t.strftime('%Y-%m-%d %H:%M:%S')
 
-def redirect_back(default='main.index', **kwargs):
-    if request.referrer:
+def redirect_back(endpoint=None, is_auth=False, **kwargs):
+    if endpoint:
+        target_url = url_for(endpoint, **kwargs, _external=True)
+        return redirect(target_url)
+    if is_auth and 'url' in session:
+            return redirect(session['url'])
+    if not is_auth and request.referrer and request.referrer != request.url:
         return redirect(request.referrer)
-    return redirect(url_for(default, _external=True, **kwargs))
-
-def redirect_before(default='main.index', **kwargs):
-    target = request.args.get('next')
-    if target and not target.startswith('/'):
-        return redirect(url_for(target, _external=True))
-    elif 'url' in session:
-        return redirect(session['url'])
-    else:
-        return redirect(url_for(default, _external=True, **kwargs))
+    return redirect(url_for('main.index', _external=True))
 
 def redirect_save(url=None):
     if not url:
