@@ -2,9 +2,7 @@
 # -*- coding:utf-8 -*-
 
 
-import re
 import bleach
-import datetime
 import subprocess
 from threading import Thread
 from markdown import markdown
@@ -14,20 +12,9 @@ from flask_mail import Message
 from .extensions import mail
 
 
-def string_to_url(s):
-    r = re.sub(r'[/\\\'\"\s\t~!@#$%^&*()`|<>?]', '+', s)
-    while '++' in r:
-        r = r.replace('++', '+')
-    return r
-
 def markdown_to_html(text):
     extensions = ['fenced_code', 'admonition', 'tables', 'extra']
     return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
-
-def get_timestamp(t=None):
-    if not t:
-        t = datetime.datetime.now()
-    return t.strftime('%Y-%m-%d %H:%M:%S')
 
 def redirect_back(endpoint=None, is_auth=False, **kwargs):
     if endpoint:

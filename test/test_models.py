@@ -100,10 +100,10 @@ class MediaModelTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_uri(self):
-        t = datetime.datetime(2000, 1, 1, 1, 1, 1, 0)
-        a = Media(timestamp=t)
-        self.assertTrue(a.uri == 'IMG_20000101_010101')
+    def test_valid_media(self):
+        m = Media(user_id=-1, path="", filename="")
+        self.assertTrue(m.timestamp == None)
+        self.assertTrue(m.uuidname != None)
 
 class ResourceModelTestCase(unittest.TestCase):
     def setUp(self):
