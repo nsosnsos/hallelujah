@@ -143,7 +143,7 @@ def upload(current_path):
 def download(filename):
     filename = secure_filename(filename)
     media = Media.query.filter(Media.filename == filename).first()
-    if not media:
+    if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
     base_path = _get_base_path()
     filename = os.path.join(media.path, media.filename)
