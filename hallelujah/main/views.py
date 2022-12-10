@@ -3,7 +3,6 @@
 
 
 import os
-import datetime
 
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
@@ -85,67 +84,70 @@ def delete_article(article_url):
         flash('Article ' + article.title +' is deleted!')
     return redirect_back('main.articles')
 
-def get_valid_path(path):
-    root = path.split('/')[0]
-    is_public = bool(root == current_app.config.get('SYS_PUBLIC'))
-    if not is_public and root != current_user.name:
-        return None
-    base = current_app.config.get('SYS_STATIC') if is_public else current_app.config.get('SYS_STORAGE')
-    full_path = os.path.join(base, path) if is_public else os.path.join(base, path)
-    if not os.path.exists(full_path):
-        if not is_public:
-            os.makedirs(full_path)
-        else:
-            return None
-    return full_path
-
 @bp_main.route('/medias')
 @login_required
 def medias():
-    return render_template('main/medias.html', current_path=None, manage=None)
+    return render_template('main/medias.html', current_path=current_user.name, manage=False)
+
+def _get_base_path():
+    return current_app.config.get('SYS_STORAGE')
+
+def _get_full_path(current_path, current_user):
+    base_path = _get_base_path()
+    root = current_path.split('/')[0]
+    if not current_user.is_authenticated or root != current_user.name:
+        return None
+    full_path = os.path.join(base_path, current_path)
+    if os.path.isdir(full_path):
+        return full_path
+    return None
 
 @bp_main.route('/medias/<path:current_path>')
 @login_required
 def show_medias(current_path):
-    full_path = get_valid_path(current_path)
-    if not full_path:
+    if not _get_full_path(current_path, current_user):
         return redirect_back()
     return render_template('main/medias.html', current_path=current_path, manage=False)
 
 @bp_main.route('/manage_medias/<path:current_path>')
 @login_required
 def manage_medias(current_path):
-    full_path = get_valid_path(current_path)
-    if not full_path:
+    if not _get_full_path(current_path, current_user):
         return redirect_back()
     return render_template('main/medias.html', current_path=current_path, manage=True)
 
-@bp_main.route('/upload_file/<path:current_path>', methods=['POST'])
+@bp_main.route('/upload/<path:current_path>', methods=['POST'])
 @login_required
-def upload_file(current_path):
+def upload(current_path):
     result_list = []
-    full_path = get_valid_path(current_path)
+    full_path = _get_full_path(current_path, current_user)
     if not full_path:
-        return make_response('file not found', 404)
+        return make_response('forbidden', 403)
     upload_files = request.files
     for item in upload_files:
         file = upload_files.get(item)
         filename = secure_filename(file.filename)
         if not filename:
             return make_response('bad request', 400)
-        ext = os.path.splitext(filename)[1]
-        filename = datetime.utcnow().strftime('%Y%m%d%H%M%S') + ext
-        full_name = os.path.join(full_path, filename)
-        file.save(full_name)
-        result_list.append(url_for('main.download_file', current_path=os.path.join(current_path, filename), _external=True))
+        full_path_name = os.path.join(full_path, filename)
+        file.save(full_path_name)
+        if not os.path.isfile(full_path_name):
+            return make_response('file not found', 404)
+        media = Media.add_media(user_id=current_user.id, path=current_path, filename=filename)
+        if not media:
+            return make_response('internal error', 500)
+        result_list.append(url_for('main.download', filename=media.uuidname, _external=True))
     return make_response(jsonify(result_list), 200)
 
-@bp_main.route('/download_file/<path:current_path>')
-def download_file(current_path):
-    full_path = get_valid_path(current_path)
-    if not full_path:
+@bp_main.route('/file/<filename>')
+def download(filename):
+    filename = secure_filename(filename)
+    media = Media.query.filter(Media.filename == filename).first()
+    if not media:
         return Response('', status=204, mimetype='text/xml')
-    return send_from_directory(full_path, filename)
+    base_path = _get_base_path()
+    filename = os.path.join(media.path, media.filename)
+    return send_from_directory(base_path, filename)
 
 @bp_main.route('/resources')
 @login_required

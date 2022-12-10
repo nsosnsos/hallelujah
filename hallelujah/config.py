@@ -68,7 +68,6 @@ class Config():
     SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
     SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates')
     SYS_STORAGE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
-    SYS_PUBLIC = 'public'
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')

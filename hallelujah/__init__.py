@@ -70,6 +70,12 @@ def register_errorhandlers(app):
             return jsonify({'error': 'page not found', 'message': str(e)})
         return redirect_back('main.index')
 
+    @app.errorhandler(413)
+    def payload_too_large(e):
+        if request.endpoint == 'main.upload':
+            return 'File is too large', 413
+        return redirect_back('main.index')
+
     @app.errorhandler(500)
     def internal_server_error(e):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):

@@ -10,8 +10,8 @@
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes, shrink-to-fit=no">
         {% endblock metas %}
         {% block icons %}
-            <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename=os_path_join(config.SYS_PUBLIC, 'favicon16.ico'), _external=True) }}">
-            <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename=os_path_join(config.SYS_PUBLIC, 'favicon16.ico'), _external=True) }}">
+            <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename=os_path_join('img', 'favicon16.ico'), _external=True) }}">
+            <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename=os_path_join('img', 'favicon16.ico'), _external=True) }}">
         {% endblock icons %}
         {% block styles %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.min.css">
@@ -33,7 +33,7 @@
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
                 <div class="container">
                     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index', _external=True) }}">
-                        <img src="{{ url_for('static', filename=os_path_join(config.SYS_PUBLIC, 'favicon16.ico'), _external=True) }}" alt="logo" class="img-fluid rounded-circle mx-1">{{ config.SITE_NAME | capitalize }}
+                        <img src="{{ url_for('static', filename=os_path_join('img', 'favicon16.ico'), _external=True) }}" alt="logo" class="img-fluid rounded-circle mx-1">{{ config.SITE_NAME | capitalize }}
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbtn" aria-controls="navbtn" aria-expanded="false" aria-label="toggle navigation">
                         <span class="navbar-toggler-icon"></span>

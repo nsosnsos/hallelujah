@@ -2,6 +2,7 @@
 # -*- coding;utf-8 -*-
 
 
+import os
 import uuid
 import hashlib
 import datetime
@@ -206,37 +207,51 @@ class Media(db.Model):
     __tablename__ = 'medias'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=False, nullable=False, index=True)
-    timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
-    uri = db.Column(db.String(Config.MAX_STR_LEN), unique=True, nullable=False, index=False)
+    timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True)
+    path = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
+    filename = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
+    uuidname = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     is_public = db.Column(db.Boolean, unique=False, nullable=False, default=True)
-    title = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=True)
 
     def __init__(self, **kwargs):
         super(Media, self).__init__(**kwargs)
-        self._generate_uri()
+        self._generate_timestamp()
+        self._generate_uuidname()
 
     def __repr__(self):
-        return '{}: id={}, user_id={}, uri={}'.format(self.__class__.__name__, self.id, self.user_id, self.uri)
+        return '{}: id={}, user_id={}, uuidname={}'.format(self.__class__.__name__, self.id, self.user_id, self.uuidname)
 
     def __str__(self):
         return self.__repr__()
 
-    def _generate_uri(self):
-        self.uri = 'IMG_' + self.timestamp.strftime('%Y%m%d_%H%M%S')
+    def _generate_timestamp(self):
+        base_path = Config.SYS_STORAGE
+        full_name = os.path.join(base_path, self.path, self.filename)
+        if not os.path.isfile(full_name):
+            return
+        stat = os.stat(full_name)
+        if 'st_birthtime' in dir(stat):
+            ts = stat.st_birthtime
+        else:
+            ts = os.path.getctime(full_name)
+        self.timestamp = datetime.datetime.fromtimestamp(ts)
+
+    def _generate_uuidname(self):
+        file_ext = os.path.splitext(self.filename)[1]
+        self.uuidname = uuid.uuid4().hex + file_ext
 
     def to_json(self):
         json_media = {
             'author': self.author.name,
             'timestamp': self.timestamp,
-            'rui': self.uri,
+            'uuidname': self.uuidname,
             'is_public': self.is_public,
-            'title': self.title,
         }
         return json_media
 
     @staticmethod
-    def add_media(user_id, uri, is_public=True, title=None):
-        media = Media(user_id=user_id, uri=uri, is_public=is_public, title=title)
+    def add_media(user_id, path, filename, is_public=True):
+        media = Media(user_id=user_id, path=path, filename=filename, is_public=is_public)
         db.session.add(media)
         try:
             db.session.commit()
@@ -246,8 +261,8 @@ class Media(db.Model):
         return media
 
     @staticmethod
-    def delete_media(media_uri):
-        media = Media.query.filter(Media.uri==media_uri).first()
+    def delete_media(uuidname):
+        media = Media.query.filter(Media.uuidname==uuidname).first()
         if not media:
             return False
         db.session.delete(media)
