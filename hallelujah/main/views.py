@@ -6,7 +6,7 @@ import os
 
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
-from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_from_directory
+from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
 from ..utility import redirect_back
 from ..models import User, Article, Media, Resource
@@ -119,7 +119,7 @@ def manage_medias(current_path):
 @bp_main.route('/upload/<path:current_path>', methods=['POST'])
 @login_required
 def upload(current_path):
-    result_list = []
+    result_dict = dict()
     full_path = _get_full_path(current_path, current_user)
     if not full_path:
         return make_response('forbidden', 403)
@@ -136,18 +136,55 @@ def upload(current_path):
         media = Media.add_media(user_id=current_user.id, path=current_path, filename=filename)
         if not media:
             return make_response('internal error', 500)
-        result_list.append(url_for('main.download', filename=media.uuidname, _external=True))
-    return make_response(jsonify(result_list), 200)
+        result_dict[filename] = media.uuidname
+    return make_response(jsonify(result_dict), 200)
 
 @bp_main.route('/file/<filename>')
-def download(filename):
+@bp_main.route('/download/<filename>')
+def get_file(filename):
     filename = secure_filename(filename)
-    media = Media.query.filter(Media.filename == filename).first()
+    media = Media.query.filter(Media.uuidname == filename).first()
     if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
-    base_path = _get_base_path()
-    filename = os.path.join(media.path, media.filename)
-    return send_from_directory(base_path, filename)
+    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
+    if request.path.startswith('/download'):
+        as_attachment = True
+    else:
+        as_attachment = False
+    return send_file(full_path_name, as_attachment=as_attachment, download_name=filename)
+
+@bp_main.route('/save/<path:current_path>/<filename>')
+@login_required
+def save(current_path, filename):
+    full_path = _get_full_path(current_path, current_user)
+    if not full_path:
+        return make_response('forbidden', 403)
+    filename = secure_filename(filename)
+    full_path_name = os.path.join(full_path, filename)
+    if not os.path.isfile(full_path_name):
+        return make_response('bad request', 400)
+    media = Media.query.filter((Media.path == current_path) | (Media.filename == filename)).first()
+    if not media or not current_user.is_authenticated or current_user.name != media.author.name:
+        return Response('', status=204, mimetype='text/xml')
+    return send_file(full_path_name, as_attachment=True, download_name=filename)
+
+@bp_main.route('/delete', methods=['POST'])
+def delete_file():
+    filename = secure_filename(request.get_json().get('filename', ''))
+    if not current_user.is_authenticated:
+        return 'bad request', 400
+    media = Media.query.filter(Media.uuidname == filename).first()
+    if not media:
+        return jsonify('succesd')
+    if media.author.name != current_user.name:
+        return 'file not found', 404
+    if not Media.delete_media(media.uuidname):
+        return 'internal error', 500
+    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
+    if os.path.isfile(full_path_name):
+        os.remove(full_path_name)
+    return jsonify('succeed')
+
 
 @bp_main.route('/resources')
 @login_required

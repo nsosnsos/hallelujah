@@ -5,20 +5,20 @@
 {% endif %}
 
 {% block content %}
-    <div class="row mb-5">
+    <div class="row mb-3">
         {% if manage %}
-            <div class="row mt-5">
-                <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload_dropzone"></form>
-            </div>
-            <div class="row mt-5">
+            <div class="d-flex justify-content-center mt-3">
                 <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">Show</a>
             </div>
+            <div class="row mt-3">
+                <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone"></form>
+            </div>
         {% else %}
-            <div class="row mt-5">
+            <div class="d-flex justify-content-center mt-3">
                 <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">Manage</a>
             </div>
         {% endif %}
-        <div class="row mt-5">
+        <div class="row mt-3">
             <ol class="breadcrumb">
                 {% set path_list = current_path.split('/') %}
                 {% for dir_name in path_list %}
@@ -36,7 +36,7 @@
                 {% endfor %}
             </ol>
         </div>
-        <div class="row mt-5">
+        <div class="row mt-3">
             <p>Show medias in current directory...</p>
         </div>
     </div>
@@ -49,16 +49,44 @@
         window.addEventListener("load", data_container_adaption);
         window.addEventListener("resize", data_container_adaption);
         {% if manage %}
-            Dropzone.options.myDropzone = {
+            Dropzone.options.uploadDropzone = {
+                dictDefaultMessage: "Drop files here or click to upload",
                 addRemoveLinks: true,
                 uploadMultiple: true,
-                parallelUploads: 10,
-                maxFileSize: 100 * 1024 * 1024,
+                parallelUploads: {{ config.DROPZONE_PARALLEL_UPLOADS }},
+                maxFileSize: {{ config.DROPZONE_MAX_FILE_SIZE }},
                 url: "{{ url_for('main.upload', current_path=current_path, _external=True) }}",
                 init: function() {
                 },
+                success: function(file, response) {
+                },
+                successmultiple: function(files, response) {
+                    for (let i in files) {
+                        if (files[i].name in response) {
+                            //files[i].name = response[files[i].name];
+                            //files[i].serverName = response[files[i].name];
+                            //files[i].previewElement.id = response[files[i].name];
+                            files[i].previewElement.querySelector('[data-dz-name]').innerHTML = response[files[i].name];
+                        }
+                    }
+                },
+                removedfile: function(file, response) {
+                    fetch("{{ url_for('main.delete_file', _external=True) }}", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            filename: file.serverName,
+                        }),
+                    }).then(
+                        response => response.json()
+                    ).then(
+                        json => {
+                            file.previewElement.remove();
+                        }
+                    );
+                },
             };
-            var myDropzone = new Dropzone("#upload_dropzone");
+            var uploadDropzone = new Dropzone("#upload-dropzone");
         {% endif %}
     </script>
 {% endblock scripts %}
