@@ -28,3 +28,9 @@ a {
     z-index: 1;
 }
 
+/* dropzone style */
+.dropzone, .dz-clickable {
+    border-radius: 5px;
+    border: 2px dashed rgb(0, 135, 247);
+}
+

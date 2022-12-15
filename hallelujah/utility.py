@@ -16,23 +16,27 @@ def markdown_to_html(text):
     extensions = ['fenced_code', 'admonition', 'tables', 'extra']
     return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
 
+
 def redirect_back(endpoint=None, is_auth=False, **kwargs):
     if endpoint:
         target_url = url_for(endpoint, **kwargs, _external=True)
         return redirect(target_url)
     if is_auth and 'url' in session:
-            return redirect(session['url'])
+        return redirect(session['url'])
     if not is_auth and request.referrer and request.referrer != request.url:
         return redirect(request.referrer)
     return redirect(url_for('main.index', _external=True))
+
 
 def redirect_save(url=None):
     if not url:
         url = url_for('main.index', _external=True)
     session['url'] = url
 
+
 def mariadb_is_in_use():
     return current_app.config.get('SYS_MARIADB')
+
 
 def mariadb_is_exist_db():
     db_usr = current_app.config.get('MARIADB_USERNAME')
@@ -44,6 +48,7 @@ def mariadb_is_exist_db():
     except subprocess.CalledProcessError as e:
         current_app.config.get('LOGGER').error('is_exist_database: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
+
 
 def mariadb_create_db():
     db_usr = current_app.config.get('MARIADB_USERNAME')
@@ -57,12 +62,14 @@ def mariadb_create_db():
         current_app.config.get('LOGGER').error('create_database: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() == ''
 
+
 def send_async_email(app, message):
     with app.app_context():
         try:
             mail.send(message)
         except Exception as e:
             app.config.get('LOGGER').error('send_async_email: {}'.format(str(e)))
+
 
 def send_email(to, subject, msg):
     message = Message(subject=current_app.config.get('SITE_NAME') + ': ' + subject,

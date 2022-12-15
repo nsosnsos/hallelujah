@@ -7,7 +7,6 @@ import re
 import sys
 import json
 import requests
-import configparser
 import logging
 from logging import handlers
 
@@ -15,6 +14,7 @@ from logging import handlers
 def _is_valid_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     return re.fullmatch(regex, email)
+
 
 def _get_logger(log_switch, log_file, log_name):
     log_format = logging.Formatter('[%(asctime)s][{0}]: %(message)s'.format(log_name))
@@ -32,8 +32,8 @@ def _get_logger(log_switch, log_file, log_name):
         logger.addHandler(file_handler)
     return logger
 
+
 def _get_themes():
-    themes = None
     try:
         bootswatch5 = requests.get('https://bootswatch.com/api/5.json')
         themes = {theme['name']: theme['cssCdn'] for theme in json.loads(bootswatch5.text)['themes']}
@@ -43,7 +43,7 @@ def _get_themes():
     return themes
 
 
-class Config():
+class Config:
     ENV = 'production'
     DEBUG = False
     TESTING = False
@@ -73,8 +73,13 @@ class Config():
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
     SYS_MARIADB = False
 
+    # BLUEMAP
     AUTH_URL_PREFIX = '/auth'
     API_URL_PREFIX = '/api'
+
+    # DROPZONE
+    DROPZONE_PARALLEL_UPLOADS = 999
+    DROPZONE_MAX_FILE_SIZE = 1024
 
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
