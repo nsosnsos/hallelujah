@@ -6,7 +6,7 @@
 {% endif %}
 
 {% block content %}
-    <div class="d-flex justify-content-center mt-5">
+    <div class="d-flex justify-content-center my-5">
         {% if resources %}
             <a href="{{ url_for('main.manage_resources', _external=True) }}" class="btn btn-primary"><i class="bi-wrench-adjustable mx-1"></i>Manage Resources</a>
         {% else %}
@@ -39,7 +39,7 @@
     </div>
     {% if resources %}
         {% for category, items in resources.items() %}
-            <div class="row justify-content-center mt-2">
+            <div class="row justify-content-center{{ ' mb-5' if loop.last else ' mb-3' }}">
                 <p><b><i class="bi-bookmark-star mx-1"></i>{{ category }}</b></p>
                 <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
                     <tbody>
@@ -58,7 +58,7 @@
             </div>
         {% endfor %}
     {% else %}
-        <div class="my-3" id="manage_resources"></div>
+        <div class="mb-5" id="manage_resources"></div>
     {% endif %}
 {% endblock content %}
 
