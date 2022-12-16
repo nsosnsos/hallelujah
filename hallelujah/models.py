@@ -88,7 +88,31 @@ class User(UserMixin, db.Model):
         except exc.SQLAlchemyError as e:
             Config.LOGGER.error('add_user: {}'.format(str(e)))
             return None
+        user_path = os.path.join(Config.SYS_STORAGE, user.name)
+        if not os.path.exists(user_path):
+            os.makedirs(user_path)
         return user
+
+    @staticmethod
+    def del_user(name):
+        user = User.query.filter(User.name==name).first()
+        if not user:
+            return False
+        db.session.delete(user)
+        try:
+            db.session.commit()
+        except exc.SQLAlchemyError as e:
+            Config.LOGGER.error('delete_user: {}'.format(str(e)))
+            return False
+        user_path = Config.SYS_STORAGE + user.name
+        if os.path.isdir(user_path):
+            for root, dirs, files in os.walk(user_path, topdown=False):
+                for name in files:
+                    os.remove(os.path.join(root, name))
+                for name in dirs:
+                    os.rmdir(os.path.join(root, name))
+        return True
+
 
     @staticmethod
     def add_fake_users(count=1):
