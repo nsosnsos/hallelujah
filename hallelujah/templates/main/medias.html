@@ -31,9 +31,9 @@
                     {% else %}
                         <li class="breadcrumb-item active">
                             {% if manage %}
-                                <a href="{{ url_for('main.manage_medias', current_path=os.path.join(path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                                <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
                             {% else %}
-                                <a href="{{ url_for('main.show_medias', current_path=os.path.join(path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                                <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
                             {% endif %}
                         </li>
                     {% endif %}
