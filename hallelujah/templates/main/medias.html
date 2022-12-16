@@ -5,20 +5,24 @@
 {% endif %}
 
 {% block content %}
-    <div class="row mb-3">
+    <div class="row">
         {% if manage %}
-            <div class="d-flex justify-content-center mt-3">
-                <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">Show</a>
+            <div class="d-flex justify-content-center mt-5">
+                <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">
+                    <i class="bi-link-45deg mx-1"></i>Show
+                </a>
             </div>
-            <div class="row mt-3">
+            <div class="row mt-5">
                 <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone"></form>
             </div>
         {% else %}
-            <div class="d-flex justify-content-center mt-3">
-                <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">Manage</a>
+            <div class="d-flex justify-content-center mt-5">
+                <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">
+                    <i class="bi-wrench-adjustable mx-1"></i>Manage
+                </a>
             </div>
         {% endif %}
-        <div class="row mt-3">
+        <div class="row mt-5">
             <ol class="breadcrumb">
                 {% set path_list = current_path.split('/') %}
                 {% for dir_name in path_list %}
@@ -36,8 +40,12 @@
                 {% endfor %}
             </ol>
         </div>
-        <div class="row mt-3">
-            <p>Show medias in current directory...</p>
+        <div class="row my-5">
+            {% if manage %}
+                <p>Manage medias in current directory...</p>
+            {% else %}
+                <p>Show medias in current directory...</p>
+            {% endif %}
         </div>
     </div>
 {% endblock content %}
