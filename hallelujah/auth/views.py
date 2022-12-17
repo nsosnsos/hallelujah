@@ -8,7 +8,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from ..extensions import db, login_manager
 from ..models import User
-from ..utility import redirect_save, redirect_back
+from ..utility import redirect_save, redirect_back, send_email
 from .forms import LoginForm, RegisterForm, SettingForm
 
 
@@ -92,6 +92,9 @@ def register():
             except exc.SQLAlchemyError as e:
                 current_app.config.get('LOGGER').error('register: {}'.format(str(e)))
                 return
+            thread = send_email(to=user.email, subject=current_app.config.get('SITE_NAME'),
+                                msg=f'Hello, {user.name}. Thanks for registering!')
+            thread.join()
             flash('Success! Welcome {}!'.format(user.name))
             return redirect_back('auth.login')
     return render_template('auth/register.html', form=form)

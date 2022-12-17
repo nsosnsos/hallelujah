@@ -1,4 +1,4 @@
-{% if resources %}
+{% if not columns and not form %}
     {% extends '_base.html' %}
 {% else %}
     {% extends '_gridjs.html' %}
@@ -7,7 +7,7 @@
 
 {% block content %}
     <div class="d-flex justify-content-center my-5">
-        {% if resources %}
+        {% if not columns and not form %}
             <a href="{{ url_for('main.manage_resources', _external=True) }}" class="btn btn-primary"><i class="bi-wrench-adjustable mx-1"></i>Manage Resources</a>
         {% else %}
             <a href="{{ url_for('main.resources', _external=True) }}" class="btn btn-primary mx-2"><i class="bi-link-45deg mx-1"></i>View Resources</a>
@@ -37,7 +37,7 @@
             </div>
         {% endif %}
     </div>
-    {% if resources %}
+    {% if not columns and not form %}
         {% for category, items in resources.items() %}
             <div class="row justify-content-center{{ ' mb-5' if loop.last else ' mb-3' }}">
                 <p><b><i class="bi-bookmark-star mx-1"></i>{{ category }}</b></p>
@@ -64,8 +64,10 @@
 
 {% block scripts %}
     {{ super() }}
-    {% if not resources %}
-        <script type="text/javascript">
+    <script type="text/javascript">
+        window.addEventListener("load", data_container_adaption);
+        window.addEventListener("resize", data_container_adaption);
+        {% if columns and form %}
             const tableDiv = document.getElementById("manage_resources");
             const updateUrl = (prev, query) => {
                 return prev + (prev.indexOf("?") >=0 ? "&": "?") + new URLSearchParams(query).toString();
@@ -80,44 +82,42 @@
 
             new gridjs.Grid({
                 columns: [
-                    {% if columns %}
-                        {% for column in columns %}
-                            {id: "{{ column }}"
-                            {%- if column == 'id' or column == 'delete_uri' -%}
-                                , "hidden": true
-                            {%- else -%}
-                                , name: "{{ column }}", "attributes": editableCellAttr
-                            {%- endif -%}},
-                        {% endfor %}
-                        {
-                            name: "operation",
-                            formatter: (cell, row) => {
-                                var modal_raw = `
-                                    <div class="modal fade" data-backdrop="true" id="delete_` + row.cells[0].data + `" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
-                                        <div class="modal-dialog" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="delete_` + row.cells[0].data + `">` + `Delete Resource` + `</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true"></span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Do you want to delete ` + row.cells[4].data + `: ` + row.cells[1].data + `?</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <a href="` + row.cells[5].data + `" class="btn btn-primary">Yes</a>
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                                </div>
+                    {% for column in columns %}
+                        {id: "{{ column }}"
+                        {%- if column == 'id' or column == 'delete_uri' -%}
+                            , "hidden": true
+                        {%- else -%}
+                            , name: "{{ column }}", "attributes": editableCellAttr
+                        {%- endif -%}},
+                    {% endfor %}
+                    {
+                        name: "operation",
+                        formatter: (cell, row) => {
+                            var modal_raw = `
+                                <div class="modal fade" data-backdrop="true" id="delete_` + row.cells[0].data + `" tabindex="-1" role="dialog" aria-labelledby="delete_label" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="delete_` + row.cells[0].data + `">` + `Delete Resource` + `</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true"></span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Do you want to delete ` + row.cells[4].data + `: ` + row.cells[1].data + `?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <a href="` + row.cells[5].data + `" class="btn btn-primary">Yes</a>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
                                             </div>
                                         </div>
-                                    </div>`;
-                                tableDiv.insertAdjacentHTML("beforeend", modal_raw);
-                                return gridjs.html(`<button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_` +
-                                    row.cells[0].data + `"><i class="bi-trash mx-1">Delete</i></button> `)
-                            }
-                        },
-                    {% endif %}
+                                    </div>
+                                </div>`;
+                            tableDiv.insertAdjacentHTML("beforeend", modal_raw);
+                            return gridjs.html(`<button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#delete_` +
+                                row.cells[0].data + `"><i class="bi-trash mx-1">Delete</i></button> `)
+                        }
+                    },
                 ],
                 style: {
                     table: {
@@ -193,7 +193,7 @@
                     }
                 }
             });
-        </script>
-    {% endif %}
+        {% endif %}
+    </script>
 {% endblock scripts %}
 
