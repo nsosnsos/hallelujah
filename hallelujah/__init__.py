@@ -95,6 +95,36 @@ def register_commands(app):
         unittest.TextTestRunner(verbosity=2).run(test_set)
 
     @app.cli.command()
+    @click.option('--username', prompt=True, required=True,
+                  help='new user name')
+    @click.option('--password', prompt=True, required=True, hide_input=True,
+                  help='new user password')
+    @click.option('--mail_address', prompt=True, required=True,
+                  help='new user mail address')
+    def addusr(username, password, mail_address):
+        print(f'Adding user: {username} ...')
+        User.add_user(name=username, email=mail_address, password=password)
+        print(f'Sending email to {mail_address} ...')
+        thread = send_email(to=mail_address, subject=app.config.get('SITE_NAME'),
+                           msg=f'Hello, {username}. Thanks for registering!')
+        thread.join()
+
+    @app.cli.command()
+    @click.option('--username', prompt=True, required=True,
+                  help='user name to be deleted')
+    def delusr(username):
+        u = User.query.filter(User.name==username).first()
+        if not u:
+            print(f'User[{username}] is not exists')
+            return
+        print(f'Deleting user: {username} ...')
+        User.delete_user(name=username)
+        print(f'Sending email to {u.email} ...')
+        thread = send_email(to=u.email, subject=app.config.get('SITE_NAME'),
+                           msg='Bye, {username}. I wish you good luck!')
+        thread.join()
+
+    @app.cli.command()
     @click.option('--mail_address', prompt=True,
                   default=app.config.get('MAIL_USERNAME'),
                   help='Administrator mail address')
@@ -117,16 +147,14 @@ def register_commands(app):
         print('Creating all tables...')
         db.create_all()
         user_name = mail_address.split('@')[0]
-        print(f'Adding user: {user_name} ...')
+        print(f'Adding administrator: {user_name} ...')
         User.add_user(name=user_name, email=mail_address, password=mail_password)
+        '''
         print('Adding fake users ...')
         User.add_fake_users(5)
         print('Adding fake articles ...')
         Article.add_fake_articles(20)
         print('Adding fake resources ...')
         Resource.add_fake_resources(20)
-        print(f'Sending email to {mail_address} ...')
-        thread = send_email(to=mail_address, subject=app.config.get('SITE_NAME'),
-                           msg='Hello, {}. Thanks for register.'.format(user_name))
-        thread.join()
+        '''
 
