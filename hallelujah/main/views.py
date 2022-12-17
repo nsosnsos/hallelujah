@@ -140,22 +140,18 @@ def upload(current_path):
     return make_response(jsonify(result_dict), 200)
 
 @bp_main.route('/file/<filename>')
-@bp_main.route('/download/<filename>')
 def get_file(filename):
+    as_attachment = bool(request.args.get('download', 'no') == 'yes')
     filename = secure_filename(filename)
     media = Media.query.filter(Media.uuidname == filename).first()
     if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
     full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
-    if request.path.startswith('/download'):
-        as_attachment = True
-    else:
-        as_attachment = False
     return send_file(full_path_name, as_attachment=as_attachment, download_name=filename)
 
 @bp_main.route('/save/<path:current_path>/<filename>')
 @login_required
-def save(current_path, filename):
+def save_file(current_path, filename):
     full_path = _get_full_path(current_path, current_user)
     if not full_path:
         return make_response('forbidden', 403)
