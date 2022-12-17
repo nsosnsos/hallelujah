@@ -273,6 +273,8 @@ class Media(db.Model):
             'author': self.author.name,
             'timestamp': self.timestamp,
             'uuidname': self.uuidname,
+            'view_url': url_for('main.get_file', filename=self.uuidname, _external=True),
+            'download_url': url_for('main.get_file', filename=self.uuidname, download='yes', _external=True),
             'is_public': self.is_public,
         }
         return json_media
