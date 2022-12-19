@@ -121,7 +121,7 @@ def register_commands(app):
         User.delete_user(name=username)
         print(f'Sending email to {u.email} ...')
         thread = send_email(to=u.email, subject=app.config.get('SITE_NAME'),
-                           msg='Bye, {username}. I wish you good luck!')
+                           msg=f'Bye, {username}. I wish you good luck!')
         thread.join()
 
     @app.cli.command()
