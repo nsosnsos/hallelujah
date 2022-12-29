@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from .extensions import db, login_manager
-from .utility import markdown_to_html
+from .utility import markdown_to_html, import_user_medias
 from .config import Config
 
 
@@ -79,6 +79,13 @@ class User(UserMixin, db.Model):
         }
         return json_user
 
+    def _import_self_medias(self):
+        user_path = os.path.join(Config.SYS_STORAGE, self.name)
+        if not os.path.exists(user_path):
+            os.makedirs(user_path)
+        else:
+            import_user_medias(self.name, self.add_user_media)
+
     @staticmethod
     def add_user(name, email, password):
         user = User(name=name, email=email, password=password)
@@ -88,20 +95,25 @@ class User(UserMixin, db.Model):
         except exc.SQLAlchemyError as e:
             Config.LOGGER.error('add_user: {}'.format(str(e)))
             return None
-        user_path = os.path.join(Config.SYS_STORAGE, user.name)
-        if not os.path.exists(user_path):
-            os.makedirs(user_path)
+        user._import_self_medias()
         return user
+
+    @staticmethod
+    def add_user_media(username, path, filename, timestamp, width=None, height=None, is_public=False):
+        user = User.query.filter(User.name==username).first()
+        if not user:
+            return False
+        media = Media.add_media(user.id, path, filename, timestamp, width, height, is_public)
+        return media is not None
 
     @staticmethod
     def _remove_user_source(current_path):
         if os.path.isdir(current_path):
             for root, dirs, files in os.walk(current_path, topdown=False):
-                for name in dirs:
-                    User._remove_user_source(os.path.join(root, name))
                 for name in files:
                     os.remove(os.path.join(root, name))
-            os.rmdir(current_path)
+                for name in dirs:
+                    os.remove(os.path.join(root, name))
 
     @staticmethod
     def delete_user(name):
@@ -239,11 +251,12 @@ class Media(db.Model):
     path = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
     filename = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
     uuidname = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
-    is_public = db.Column(db.Boolean, unique=False, nullable=False, default=True)
+    width = db.Column(db.Integer, unique=False, nullable=True, index=False)
+    height = db.Column(db.Integer, unique=False, nullable=True, index=False)
+    is_public = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=True)
 
     def __init__(self, **kwargs):
         super(Media, self).__init__(**kwargs)
-        self._generate_timestamp()
         self._generate_uuidname()
 
     def __repr__(self):
@@ -251,18 +264,6 @@ class Media(db.Model):
 
     def __str__(self):
         return self.__repr__()
-
-    def _generate_timestamp(self):
-        base_path = Config.SYS_STORAGE
-        full_name = os.path.join(base_path, self.path, self.filename)
-        if not os.path.isfile(full_name):
-            return
-        stat = os.stat(full_name)
-        if 'st_birthtime' in dir(stat):
-            ts = stat.st_birthtime
-        else:
-            ts = os.path.getctime(full_name)
-        self.timestamp = datetime.datetime.fromtimestamp(ts)
 
     def _generate_uuidname(self):
         file_ext = os.path.splitext(self.filename)[1]
@@ -280,8 +281,8 @@ class Media(db.Model):
         return json_media
 
     @staticmethod
-    def add_media(user_id, path, filename, is_public=True):
-        media = Media(user_id=user_id, path=path, filename=filename, is_public=is_public)
+    def add_media(user_id, path, filename, timestamp, width=None, height=None, is_public=True):
+        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, is_public=is_public)
         db.session.add(media)
         try:
             db.session.commit()

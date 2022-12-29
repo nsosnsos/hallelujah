@@ -67,11 +67,13 @@ class Config:
     SYS_PORT = 4100
     SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
     SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates')
-    SYS_STORAGE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
+    SYS_STORAGE = os.path.join(os.path.abspath(os.path.expanduser('~')), 'storage')
+    SYS_THUMBNAIL = os.path.abspath(os.path.join(SYS_STORAGE, '../thumbnail'))
+    SYS_THUMBNAIL_HEIGHT = 320
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
-    SYS_MARIADB = False
+    SYS_MARIADB = True
 
     # BLUEMAP
     AUTH_URL_PREFIX = '/auth'
@@ -95,8 +97,8 @@ class Config:
     MARIADB_HOST = SYS_HOST
     MARIADB_PORT = 3306
     MARIADB_DB = SITE_NAME
-    MARIADB_USERNAME = os.environ.get('MARIADB_USERNAME', None) or 'MARIADB_USERNAME'
-    MARIADB_PASSWORD = os.environ.get('MARIADB_PASSWORD', None) or 'MARIADB_PASSWORD'
+    MARIADB_USERNAME = os.environ.get('MARIADB_USERNAME', None) or SITE_NAME
+    MARIADB_PASSWORD = os.environ.get('MARIADB_PASSWORD', None) or SITE_NAME
     MARIADB_CHARSET = 'utf8mb4'
 
     SQLITE_PATH = os.path.dirname(os.path.realpath(__file__))
