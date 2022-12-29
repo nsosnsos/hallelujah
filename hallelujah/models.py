@@ -249,7 +249,7 @@ class Media(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=False, nullable=False, index=True)
     timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True)
     path = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
-    filename = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False, index=True)
+    filename = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
     uuidname = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     width = db.Column(db.Integer, unique=False, nullable=True, index=False)
     height = db.Column(db.Integer, unique=False, nullable=True, index=False)
