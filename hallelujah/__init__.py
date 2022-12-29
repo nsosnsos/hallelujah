@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_create_db, send_email
+from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -135,10 +135,10 @@ def register_commands(app):
         if not mariadb_is_in_use():
             print('Drop all tables in SQLite...')
             db.drop_all()
-        elif mariadb_is_exist_db():
-            print('Database exists already. There is no need to initialize database.')
-            return
         else:
+            if mariadb_is_exist_db():
+                print('Dropping database for MariaDB...')
+                mariadb_drop_db()
             print('Creating database for MariaDB...')
             mariadb_create_db()
             if not mariadb_is_exist_db():
