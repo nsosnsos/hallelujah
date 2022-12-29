@@ -126,6 +126,8 @@ def _rotate_image_by_orientation(image):
     return image
 
 def _get_thumbnail_size(image_size, thumbnail_height):
+    if thumbnail_height >= image_size[1]:
+        return None
     width = round((float(thumbnail_height) / image_size[1]) * image_size[0])
     return width, thumbnail_height
 
@@ -158,7 +160,6 @@ def _get_image_timestamp(image_file):
         elif EXIF_TAG_MAP['DateTime'] in exif_info:
             image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP['DateTime']])
     if not image_timestamp:
-        print(image_file, exif_info)
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
 
@@ -169,7 +170,8 @@ def _create_image_thumbnail(image_file, thumbnail_file, height):
 
     if not os.path.isfile(thumbnail_file):
         thumbnail_size = _get_thumbnail_size(image.size, height)
-        image = image.resize(thumbnail_size, Image.ANTIALIAS)
+        if thumbnail_size:
+            image = image.resize(thumbnail_size, Image.ANTIALIAS)
         if image.mode != 'RGB':
             image = image.convert('RGB')
         image.save(thumbnail_file)
