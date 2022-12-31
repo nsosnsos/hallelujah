@@ -99,12 +99,12 @@ class User(UserMixin, db.Model):
         return user
 
     @staticmethod
-    def add_user_media(username, path, filename, timestamp, width=None, height=None, is_public=False):
+    def add_user_media(username, path, filename, timestamp, width=None, height=None, is_multimedia=False, is_public=False):
         user = User.query.filter(User.name==username).first()
         if not user:
-            return False
-        media = Media.add_media(user.id, path, filename, timestamp, width, height, is_public)
-        return media is not None
+            return None
+        media = Media.add_media(user.id, path, filename, timestamp, width, height, is_multimedia, is_public)
+        return media
 
     @staticmethod
     def _remove_user_source(current_path):
@@ -253,7 +253,8 @@ class Media(db.Model):
     uuidname = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     width = db.Column(db.Integer, unique=False, nullable=True, index=False)
     height = db.Column(db.Integer, unique=False, nullable=True, index=False)
-    is_public = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=True)
+    is_multimedia = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=False)
+    is_public = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=False)
 
     def __init__(self, **kwargs):
         super(Media, self).__init__(**kwargs)
@@ -276,13 +277,14 @@ class Media(db.Model):
             'uuidname': self.uuidname,
             'view_url': url_for('main.get_file', filename=self.uuidname, _external=True),
             'download_url': url_for('main.get_file', filename=self.uuidname, download='yes', _external=True),
+            'is_multimedia': self.is_multimedia,
             'is_public': self.is_public,
         }
         return json_media
 
     @staticmethod
-    def add_media(user_id, path, filename, timestamp, width=None, height=None, is_public=True):
-        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, is_public=is_public)
+    def add_media(user_id, path, filename, timestamp, width=None, height=None, is_multimedia=False, is_public=False):
+        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, is_multimedia=is_multimedia, is_public=is_public)
         db.session.add(media)
         try:
             db.session.commit()

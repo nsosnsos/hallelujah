@@ -15,6 +15,24 @@
             <div class="row mt-5">
                 <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone"></form>
             </div>
+            <div class="row mt-5">
+                <ol class="breadcrumb">
+                    {% set path_list = current_path.split('/') %}
+                    {% for dir_name in path_list %}
+                        {% if loop.last %}
+                            <li class="breadcrumb-item">{{ dir_name }}</li>
+                        {% else %}
+                            <li class="breadcrumb-item active">
+                                {% if manage %}
+                                    <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                                {% else %}
+                                    <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
         {% else %}
             <div class="d-flex justify-content-center mt-5">
                 <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">
@@ -22,27 +40,30 @@
                 </a>
             </div>
         {% endif %}
-        <div class="row mt-5">
-            <ol class="breadcrumb">
-                {% set path_list = current_path.split('/') %}
-                {% for dir_name in path_list %}
-                    {% if loop.last %}
-                        <li class="breadcrumb-item">{{ dir_name }}</li>
-                    {% else %}
-                        <li class="breadcrumb-item active">
-                            {% if manage %}
-                                <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                            {% else %}
-                                <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                            {% endif %}
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ol>
-        </div>
         <div class="row my-5">
             {% if manage %}
-                <p>Manage medias in current directory...</p>
+                <table class="table table-responsive table-sm table-hover">
+                    <tbody>
+                        {% for dir in dirs %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('main.manage_medias', current_path=os_path_join(current_path, dir), _external=True) }}">
+                                        <i class="bi-folder mx-1"></i>{{ dir }}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {% for file in files %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
+                                        {{ file.filename }}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% else %}
                 <p>Show medias in current directory...</p>
             {% endif %}
