@@ -109,7 +109,7 @@ def send_email(to, subject, msg):
 def browse_directory(current_path):
     dirs = []
     if not os.path.isdir(current_path):
-        return dirs, files
+        return dirs
     for file in os.listdir(current_path):
         if os.path.isdir(os.path.join(current_path, file)):
             dirs.append(file)
@@ -135,9 +135,9 @@ def _rotate_image_by_orientation(image):
         pass
     return image
 
-def _get_thumbnail_size(image_size, thumbnail_height):
+def get_thumbnail_size(image_size, thumbnail_height):
     if thumbnail_height >= image_size[1]:
-        return None
+        return image_size
     width = round((float(thumbnail_height) / image_size[1]) * image_size[0])
     return width, thumbnail_height
 
@@ -179,8 +179,8 @@ def _create_image_thumbnail(image_file, thumbnail_file, height):
     image_size = image.size
 
     if not os.path.isfile(thumbnail_file):
-        thumbnail_size = _get_thumbnail_size(image.size, height)
-        if thumbnail_size:
+        thumbnail_size = get_thumbnail_size(image.size, height)
+        if thumbnail_size != image.size:
             image = image.resize(thumbnail_size, Image.ANTIALIAS)
         if image.mode != 'RGB':
             image = image.convert('RGB')

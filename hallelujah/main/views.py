@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
-from ..utility import redirect_back, browse_directory, import_user_media
+from ..utility import redirect_back, browse_directory, import_user_media, VIDEO_SUFFIXES, IMAGE_SUFFIXES
 from ..models import User, Article, Media, Resource
 from .forms import ArticleForm, ResourceForm
 
@@ -92,6 +92,9 @@ def medias():
 def _get_base_path():
     return current_app.config.get('SYS_STORAGE')
 
+def _get_thumbnail_path():
+    return current_app.config.get('SYS_THUMBNAIL')
+
 def _get_full_path(current_path, current_user):
     base_path = _get_base_path()
     root = current_path.split(os.sep)[0]
@@ -150,7 +153,20 @@ def get_file(filename):
     if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
     full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
-    return send_file(full_path_name, as_attachment=as_attachment, download_name=filename)
+    download_name = filename if not as_attachment else media.filename
+    return send_file(full_path_name, as_attachment=as_attachment, download_name=download_name)
+
+@bp_main.route('/thumbnail/<filename>')
+def get_thumbnail(filename):
+    filename = secure_filename(filename)
+    media = Media.query.filter(Media.uuidname == filename).first()
+    if not media or not media.is_multimedia or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
+        return Response('', status=204, mimetype='text/xml')
+    media_filename = media.filename
+    if os.path.splitext(media_filename)[1] in VIDEO_SUFFIXES:
+        media_filename = os.path.splitext(media_filename)[0] + IMAGE_SUFFIXES[0]
+    full_path_name = os.path.join(_get_thumbnail_path(), media.path, media_filename)
+    return send_file(full_path_name, as_attachment=False, download_name=filename)
 
 @bp_main.route('/save/<path:current_path>/<filename>')
 @login_required
