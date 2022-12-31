@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from .extensions import db, login_manager
-from .utility import markdown_to_html, import_user_medias
+from .utility import markdown_to_html, get_thumbnail_size, import_user_medias
 from .config import Config
 
 
@@ -271,12 +271,21 @@ class Media(db.Model):
         self.uuidname = uuid.uuid4().hex + file_ext
 
     def to_json(self):
+        view_url = url_for('main.get_file', filename=self.uuidname, _external=True)
+        download_url = url_for('main.get_file', filename=self.uuidname, download='yes', _external=True)
+        thumbnail_url = url_for('main.get_thumbnail', filename=self.uuidname, _external=True)
+        thumbnail_size = get_thumbnail_size((self.width, self.height), Config.SYS_THUMBNAIL_HEIGHT)
         json_media = {
             'author': self.author.name,
             'timestamp': self.timestamp,
             'uuidname': self.uuidname,
-            'view_url': url_for('main.get_file', filename=self.uuidname, _external=True),
-            'download_url': url_for('main.get_file', filename=self.uuidname, download='yes', _external=True),
+            'view_url': view_url,
+            'download_url': download_url,
+            'thumbnail_url': thumbnail_url if self.is_multimedia else view_url,
+            'height': self.height,
+            'width': self.width,
+            'thumbnail_height': thumbnail_size[1],
+            'thumbnail_width': thumbnail_size[0],
             'is_multimedia': self.is_multimedia,
             'is_public': self.is_public,
         }

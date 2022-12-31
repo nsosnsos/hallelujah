@@ -34,3 +34,31 @@ a {
     border: 2px dashed rgb(0, 135, 247);
 }
 
+/* gallery */
+.gallary {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gallery>a, .gallery::after {
+    flex-basis: var(--w);
+}
+
+.gallery>a {
+    margin: 0.25rem;
+    flex-grow: calc(var(--w) / var(--h) * 100);
+    width: calc(var(--w) * 1px);
+}
+
+.gallery::after {
+  --w: 2;
+  --h: 1;
+  content: '';
+  flex-grow: 1000000;
+}
+
+.gallery>a>img {
+  display: block;
+  width: 100%;
+}
+
