@@ -353,7 +353,7 @@ class Resource(db.Model):
 
     @staticmethod
     def add_resource(user_id, uri, rank=None, title=None, category=None):
-        resource = Resource(user_id=user_id, uri=uri, rank=rank, title=title, category=category)
+        resource = Resource(user_id=user_id, uri=uri, rank=rank if rank else 0, title=title, category=category)
         db.session.add(resource)
         try:
             db.session.commit()
