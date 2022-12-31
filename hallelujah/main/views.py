@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
-from ..utility import redirect_back
+from ..utility import redirect_back, browse_directory, import_user_media
 from ..models import User, Article, Media, Resource
 from .forms import ArticleForm, ResourceForm
 
@@ -94,7 +94,7 @@ def _get_base_path():
 
 def _get_full_path(current_path, current_user):
     base_path = _get_base_path()
-    root = current_path.split('/')[0]
+    root = current_path.split(os.sep)[0]
     if not current_user.is_authenticated or root != current_user.name:
         return None
     full_path = os.path.join(base_path, current_path)
@@ -112,9 +112,12 @@ def show_medias(current_path):
 @bp_main.route('/manage_medias/<path:current_path>')
 @login_required
 def manage_medias(current_path):
-    if not _get_full_path(current_path, current_user):
+    full_path = _get_full_path(current_path, current_user)
+    if not full_path:
         return redirect_back()
-    return render_template('main/medias.html', current_path=current_path, manage=True)
+    dirs = browse_directory(full_path)
+    files = Media.query.filter(Media.path==current_path).order_by(Media.filename.asc())
+    return render_template('main/medias.html', current_path=current_path, manage=True, dirs=dirs, files=files)
 
 @bp_main.route('/upload/<path:current_path>', methods=['POST'])
 @login_required
@@ -133,7 +136,7 @@ def upload(current_path):
         file.save(full_path_name)
         if not os.path.isfile(full_path_name):
             return make_response('file not found', 404)
-        media = Media.add_media(user_id=current_user.id, path=current_path, filename=filename)
+        media = import_user_media(full_path_name, current_user.name, current_user.add_user_media)
         if not media:
             return make_response('internal error', 500)
         result_dict[filename] = media.uuidname

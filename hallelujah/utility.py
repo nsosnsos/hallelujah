@@ -106,6 +106,16 @@ def send_email(to, subject, msg):
     thread.start()
     return thread
 
+def browse_directory(current_path):
+    dirs = []
+    if not os.path.isdir(current_path):
+        return dirs, files
+    for file in os.listdir(current_path):
+        if os.path.isdir(os.path.join(current_path, file)):
+            dirs.append(file)
+    dirs.sort()
+    return dirs
+
 def _rotate_image_by_orientation(image):
     try:
         exif_info = image.getexif()
@@ -244,9 +254,11 @@ def import_user_media(media_full_name, user_name, user_add_media_func):
     os.makedirs(os.path.dirname(thumbnail_full_name), mode=0o750, exist_ok=True)
     metadata = _create_thumbnail(media_full_name, thumbnail_full_name, current_app.config.get('SYS_THUMBNAIL_HEIGHT'))
     width, height = metadata[0]
+    is_multimedia = True if width is not None else False
     timestamp = datetime.datetime.fromtimestamp(metadata[1])
-    user_add_media_func(username=user_name, path=relative_path, filename=filename,
-                      width=width, height=height, timestamp=timestamp, is_public=False)
+    return user_add_media_func(username=user_name, path=relative_path, filename=filename,
+                               width=width, height=height, timestamp=timestamp,
+                               is_multimedia=is_multimedia, is_public=False)
 
 def import_user_medias(user_name, user_add_media_func):
     storage_path = current_app.config.get('SYS_STORAGE')
