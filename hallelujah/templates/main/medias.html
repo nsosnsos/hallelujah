@@ -13,7 +13,12 @@
                 </a>
             </div>
             <div class="row mt-5">
-                <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone"></form>
+                <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone">
+                    <div class="form-check my-0">
+                        <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
+                        <label class="form-check-label" for="is_public">Is Public</label>
+                    </div>
+                </form>
             </div>
             <div class="row mt-5">
                 <ol class="breadcrumb">
@@ -99,6 +104,7 @@
                             files[i].previewElement.querySelector('[data-dz-name]').innerHTML = response[files[i].name];
                         }
                     }
+                    formData.append("is_public", document.querySelector("#is_public").value);
                 },
                 removedfile: function(file, response) {
                     fetch("{{ url_for('main.delete_file', _external=True) }}", {

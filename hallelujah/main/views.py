@@ -129,6 +129,7 @@ def upload(current_path):
     full_path = _get_full_path(current_path, current_user)
     if not full_path:
         return make_response('forbidden', 403)
+    is_public = True if request.form.get('is_public') else False
     upload_files = request.files
     for item in upload_files:
         file = upload_files.get(item)
@@ -139,7 +140,7 @@ def upload(current_path):
         file.save(full_path_name)
         if not os.path.isfile(full_path_name):
             return make_response('file not found', 404)
-        media = import_user_media(full_path_name, current_user.name, current_user.add_user_media)
+        media = import_user_media(full_path_name, current_user.name, is_public, current_user.add_user_media)
         if not media:
             return make_response('internal error', 500)
         result_dict[filename] = media.uuidname
