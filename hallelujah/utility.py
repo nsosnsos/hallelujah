@@ -159,7 +159,7 @@ def _parse_exif_timestamp(timestamp_string):
 
 def _get_image_timestamp(image_file):
     image = Image.open(image_file)
-    exif_info = image._getexif()
+    exif_info = image.getexif()
     image.close()
     image_timestamp = None
     if exif_info:
@@ -247,7 +247,7 @@ def _get_thumbnail_name(media_full_name):
         thumbnail_full_name = thumbnail_prefix + IMAGE_SUFFIXES[0]
     return thumbnail_full_name
 
-def import_user_media(media_full_name, user_name, user_add_media_func):
+def import_user_media(media_full_name, user_name, is_public, user_add_media_func):
     thumbnail_full_name = _get_thumbnail_name(media_full_name)
     relative_path = _get_relative_path(media_full_name)
     filename = os.path.basename(media_full_name)
@@ -258,7 +258,7 @@ def import_user_media(media_full_name, user_name, user_add_media_func):
     timestamp = datetime.datetime.fromtimestamp(metadata[1])
     return user_add_media_func(username=user_name, path=relative_path, filename=filename,
                                width=width, height=height, timestamp=timestamp,
-                               is_multimedia=is_multimedia, is_public=False)
+                               is_multimedia=is_multimedia, is_public=is_public)
 
 def import_user_medias(user_name, user_add_media_func):
     storage_path = current_app.config.get('SYS_STORAGE')
@@ -270,5 +270,5 @@ def import_user_medias(user_name, user_add_media_func):
 
     for root, dirs, files in os.walk(cur_path, topdown=False):
         for filename in files:
-            import_user_media(os.path.join(root, filename), user_name, user_add_media_func)
+            import_user_media(os.path.join(root, filename), user_name, False, user_add_media_func)
 

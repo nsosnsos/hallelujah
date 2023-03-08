@@ -31,6 +31,7 @@ if [[ ${#} -eq 0 || ${OPTION} == 'run' ]]; then
 elif [ ${OPTION} == 'clean' ]; then
     clean
 elif [ ${OPTION} == 'init' ]; then
+    sudo apt install libgl1 -y
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     pip3 install -r ${SCRIPT_PATH}/requirements.txt
