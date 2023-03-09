@@ -4,7 +4,6 @@
 
 import os
 
-from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
@@ -133,7 +132,7 @@ def upload(current_path):
     upload_files = request.files
     for item in upload_files:
         file = upload_files.get(item)
-        filename = secure_filename(file.filename)
+        filename = file.filename
         if not filename:
             return make_response('bad request', 400)
         full_path_name = os.path.join(full_path, filename)
@@ -149,7 +148,6 @@ def upload(current_path):
 @bp_main.route('/file/<filename>')
 def get_file(filename):
     as_attachment = bool(request.args.get('download', 'no') == 'yes')
-    filename = secure_filename(filename)
     media = Media.query.filter(Media.uuidname == filename).first()
     if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
@@ -159,7 +157,6 @@ def get_file(filename):
 
 @bp_main.route('/thumbnail/<filename>')
 def get_thumbnail(filename):
-    filename = secure_filename(filename)
     media = Media.query.filter(Media.uuidname == filename).first()
     if not media or not media.is_multimedia or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
@@ -175,7 +172,6 @@ def save_file(current_path, filename):
     full_path = _get_full_path(current_path, current_user)
     if not full_path:
         return make_response('forbidden', 403)
-    filename = secure_filename(filename)
     full_path_name = os.path.join(full_path, filename)
     if not os.path.isfile(full_path_name):
         return make_response('bad request', 400)
@@ -194,7 +190,7 @@ def _delete_file(media):
 
 @bp_main.route('/delete', methods=['POST'])
 def delete_file():
-    filename = secure_filename(request.get_json().get('filename', ''))
+    filename = request.get_json().get('filename', '')
     if not current_user.is_authenticated:
         return 'bad request', 400
     media = Media.query.filter(Media.uuidname == filename).first()
