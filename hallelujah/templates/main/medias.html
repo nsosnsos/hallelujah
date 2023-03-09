@@ -102,9 +102,7 @@
                 successmultiple: function(files, response) {
                     for (let i in files) {
                         if (files[i].name in response) {
-                            //files[i].name = response[files[i].name];
-                            //files[i].serverName = response[files[i].name];
-                            //files[i].previewElement.id = response[files[i].name];
+                            files[i].serverName = response[files[i].name];
                             files[i].previewElement.querySelector('[data-dz-name]').innerHTML = response[files[i].name];
                         }
                     }
