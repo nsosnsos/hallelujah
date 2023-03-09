@@ -53,7 +53,7 @@
                         {% for file in files %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
+                                    <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
                                         {{ file.filename }}
                                     </a>
                                 </td>
