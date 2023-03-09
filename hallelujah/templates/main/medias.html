@@ -1,5 +1,6 @@
 {% if manage %}
     {% extends '_dropzone.html' %}
+    {% from '_modal.html' import render_modal %}
 {% else %}
     {% extends '_base.html' %}
 {% endif %}
@@ -56,6 +57,9 @@
                                     <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
                                         {{ file.filename }}
                                     </a>
+                                </td>
+                                <td>
+                                    {{ render_modal('Delete Media', file.filename, url_for('main.file_delete', filename=file.uuidname, _external=True), file.id) }}
                                 </td>
                             </tr>
                         {% endfor %}
