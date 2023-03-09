@@ -1,4 +1,4 @@
-{% macro render_modal(modal_title, resource_title, resource_uri, resource_id='') %}
+{% macro render_modal(modal_title, resource_title, resource_del_uri, resource_id='') %}
     <button type="button" class="btn btn-primary btn-sm my-1" data-bs-toggle="modal" data-bs-target="#modal_{{ resource_id }}"><i class="bi-trash">Delete</i></button>
     <div class="modal fade" id="modal_{{ resource_id }}" tabindex="-1" role="dialog" aria-labelledby="modal_{{ resource_id }}" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -13,7 +13,7 @@
                     <p>Do you want to delete {{ resource_title }}?</p>
                 </div>
                 <div class="modal-footer">
-                    <a href="{{ resource_uri }}/delete" class="btn btn-primary">Yes</a>
+                    <a href="{{ resource_del_uri }}" class="btn btn-primary">Yes</a>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
                 </div>
             </div>

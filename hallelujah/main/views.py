@@ -184,6 +184,14 @@ def save_file(current_path, filename):
         return Response('', status=204, mimetype='text/xml')
     return send_file(full_path_name, as_attachment=True, download_name=filename)
 
+def _delete_file(media):
+    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
+    if os.path.isfile(full_path_name):
+        os.remove(full_path_name)
+    full_path_name = os.path.join(_get_thumbnail_path(), media.path, media.filename)
+    if os.path.isfile(full_path_name):
+        os.remove(full_path_name)
+
 @bp_main.route('/delete', methods=['POST'])
 def delete_file():
     filename = secure_filename(request.get_json().get('filename', ''))
@@ -196,11 +204,19 @@ def delete_file():
         return 'file not found', 404
     if not Media.delete_media(media.uuidname):
         return 'internal error', 500
-    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
-    if os.path.isfile(full_path_name):
-        os.remove(full_path_name)
+    _delete_file(media)
     return jsonify('succeed')
 
+@bp_main.route('/file_delete/<filename>', methods=['GET'])
+@login_required
+def file_delete(filename):
+    media = Media.query.filter(Media.uuidname == filename).first()
+    if not media or media.author.name != current_user.name or not Media.delete_media(media.uuidname):
+        flash('Failed to delete media {}!'.format(media.filename))
+    else:
+        _delete_file(media)
+        flash('Media ' + media.filename +' is deleted!')
+    return redirect_back()
 
 @bp_main.route('/resources')
 @login_required
@@ -231,7 +247,7 @@ def manage_resources():
 def delete_resource(resource_id):
     resource = Resource.query.filter(Resource.id == resource_id).first()
     if not resource or resource.user_id != current_user.id or not Resource.delete_resource(resource_id=resource_id):
-        flash('Failed to find the resource!')
+        flash('Failed to delete the resource:[{}][{}]!'.format(resource.title, resource.uri))
     else:
         flash('Resource ' + resource.title + ' ' + resource.uri +' is deleted!')
     return redirect_back()

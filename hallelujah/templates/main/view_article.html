@@ -12,7 +12,7 @@
                     {% if is_self %}
                         <div>
                             <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-1"><i class="bi-vector-pen">Edit</i></a>
-                            {{ render_modal('Delete Article', article.title, article.url, article.id) }}
+                            {{ render_modal('Delete Article', article.title, os_path_join(article.url, 'delete'), article.id) }}
                         </div>
                     {% endif %}
                 </div>
