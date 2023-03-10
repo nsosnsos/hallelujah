@@ -46,7 +46,7 @@
                         <tr>
                             {% for item in items %}
                                 <td class="text-center">
-                                    <a href="{{ item.get('uri') }}">
+                                    <a target="_blank" href="{{ item.get('uri') }}">
                                         <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
                                         {{ item.get('title', '') }}
                                     </a>
