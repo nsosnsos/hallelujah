@@ -67,9 +67,10 @@ class Config:
     SYS_PORT = 4100
     SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
     SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates')
-    SYS_STORAGE = os.path.join(os.path.abspath(os.path.expanduser('~')), 'storage')
-    SYS_THUMBNAIL = os.path.abspath(os.path.join(SYS_STORAGE, '../thumbnail'))
-    SYS_THUMBNAIL_HEIGHT = 320
+    SYS_MEDIA = os.path.join(os.path.abspath(os.path.expanduser('~')), 'data', 'media')
+    SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, 'original')
+    SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, 'thumbnail')
+    SYS_MEDIA_THUMBNAIL_HEIGHT = 300
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')

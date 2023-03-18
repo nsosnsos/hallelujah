@@ -233,14 +233,14 @@ def _create_thumbnail(media_full_name, thumbnail_full_name, height):
     return meta_data
 
 def _get_relative_path(media_full_name):
-    storage_path = current_app.config.get('SYS_STORAGE')
-    media_relative_name = media_full_name[len(storage_path)+1:]
+    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
+    media_relative_name = media_full_name[len(original_path)+1:]
     return os.path.dirname(media_relative_name)
 
 def _get_thumbnail_name(media_full_name):
-    storage_path = current_app.config.get('SYS_STORAGE')
-    thumbnail_path = current_app.config.get('SYS_THUMBNAIL')
-    media_relative_name = media_full_name[len(storage_path)+1:]
+    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
+    thumbnail_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
+    media_relative_name = media_full_name[len(original_path)+1:]
     thumbnail_full_name = os.path.join(thumbnail_path, media_relative_name)
     thumbnail_prefix, thumbnail_ext = os.path.splitext(thumbnail_full_name)
     if thumbnail_ext.lower() in VIDEO_SUFFIXES:
@@ -252,7 +252,7 @@ def import_user_media(media_full_name, user_name, is_public, user_add_media_func
     relative_path = _get_relative_path(media_full_name)
     filename = os.path.basename(media_full_name)
     os.makedirs(os.path.dirname(thumbnail_full_name), mode=0o750, exist_ok=True)
-    metadata = _create_thumbnail(media_full_name, thumbnail_full_name, current_app.config.get('SYS_THUMBNAIL_HEIGHT'))
+    metadata = _create_thumbnail(media_full_name, thumbnail_full_name, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'))
     width, height = metadata[0]
     is_multimedia = True if width is not None else False
     timestamp = datetime.datetime.fromtimestamp(metadata[1])
@@ -261,9 +261,9 @@ def import_user_media(media_full_name, user_name, is_public, user_add_media_func
                                is_multimedia=is_multimedia, is_public=is_public)
 
 def import_user_medias(user_name, user_add_media_func):
-    storage_path = current_app.config.get('SYS_STORAGE')
+    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
 
-    cur_path = os.path.join(storage_path, user_name)
+    cur_path = os.path.join(original_path, user_name)
     if not os.path.exists(cur_path):
         os.makedirs(cur_path, mode=0o750, exist_ok=True)
         return
