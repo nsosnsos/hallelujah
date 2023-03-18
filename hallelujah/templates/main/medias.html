@@ -58,7 +58,7 @@
                                 </a>
                             </td>
                             <td>
-                                {{ render_modal('Delete Media', file.filename, url_for('main.file_delete', filename=file.uuidname, _external=True), file.id) }}
+                                {{ render_modal('Delete Media', file.filename, url_for('main.delete_media', filename=file.uuidname, _external=True), file.id) }}
                             </td>
                         </tr>
                     {% endfor %}
@@ -109,7 +109,7 @@
                     formData.append("is_public", document.querySelector("#is_public").value);
                 },
                 removedfile: function(file, response) {
-                    fetch("{{ url_for('main.delete_file', _external=True) }}", {
+                    fetch("{{ url_for('main.delete_dropzone_file', _external=True) }}", {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({
