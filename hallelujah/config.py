@@ -55,7 +55,7 @@ class Config:
     LONG_STR_LEN = 128
     MAX_STR_LEN = 512
     EXPIRATION_TIME = 3600
-    ITEMS_PER_PAGE = 10
+    ITEMS_PER_PAGE = 20
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -70,7 +70,7 @@ class Config:
     SYS_MEDIA = os.path.join(os.path.abspath(os.path.expanduser('~')), 'data', 'media')
     SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, 'original')
     SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, 'thumbnail')
-    SYS_MEDIA_THUMBNAIL_HEIGHT = 300
+    SYS_MEDIA_THUMBNAIL_HEIGHT = 200
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
