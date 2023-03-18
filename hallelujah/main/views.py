@@ -88,14 +88,14 @@ def delete_article(article_url):
 def medias():
     return render_template('main/medias.html', current_path=current_user.name, manage=False)
 
-def _get_base_path():
-    return current_app.config.get('SYS_STORAGE')
+def _get_original_path():
+    return current_app.config.get('SYS_MEDIA_ORIGINAL')
 
 def _get_thumbnail_path():
-    return current_app.config.get('SYS_THUMBNAIL')
+    return current_app.config.get('SYS_MEDIA_THUMBNAIL')
 
 def _get_full_path(current_path, current_user):
-    base_path = _get_base_path()
+    base_path = _get_original_path()
     root = current_path.split(os.sep)[0]
     if not current_user.is_authenticated or root != current_user.name:
         return None
@@ -151,7 +151,7 @@ def get_file(filename):
     media = Media.query.filter(Media.uuidname == filename).first()
     if not media or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
-    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
+    full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     download_name = filename if not as_attachment else media.filename
     return send_file(full_path_name, as_attachment=as_attachment, download_name=download_name)
 
@@ -181,7 +181,7 @@ def save_file(current_path, filename):
     return send_file(full_path_name, as_attachment=True, download_name=filename)
 
 def _delete_file(media):
-    full_path_name = os.path.join(_get_base_path(), media.path, media.filename)
+    full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
     full_path_name = os.path.join(_get_thumbnail_path(), media.path, media.filename)

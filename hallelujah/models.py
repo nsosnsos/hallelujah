@@ -80,7 +80,7 @@ class User(UserMixin, db.Model):
         return json_user
 
     def _import_self_medias(self):
-        user_path = os.path.join(Config.SYS_STORAGE, self.name)
+        user_path = os.path.join(Config.SYS_MEDIA_ORIGINAL, self.name)
         if not os.path.exists(user_path):
             os.makedirs(user_path)
         else:
@@ -126,7 +126,7 @@ class User(UserMixin, db.Model):
         except exc.SQLAlchemyError as e:
             Config.LOGGER.error('delete_user: {}'.format(str(e)))
             return False
-        user_path = os.path.join(Config.SYS_STORAGE, user.name)
+        user_path = os.path.join(Config.SYS_MEDIA_ORIGINAL, user.name)
         User._remove_user_source(user_path)
         return True
 
@@ -274,7 +274,7 @@ class Media(db.Model):
         view_url = url_for('main.get_file', filename=self.uuidname, _external=True)
         download_url = url_for('main.get_file', filename=self.uuidname, download='yes', _external=True)
         thumbnail_url = url_for('main.get_thumbnail', filename=self.uuidname, _external=True)
-        thumbnail_size = get_thumbnail_size((self.width, self.height), Config.SYS_THUMBNAIL_HEIGHT)
+        thumbnail_size = get_thumbnail_size((self.width, self.height), Config.SYS_MEDIA_THUMBNAIL_HEIGHT)
         json_media = {
             'author': self.author.name,
             'timestamp': self.timestamp,
