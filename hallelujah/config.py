@@ -50,7 +50,7 @@ class Config:
 
     CSRF_ENABLED = True
     SECRET_KEY = os.urandom(32)
-    MIN_STR_LEN = 5
+    MIN_STR_LEN = 4
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 128
     MAX_STR_LEN = 512

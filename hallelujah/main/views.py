@@ -7,7 +7,7 @@ import os
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
-from ..utility import redirect_back, browse_directory, import_user_media, VIDEO_SUFFIXES, IMAGE_SUFFIXES
+from ..utility import redirect_back, browse_directory, import_user_media, MediaType, VIDEO_SUFFIXES, IMAGE_SUFFIXES
 from ..models import User, Article, Media, Resource
 from .forms import ArticleForm, ResourceForm
 
@@ -158,7 +158,7 @@ def get_file(filename):
 @bp_main.route('/thumbnail/<filename>')
 def get_thumbnail(filename):
     media = Media.query.filter(Media.uuidname == filename).first()
-    if not media or not media.is_multimedia or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
+    if not media or media.media_type < MediaType.IMAGE or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
     media_filename = media.filename
     if os.path.splitext(media_filename)[1] in VIDEO_SUFFIXES:

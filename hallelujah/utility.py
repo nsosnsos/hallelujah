@@ -17,8 +17,16 @@ from flask_mail import Message
 
 from .extensions import mail
 
-JPEG_SUFFIXES = ['.jpg', '.jpeg']
-IMAGE_SUFFIXES = JPEG_SUFFIXES + ['.png', '.gif']
+
+class MediaType:
+    OTHER = 0
+    MUSIC = 1
+    IMAGE = 2
+    VIDEO = 3
+
+
+MUSIC_SUFFIXES = ['.mp3', '.wav']
+IMAGE_SUFFIXES = ['.jpg', '.jpeg', '.png', '.gif']
 VIDEO_SUFFIXES = ['.mp4', '.mov', '.m4v']
 EXIF_TAG_MAP = {ExifTags.TAGS[tag]: tag for tag in ExifTags.TAGS}
 
@@ -136,8 +144,6 @@ def _rotate_image_by_orientation(image):
     return image
 
 def get_thumbnail_size(image_size, thumbnail_height):
-    if thumbnail_height >= image_size[1]:
-        return image_size
     width = round((float(thumbnail_height) / image_size[1]) * image_size[0])
     return width, thumbnail_height
 
@@ -188,7 +194,12 @@ def _create_image_thumbnail(image_file, thumbnail_file, height):
 
     image.close()
     image_timestamp = _get_image_timestamp(image_file)
-    return (image_size, image_timestamp)
+    new_filename = 'IMG_' + datetime.datetime.fromtimestamp(image_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(image_file)[1]
+    new_file = os.path.join(os.path.dirname(image_file), new_filename)
+    if image_file != new_file:
+        os.rename(image_file, new_file)
+        print('IMG file rename from [{}] to [{}]'.format(image_file, new_file))
+    return (image_size, MediaType.IMAGE, image_timestamp)
 
 def _get_video_timestamp(video_file):
     file_ctime = get_file_ctime(video_file)
@@ -214,22 +225,30 @@ def _get_video_timestamp(video_file):
 def _create_video_thumbnail(video_file, thumbnail_file, height):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
+    image = _rotate_image_by_orientation(image)
     video_size = (image.shape[1], image.shape[0])
     video_timestamp = _get_video_timestamp(video_file)
+    new_filename = 'VID_' + datetime.datetime.fromtimestamp(video_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(video_file)[1]
+    new_file = os.path.join(os.path.dirname(video_file), new_filename)
+    if video_file != new_file:
+        os.rename(video_file, new_file)
+        print('VID file rename from [{}] to [{}]'.format(video_file, new_file))
 
     if not os.path.isfile(thumbnail_file):
         thumbnail_image = cv2.resize(image, (round(image.shape[1] * float(height) / image.shape[0]), height))
         cv2.imwrite(thumbnail_file, thumbnail_image)
-    return (video_size, video_timestamp)
+    return (video_size, MediaType.VIDEO, video_timestamp)
 
 def _create_thumbnail(media_full_name, thumbnail_full_name, height):
-    file_ext = os.path.splitext(media_full_name)[1].lower()
+    file_ext = os.path.splitext(media_full_name)[1]
     if file_ext in IMAGE_SUFFIXES:
         meta_data = _create_image_thumbnail(media_full_name, thumbnail_full_name, height)
     elif file_ext in VIDEO_SUFFIXES:
         meta_data = _create_video_thumbnail(media_full_name, thumbnail_full_name, height)
+    elif file_ext in MUSIC_SUFFIXES:
+        meta_data = ((None, None), MediaType.MUSIC, get_file_ctime(media_full_name))
     else:
-        meta_data = ((None, None), get_file_ctime(media_full_name))
+        meta_data = ((None, None), MediaType.OTHER, get_file_ctime(media_full_name))
     return meta_data
 
 def _get_relative_path(media_full_name):
@@ -248,17 +267,23 @@ def _get_thumbnail_name(media_full_name):
     return thumbnail_full_name
 
 def import_user_media(media_full_name, user_name, is_public, user_add_media_func):
+    prefix, ext = os.path.splitext(media_full_name)
+    target_ext = ext.lower()
+    if ext != target_ext:
+        media_old_name, media_full_name = media_full_name, prefix + target_ext
+        os.rename(media_old_name, media_full_name)
+        print('CAP file rename from [{}] to [{}]'.format(media_old_name, media_full_name))
     thumbnail_full_name = _get_thumbnail_name(media_full_name)
     relative_path = _get_relative_path(media_full_name)
     filename = os.path.basename(media_full_name)
     os.makedirs(os.path.dirname(thumbnail_full_name), mode=0o750, exist_ok=True)
     metadata = _create_thumbnail(media_full_name, thumbnail_full_name, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'))
     width, height = metadata[0]
-    is_multimedia = True if width is not None else False
-    timestamp = datetime.datetime.fromtimestamp(metadata[1])
+    media_type = metadata[1]
+    timestamp = datetime.datetime.fromtimestamp(metadata[2])
     return user_add_media_func(username=user_name, path=relative_path, filename=filename,
                                width=width, height=height, timestamp=timestamp,
-                               is_multimedia=is_multimedia, is_public=is_public)
+                               media_type=media_type, is_public=is_public)
 
 def import_user_medias(user_name, user_add_media_func):
     original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
