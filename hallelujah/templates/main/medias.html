@@ -6,79 +6,79 @@
 {% endif %}
 
 {% block content %}
-    <div class="row">
-        {% if manage %}
-            <div class="d-flex justify-content-center mt-5">
-                <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">
-                    <i class="bi-link-45deg mx-1"></i>Show
-                </a>
-            </div>
-            <div class="row mt-5">
-                <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone">
-                    <div class="form-check my-0">
-                        <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
-                        <label class="form-check-label" for="is_public">Is Public</label>
-                    </div>
-                </form>
-            </div>
-            <div class="row mt-5">
-                <ol class="breadcrumb">
-                    {% set path_list = current_path.split('/') %}
-                    {% for dir_name in path_list %}
-                        {% if loop.last %}
-                            <li class="breadcrumb-item">{{ dir_name }}</li>
-                        {% else %}
-                            <li class="breadcrumb-item active">
-                                {% if manage %}
-                                    <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                                {% else %}
-                                    <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                                {% endif %}
-                            </li>
-                        {% endif %}
+    {% if manage %}
+        <div class="d-flex justify-content-center mt-5">
+            <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">
+                <i class="bi-link-45deg mx-1"></i>Show
+            </a>
+        </div>
+        <div class="row mt-5">
+            <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone">
+                <div class="form-check my-0">
+                    <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
+                    <label class="form-check-label" for="is_public">Is Public</label>
+                </div>
+            </form>
+        </div>
+        <div class="row mt-5">
+            <ol class="breadcrumb">
+                {% set path_list = current_path.split('/') %}
+                {% for dir_name in path_list %}
+                    {% if loop.last %}
+                        <li class="breadcrumb-item">{{ dir_name }}</li>
+                    {% else %}
+                        <li class="breadcrumb-item active">
+                            {% if manage %}
+                                <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                            {% else %}
+                                <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+        <div class="row my-5">
+            <table class="table table-responsive table-sm table-hover">
+                <tbody>
+                    {% for dir in dirs %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('main.manage_medias', current_path=os_path_join(current_path, dir), _external=True) }}">
+                                    <i class="bi-folder mx-1"></i>{{ dir }}
+                                </a>
+                            </td>
+                        </tr>
                     {% endfor %}
-                </ol>
+                    {% for file in files %}
+                        <tr>
+                            <td>
+                                <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
+                                    {{ file.filename }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ render_modal('Delete Media', file.filename, url_for('main.file_delete', filename=file.uuidname, _external=True), file.id) }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="d-flex justify-content-center mt-5">
+            <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">
+                <i class="bi-wrench-adjustable mx-1"></i>Manage
+            </a>
+        </div>
+        <div class="row my-5">
+            <div class="col gallery" id="data_div">
             </div>
-            <div class="row my-5">
-                <table class="table table-responsive table-sm table-hover">
-                    <tbody>
-                        {% for dir in dirs %}
-                            <tr>
-                                <td>
-                                    <a href="{{ url_for('main.manage_medias', current_path=os_path_join(current_path, dir), _external=True) }}">
-                                        <i class="bi-folder mx-1"></i>{{ dir }}
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        {% for file in files %}
-                            <tr>
-                                <td>
-                                    <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
-                                        {{ file.filename }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ render_modal('Delete Media', file.filename, url_for('main.file_delete', filename=file.uuidname, _external=True), file.id) }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <div class="d-flex justify-content-center mt-5">
-                <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">
-                    <i class="bi-wrench-adjustable mx-1"></i>Manage
-                </a>
-            </div>
-            <div class="row gallery my-5" id="data_div">
-            </div>
-            <div class="d-flex justify-content-center mb-5" id="sentinel">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        {% endif %}
-    </div>
+        </div>
+        <div class="d-flex justify-content-center mb-5" id="sentinel">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    {% endif %}
 {% endblock content %}
 
 
@@ -143,15 +143,15 @@
 
             function load_data(fetch_url) {
                 fetch(fetch_url).then(response => response.json()).then(data => {
-                    offset += data.length;
                     if (!data.length || data.length < limit) {
                         sentinel.innerHTML = '<div class="text-muted">No more medias.</div>';
                         intersectionObserver.unobserve(sentinel);
                     }
                     for (var index = 0; index < data.length; index++) {
-                        var data_item = `<a href="` + data[index].view_url + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><img src="` + data[index].thumbnail_url +`" class="rounded"></a>`;
+                        var data_item = `<a href="` + data[index].view_url + `" data-index="` + (offset+index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><img src="` + data[index].thumbnail_url +`" class="rounded img-fluid"></a>`;
                         $("#data_div").append(data_item);
                     }
+                    offset += data.length;
                 });
             };
         {% endif %}
