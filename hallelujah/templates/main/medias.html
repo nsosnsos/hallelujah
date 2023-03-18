@@ -148,7 +148,7 @@
                         intersectionObserver.unobserve(sentinel);
                     }
                     for (var index = 0; index < data.length; index++) {
-                        var data_item = `<a href="` + data[index].view_url + `" data-index="` + (offset+index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><img src="` + data[index].thumbnail_url +`" class="rounded img-fluid"></a>`;
+                        var data_item = `<a target="_blank" href="` + data[index].view_url + `" data-index="` + (offset+index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><img src="` + data[index].thumbnail_url +`" class="rounded img-fluid"></a>`;
                         $("#data_div").append(data_item);
                     }
                     offset += data.length;
