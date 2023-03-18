@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from .extensions import db, login_manager
-from .utility import markdown_to_html, get_thumbnail_size, import_user_medias
+from .utility import markdown_to_html, get_thumbnail_size, import_user_medias, MediaType
 from .config import Config
 
 
@@ -99,11 +99,11 @@ class User(UserMixin, db.Model):
         return user
 
     @staticmethod
-    def add_user_media(username, path, filename, timestamp, width=None, height=None, is_multimedia=False, is_public=False):
+    def add_user_media(username, path, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
         user = User.query.filter(User.name==username).first()
         if not user:
             return None
-        media = Media.add_media(user.id, path, filename, timestamp, width, height, is_multimedia, is_public)
+        media = Media.add_media(user.id, path, filename, timestamp, width, height, media_type, is_public)
         return media
 
     @staticmethod
@@ -253,7 +253,7 @@ class Media(db.Model):
     uuidname = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     width = db.Column(db.Integer, unique=False, nullable=True, index=False)
     height = db.Column(db.Integer, unique=False, nullable=True, index=False)
-    is_multimedia = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=False)
+    media_type = db.Column(db.Integer, unique=False, nullable=False, index=True, default=MediaType.OTHER)
     is_public = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=False)
 
     def __init__(self, **kwargs):
@@ -281,19 +281,19 @@ class Media(db.Model):
             'uuidname': self.uuidname,
             'view_url': view_url,
             'download_url': download_url,
-            'thumbnail_url': thumbnail_url if self.is_multimedia else view_url,
+            'thumbnail_url': thumbnail_url if self.media_type >= MediaType.IMAGE else view_url,
             'height': self.height,
             'width': self.width,
             'thumbnail_height': thumbnail_size[1],
             'thumbnail_width': thumbnail_size[0],
-            'is_multimedia': self.is_multimedia,
+            'media_type': self.media_type,
             'is_public': self.is_public,
         }
         return json_media
 
     @staticmethod
-    def add_media(user_id, path, filename, timestamp, width=None, height=None, is_multimedia=False, is_public=False):
-        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, is_multimedia=is_multimedia, is_public=is_public)
+    def add_media(user_id, path, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
+        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, media_type=media_type, is_public=is_public)
         db.session.add(media)
         try:
             db.session.commit()

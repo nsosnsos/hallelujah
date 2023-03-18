@@ -6,6 +6,7 @@ from sqlalchemy import and_
 from flask_login import current_user
 from flask import Blueprint, current_app, request, jsonify
 
+from ..utility import MediaType
 from ..extensions import db
 from ..models import Article, User, Media, Resource
 
@@ -42,7 +43,7 @@ def get_self_medias():
     user_id = current_user.id if current_user.is_authenticated else -1
     offset = int(request.args.get('offset', 0))
     limit = current_app.config.get('ITEMS_PER_PAGE')
-    medias = Media.query.filter((Media.user_id == user_id) & (Media.is_multimedia==True)).order_by(Media.timestamp.desc()).offset(offset).limit(limit)
+    medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE)).order_by(Media.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([media.to_json() for media in medias])
 
 @bp_api.route('/get_self_resources')
