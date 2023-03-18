@@ -35,7 +35,7 @@ a {
 }
 
 /* gallery */
-.gallary {
+.gallery {
     display: flex;
     flex-wrap: wrap;
 }
