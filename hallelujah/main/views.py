@@ -166,20 +166,6 @@ def get_thumbnail(filename):
     full_path_name = os.path.join(_get_thumbnail_path(), media.path, media_filename)
     return send_file(full_path_name, as_attachment=False, download_name=filename)
 
-@bp_main.route('/save/<path:current_path>/<filename>')
-@login_required
-def save_file(current_path, filename):
-    full_path = _get_full_path(current_path, current_user)
-    if not full_path:
-        return make_response('forbidden', 403)
-    full_path_name = os.path.join(full_path, filename)
-    if not os.path.isfile(full_path_name):
-        return make_response('bad request', 400)
-    media = Media.query.filter((Media.path == current_path) | (Media.filename == filename)).first()
-    if not media or not current_user.is_authenticated or current_user.name != media.author.name:
-        return Response('', status=204, mimetype='text/xml')
-    return send_file(full_path_name, as_attachment=True, download_name=filename)
-
 def _delete_file(media):
     full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     if os.path.isfile(full_path_name):
@@ -189,7 +175,7 @@ def _delete_file(media):
         os.remove(full_path_name)
 
 @bp_main.route('/delete', methods=['POST'])
-def delete_file():
+def delete_dropzone_file():
     filename = request.get_json().get('filename', '')
     if not current_user.is_authenticated:
         return 'bad request', 400
@@ -203,9 +189,9 @@ def delete_file():
     _delete_file(media)
     return jsonify('succeed')
 
-@bp_main.route('/file_delete/<filename>', methods=['GET'])
+@bp_main.route('/delete/<filename>', methods=['GET'])
 @login_required
-def file_delete(filename):
+def delete_media(filename):
     media = Media.query.filter(Media.uuidname == filename).first()
     if not media or media.author.name != current_user.name or not Media.delete_media(media.uuidname):
         flash('Failed to delete media {}!'.format(media.filename))
