@@ -126,21 +126,37 @@ def browse_directory(current_path):
 
 def _rotate_image_by_orientation(image):
     try:
-        exif_info = image.getexif()
+        exif_info = image._getexif()
         if exif_info and EXIF_TAG_MAP['Orientation'] in exif_info:
             orientation = exif_info[EXIF_TAG_MAP['Orientation']]
             if orientation == 3:
-                rotation_angle = 180
+                image = image.rotate(Image.ROTATE_180, expand=True)
             elif orientation == 6:
-                rotation_angle = 270
+                image = image.rotate(Image.ROTATE_270, expand=True)
             elif orientation == 8:
-                rotation_angle = 90
+                image = image.rotate(Image.ROTATE_90, expand=True)
+            """
+            if orientation == 1:
+                pass
+            elif orientation == 2:
+                image = image.transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 3:
+                image = image.rotate(Image.ROTATE_180)
+            elif orientation == 4:
+                image = image.transpose(Image.FLIP_TOP_BOTTOM)
+            elif orientation == 5:
+                image = image.rotate(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 6:
+                image = image.rotate(Image.ROTATE_270)
+            elif orientation == 7:
+                image = image.rotate(Image.ROTATE_90).transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 8:
+                image = image.rotate(Image.ROTATE_90)
             else:
-                rotation_angle = 0
-            if rotation_angle != 0:
-                return image.rotate(rotation_angle, expand=True)
-    except:
-        pass
+                pass
+            """
+    except Exception as e:
+        current_app.config.get('LOGGER').error('_rotate_image_by_orientation: {}'.format(str(e)))
     return image
 
 def get_thumbnail_size(image_size, thumbnail_height):
@@ -165,7 +181,7 @@ def _parse_exif_timestamp(timestamp_string):
 
 def _get_image_timestamp(image_file):
     image = Image.open(image_file)
-    exif_info = image.getexif()
+    exif_info = image._getexif()
     image.close()
     image_timestamp = None
     if exif_info:
@@ -179,27 +195,27 @@ def _get_image_timestamp(image_file):
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
 
-def _create_image_thumbnail(image_file, thumbnail_file, height):
-    image = Image.open(image_file)
-    image = _rotate_image_by_orientation(image)
+def _create_image_thumbnail(image_file, thumbnail_dirname, height):
+    image_timestamp = _get_image_timestamp(image_file)
+    new_filename = 'IMG_' + datetime.datetime.fromtimestamp(image_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(image_file)[1]
+    new_file = os.path.join(os.path.dirname(image_file), new_filename)
+    if image_file != new_file:
+        os.rename(image_file, new_file)
+
+    image = Image.open(new_file)
     image_size = image.size
 
+    thumbnail_file = os.path.join(thumbnail_dirname, os.path.basename(new_file))
     if not os.path.isfile(thumbnail_file):
-        thumbnail_size = get_thumbnail_size(image.size, height)
-        if thumbnail_size != image.size:
+        thumbnail_size = get_thumbnail_size(image_size, height)
+        if thumbnail_size != image_size:
             image = image.resize(thumbnail_size, Image.ANTIALIAS)
         if image.mode != 'RGB':
             image = image.convert('RGB')
         image.save(thumbnail_file)
 
     image.close()
-    image_timestamp = _get_image_timestamp(image_file)
-    new_filename = 'IMG_' + datetime.datetime.fromtimestamp(image_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(image_file)[1]
-    new_file = os.path.join(os.path.dirname(image_file), new_filename)
-    if image_file != new_file:
-        os.rename(image_file, new_file)
-        print('IMG file rename from [{}] to [{}]'.format(image_file, new_file))
-    return (image_size, MediaType.IMAGE, image_timestamp)
+    return (image_size, MediaType.IMAGE, image_timestamp, new_filename)
 
 def _get_video_timestamp(video_file):
     file_ctime = get_file_ctime(video_file)
@@ -222,33 +238,34 @@ def _get_video_timestamp(video_file):
             return timestamp
     return file_ctime
 
-def _create_video_thumbnail(video_file, thumbnail_file, height):
+def _create_video_thumbnail(video_file, thumbnail_dirname, height):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
-    image = _rotate_image_by_orientation(image)
     video_size = (image.shape[1], image.shape[0])
     video_timestamp = _get_video_timestamp(video_file)
     new_filename = 'VID_' + datetime.datetime.fromtimestamp(video_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(video_file)[1]
     new_file = os.path.join(os.path.dirname(video_file), new_filename)
     if video_file != new_file:
         os.rename(video_file, new_file)
-        print('VID file rename from [{}] to [{}]'.format(video_file, new_file))
 
+    prefix, ext = os.path.splitext(new_filename)
+    thumbnail_filename = prefix + IMAGE_SUFFIXES[0]
+    thumbnail_file = os.path.join(thumbnail_dirname, thumbnail_filename)
     if not os.path.isfile(thumbnail_file):
         thumbnail_image = cv2.resize(image, (round(image.shape[1] * float(height) / image.shape[0]), height))
         cv2.imwrite(thumbnail_file, thumbnail_image)
-    return (video_size, MediaType.VIDEO, video_timestamp)
+    return (video_size, MediaType.VIDEO, video_timestamp, new_filename)
 
-def _create_thumbnail(media_full_name, thumbnail_full_name, height):
+def _create_thumbnail(media_full_name, thumbnail_dirname, height):
     file_ext = os.path.splitext(media_full_name)[1]
     if file_ext in IMAGE_SUFFIXES:
-        meta_data = _create_image_thumbnail(media_full_name, thumbnail_full_name, height)
+        meta_data = _create_image_thumbnail(media_full_name, thumbnail_dirname, height)
     elif file_ext in VIDEO_SUFFIXES:
-        meta_data = _create_video_thumbnail(media_full_name, thumbnail_full_name, height)
+        meta_data = _create_video_thumbnail(media_full_name, thumbnail_dirname, height)
     elif file_ext in MUSIC_SUFFIXES:
-        meta_data = ((None, None), MediaType.MUSIC, get_file_ctime(media_full_name))
+        meta_data = ((None, None), MediaType.MUSIC, get_file_ctime(media_full_name), os.path.basename(media_full_name))
     else:
-        meta_data = ((None, None), MediaType.OTHER, get_file_ctime(media_full_name))
+        meta_data = ((None, None), MediaType.OTHER, get_file_ctime(media_full_name), os.path.basename(media_full_name))
     return meta_data
 
 def _get_relative_path(media_full_name):
@@ -256,32 +273,27 @@ def _get_relative_path(media_full_name):
     media_relative_name = media_full_name[len(original_path)+1:]
     return os.path.dirname(media_relative_name)
 
-def _get_thumbnail_name(media_full_name):
+def _get_thumbnail_dirname(media_full_name):
     original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
     thumbnail_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
     media_relative_name = media_full_name[len(original_path)+1:]
     thumbnail_full_name = os.path.join(thumbnail_path, media_relative_name)
-    thumbnail_prefix, thumbnail_ext = os.path.splitext(thumbnail_full_name)
-    if thumbnail_ext.lower() in VIDEO_SUFFIXES:
-        thumbnail_full_name = thumbnail_prefix + IMAGE_SUFFIXES[0]
-    return thumbnail_full_name
+    return os.path.dirname(thumbnail_full_name)
 
 def import_user_media(media_full_name, user_name, is_public, user_add_media_func):
+    print(media_full_name)
     prefix, ext = os.path.splitext(media_full_name)
     target_ext = ext.lower()
     if ext != target_ext:
         media_old_name, media_full_name = media_full_name, prefix + target_ext
         os.rename(media_old_name, media_full_name)
-        print('CAP file rename from [{}] to [{}]'.format(media_old_name, media_full_name))
-    thumbnail_full_name = _get_thumbnail_name(media_full_name)
+    thumbnail_dirname = _get_thumbnail_dirname(media_full_name)
     relative_path = _get_relative_path(media_full_name)
-    filename = os.path.basename(media_full_name)
-    os.makedirs(os.path.dirname(thumbnail_full_name), mode=0o750, exist_ok=True)
-    metadata = _create_thumbnail(media_full_name, thumbnail_full_name, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'))
-    width, height = metadata[0]
-    media_type = metadata[1]
-    timestamp = datetime.datetime.fromtimestamp(metadata[2])
-    return user_add_media_func(username=user_name, path=relative_path, filename=filename,
+    os.makedirs(thumbnail_dirname, mode=0o750, exist_ok=True)
+    metadata = _create_thumbnail(media_full_name, thumbnail_dirname, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'))
+    (width, height), media_type, media_datetime, media_filename = metadata
+    timestamp = datetime.datetime.fromtimestamp(media_datetime)
+    return user_add_media_func(username=user_name, path=relative_path, filename=media_filename,
                                width=width, height=height, timestamp=timestamp,
                                media_type=media_type, is_public=is_public)
 
