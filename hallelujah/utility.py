@@ -203,6 +203,7 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height):
         os.rename(image_file, new_file)
 
     image = Image.open(new_file)
+    image = _rotate_image_by_orientation(image)
     image_size = image.size
 
     thumbnail_file = os.path.join(thumbnail_dirname, os.path.basename(new_file))
@@ -281,7 +282,6 @@ def _get_thumbnail_dirname(media_full_name):
     return os.path.dirname(thumbnail_full_name)
 
 def import_user_media(media_full_name, user_name, is_public, user_add_media_func):
-    print(media_full_name)
     prefix, ext = os.path.splitext(media_full_name)
     target_ext = ext.lower()
     if ext != target_ext:
