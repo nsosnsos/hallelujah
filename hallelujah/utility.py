@@ -203,7 +203,8 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height):
         os.rename(image_file, new_file)
 
     image = Image.open(new_file)
-    image = _rotate_image_by_orientation(image)
+    ### PIL.Image.rotate is not good enough to be applyed!
+    # image = _rotate_image_by_orientation(image)
     image_size = image.size
 
     thumbnail_file = os.path.join(thumbnail_dirname, os.path.basename(new_file))
