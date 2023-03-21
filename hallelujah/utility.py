@@ -240,6 +240,19 @@ def _get_video_timestamp(video_file):
             return timestamp
     return file_ctime
 
+def _add_playicon_to_thumbnail(thumbnail_image, width, height):
+    thumbnail_image = Image.fromarray(thumbnail_image)
+    playicon_file = os.path.join(current_app.config.get('SYS_STATIC'), 'img', 'play_icon.png')
+    playicon_image = Image.open(playicon_file)
+    icon_height = height // current_app.config.get('MIN_STR_LEN')
+    icon_width = icon_height * playicon_image.size[0] // playicon_image.size[1]
+    playicon_image = playicon_image.resize((icon_width, icon_height), Image.ANTIALIAS)
+    left = (width - icon_width) // 2
+    top = (height - icon_height) // 2
+    thumbnail_image.paste(playicon_image, (left, top))
+    playicon_image.close()
+    return thumbnail_image
+
 def _create_video_thumbnail(video_file, thumbnail_dirname, height):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
@@ -254,8 +267,10 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height):
     thumbnail_filename = prefix + IMAGE_SUFFIXES[0]
     thumbnail_file = os.path.join(thumbnail_dirname, thumbnail_filename)
     if not os.path.isfile(thumbnail_file):
-        thumbnail_image = cv2.resize(image, (round(image.shape[1] * float(height) / image.shape[0]), height))
-        cv2.imwrite(thumbnail_file, thumbnail_image)
+        width = round(image.shape[1] * float(height) / image.shape[0])
+        thumbnail_image = cv2.resize(image, (width, height))
+        thumbnail_image = _add_playicon_to_thumbnail(thumbnail_image, width, height)
+        thumbnail_image.save(thumbnail_file)
     return (video_size, MediaType.VIDEO, video_timestamp, new_filename)
 
 def _create_thumbnail(media_full_name, thumbnail_dirname, height):
