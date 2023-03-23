@@ -34,6 +34,16 @@ a {
     border: 2px dashed rgb(0, 135, 247);
 }
 
+/* playicon center over video thumbnail */
+.icon-center {
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
 /* gallery */
 .gallery {
     display: flex;
@@ -57,8 +67,12 @@ a {
   flex-grow: 1000000;
 }
 
-.gallery>a>img {
-  display: block;
+.gallery>a>div {
+  position: relative;
+}
+
+.thumbnail-image {
+  position: relative;
   width: 100%;
 }
 
