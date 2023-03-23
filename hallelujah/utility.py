@@ -7,7 +7,7 @@ import cv2
 import bleach
 import datetime
 import subprocess
-from PIL import Image, ImageDraw, ExifTags
+from PIL import Image, ExifTags
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from threading import Thread
@@ -240,23 +240,6 @@ def _get_video_timestamp(video_file):
             return timestamp
     return file_ctime
 
-def _add_playicon_to_thumbnail(thumbnail_image, width, height):
-    thumbnail_image = Image.fromarray(thumbnail_image).convert('RGBA')
-    playicon_file = os.path.join(current_app.config.get('SYS_STATIC'), 'img', 'play_icon.png')
-    playicon_image = Image.open(playicon_file).convert('RGBA')
-    icon_height = height // current_app.config.get('MIN_STR_LEN')
-    icon_width = icon_height * playicon_image.size[0] // playicon_image.size[1]
-    playicon_image = playicon_image.resize((icon_width, icon_height), Image.ANTIALIAS)
-    left = (width - icon_width) // 2
-    top = (height - icon_height) // 2
-
-    result = Image.new('RGBA', (width, height))
-    draw = ImageDraw.Draw(result)
-    draw.bitmap((0, 0), thumbnail_image)
-    result.paste(playicon_image, (left, top), mask=playicon_image)
-    playicon_image.close()
-    return result.convert('RGB')
-
 def _create_video_thumbnail(video_file, thumbnail_dirname, height):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
@@ -273,8 +256,7 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height):
     if not os.path.isfile(thumbnail_file):
         width = round(image.shape[1] * float(height) / image.shape[0])
         thumbnail_image = cv2.resize(image, (width, height))
-        thumbnail_image = _add_playicon_to_thumbnail(thumbnail_image, width, height)
-        thumbnail_image.save(thumbnail_file)
+        cv2.imwrite(thumbnail_file, thumbnail_image)
     return (video_size, MediaType.VIDEO, video_timestamp, new_filename)
 
 def _create_thumbnail(media_full_name, thumbnail_dirname, height):
