@@ -57,6 +57,34 @@ def mariadb_is_in_use():
     return current_app.config.get('SYS_MARIADB')
 
 
+def mariadb_backup():
+    db_usr = current_app.config.get('MARIADB_USERNAME')
+    db_pwd = current_app.config.get('MARIADB_PASSWORD')
+    db_name = current_app.config.get('MARIADB_DB')
+    data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
+    target_db = os.path.join(data_directory, db_name + '.sql')
+    command = f'mariadb-dump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
+    try:
+        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        current_app.config.get('LOGGER').error('mariadb_backup failed: {}'.format(str(e)))
+    return ret.returncode == 0 and ret.stdout.decode() != ''
+
+
+def mariadb_recovery():
+    db_usr = current_app.config.get('MARIADB_USERNAME')
+    db_pwd = current_app.config.get('MARIADB_PASSWORD')
+    db_name = current_app.config.get('MARIADB_DB')
+    data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
+    target_db = os.path.join(data_directory, db_name + '.sql')
+    command = f'mariadb -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
+    try:
+        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        current_app.config.get('LOGGER').error('mariadb_backup failed: {}'.format(str(e)))
+    return ret.returncode == 0 and ret.stdout.decode() != ''
+
+
 def mariadb_is_exist_db(db_name=None):
     db_usr = current_app.config.get('MARIADB_USERNAME')
     db_pwd = current_app.config.get('MARIADB_PASSWORD')
