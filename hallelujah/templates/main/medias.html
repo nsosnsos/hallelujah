@@ -1,12 +1,13 @@
-{% if manage %}
+{% if form %}
     {% extends '_dropzone.html' %}
+    {% from '_form.html' import render_field %}
     {% from '_modal.html' import render_modal %}
 {% else %}
     {% extends '_base.html' %}
 {% endif %}
 
 {% block content %}
-    {% if manage %}
+    {% if form %}
         <div class="d-flex justify-content-center mt-5">
             <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">
                 <i class="bi-link-45deg mx-1"></i>Show
@@ -21,22 +22,43 @@
             </form>
         </div>
         <div class="row mt-5">
-            <ol class="breadcrumb">
-                {% set path_list = current_path.split('/') %}
-                {% for dir_name in path_list %}
-                    {% if loop.last %}
-                        <li class="breadcrumb-item">{{ dir_name }}</li>
-                    {% else %}
-                        <li class="breadcrumb-item active">
-                            {% if manage %}
+            <div class="col d-flex align-items-center">
+                <ol class="breadcrumb my-auto">
+                    {% set path_list = current_path.split('/') %}
+                    {% for dir_name in path_list %}
+                        {% if loop.last %}
+                            <li class="breadcrumb-item">{{ dir_name }}</li>
+                        {% else %}
+                            <li class="breadcrumb-item active">
                                 <a href="{{ url_for('main.manage_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                            {% else %}
-                                <a href="{{ url_for('main.show_medias', current_path=os_path_join(*path_list[:loop.index]), _external=True) }}">{{ dir_name }}</a>
-                            {% endif %}
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ol>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-primary float-end mx-1" data-bs-toggle="modal" data-bs-target="#directory_add"><i class="bi-plus-square mx-1"></i>Add Directory</button>
+                <div class="modal fade" id="directory_add" tabindex="-1" role="dialog" aria-labelledby="directory_add" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="directory_add">Add Directory</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true"></span></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" role="form" class="needs-validation" novalidate>
+                                    {{ form.hidden_tag() }}
+                                    {{ render_field(form.directory_name, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='directory name') }}
+                                    {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="row my-5">
             <table class="table table-responsive table-sm table-hover">
@@ -48,16 +70,26 @@
                                     <i class="bi-folder mx-1"></i>{{ dir }}
                                 </a>
                             </td>
+                            <td class="align-middle">
+                                {{ render_modal('Delete Media_Directory', os_path_join(current_path, dir), url_for('main.delete_media_directory', current_path=os_path_join(current_path, dir), _external=True), dir) }}
+                            </td>
                         </tr>
                     {% endfor %}
                     {% for file in files %}
                         <tr>
                             <td>
                                 <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
-                                    {{ file.filename }}
+                                    <div style="height: 40px">
+                                        {% if file.media_type >= 2 %}
+                                            <img src="{{ url_for('main.get_thumbnail', filename=file.uuidname, _external=True) }}" class="image-fluid mx-1" style="height: 100%"></img>
+                                        {% endif %}
+                                        <a href="{{ url_for('main.get_file', filename=file.uuidname, download='yes', _external=True) }}">
+                                            {{ file.filename }}
+                                        </a>
+                                    </div>
                                 </a>
                             </td>
-                            <td>
+                            <td class="align-middle">
                                 {{ render_modal('Delete Media', file.filename, url_for('main.delete_media', filename=file.uuidname, _external=True), file.id) }}
                             </td>
                         </tr>
@@ -87,7 +119,7 @@
     <script type="text/javascript">
         window.addEventListener("load", data_container_adaption);
         window.addEventListener("resize", data_container_adaption);
-        {% if manage %}
+        {% if form %}
             Dropzone.options.uploadDropzone = {
                 dictDefaultMessage: "Drop files here or click to upload",
                 addRemoveLinks: true,

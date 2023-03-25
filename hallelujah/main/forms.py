@@ -20,3 +20,7 @@ class ResourceForm(FlaskForm):
     category = StringField('Category')
     submit = SubmitField('Add Resource')
 
+class DirectoryForm(FlaskForm):
+    directory_name = StringField('Directory Name', validators=[DataRequired()], render_kw={'autofocus': True})
+    submit = SubmitField('Add Directory')
+

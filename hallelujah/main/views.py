@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, request, current_app, abort, make_
 
 from ..utility import redirect_back, browse_directory, import_user_media, MediaType, VIDEO_SUFFIXES, IMAGE_SUFFIXES
 from ..models import User, Article, Media, Resource
-from .forms import ArticleForm, ResourceForm
+from .forms import ArticleForm, ResourceForm, DirectoryForm
 
 
 bp_main = Blueprint('main', __name__)
@@ -86,7 +86,7 @@ def delete_article(article_url):
 @bp_main.route('/medias')
 @login_required
 def medias():
-    return render_template('main/medias.html', current_path=current_user.name, manage=False)
+    return render_template('main/medias.html', current_path=current_user.name)
 
 def _get_original_path():
     return current_app.config.get('SYS_MEDIA_ORIGINAL')
@@ -109,17 +109,25 @@ def _get_full_path(current_path, current_user):
 def show_medias(current_path):
     if not _get_full_path(current_path, current_user):
         return redirect_back()
-    return render_template('main/medias.html', current_path=current_path, manage=False)
+    return render_template('main/medias.html', current_path=current_path)
 
-@bp_main.route('/manage_medias/<path:current_path>')
+@bp_main.route('/manage_medias/<path:current_path>', methods=['GET', 'POST'])
 @login_required
 def manage_medias(current_path):
     full_path = _get_full_path(current_path, current_user)
     if not full_path:
         return redirect_back()
     dirs = browse_directory(full_path)
-    files = Media.query.filter(Media.path==current_path).order_by(Media.filename.asc())
-    return render_template('main/medias.html', current_path=current_path, manage=True, dirs=dirs, files=files)
+    files = Media.query.filter(Media.path==current_path).order_by(Media.filename.asc()).all()
+    form = DirectoryForm()
+    if form.validate_on_submit():
+        target_dir = form.directory_name.data
+        target_path = os.path.join(full_path, target_dir)
+        os.makedirs(target_path, mode=0o775, exist_ok=True)
+        dirs.append(target_dir)
+        dirs.sort()
+        flash('Directory ' + current_path + ' is added successfully!')
+    return render_template('main/medias.html', current_path=current_path, form=form, dirs=dirs, files=files)
 
 @bp_main.route('/upload/<path:current_path>', methods=['POST'])
 @login_required
@@ -174,6 +182,14 @@ def _delete_file(media):
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
 
+def _delete_directory(path):
+    full_path_name = os.path.join(_get_original_path(), path)
+    if os.path.isdir(full_path_name):
+        os.removedirs(full_path_name)
+    full_path_name = os.path.join(_get_thumbnail_path(), path)
+    if os.path.isdir(full_path_name):
+        os.removedirs(full_path_name)
+
 @bp_main.route('/delete', methods=['POST'])
 def delete_dropzone_file():
     filename = request.get_json().get('filename', '')
@@ -188,6 +204,24 @@ def delete_dropzone_file():
         return 'internal error', 500
     _delete_file(media)
     return jsonify('succeed')
+
+@bp_main.route('/delete_directory/<path:current_path>', methods=['GET'])
+@login_required
+def delete_media_directory(current_path):
+    full_path = _get_full_path(current_path, current_user)
+    if not full_path:
+        return redirect_back()
+    medias = Media.query.filter(Media.path.like(f'{current_path}%')).all()
+    for media in medias:
+        if not media or media.author.name != current_user.name or not Media.delete_media(media.uuidname):
+            flash('Failed to delete media directory {}!'.format(current_path))
+            break
+        else:
+            _delete_file(media)
+    else:
+        _delete_directory(current_path)
+        flash('Media directory ' + current_path + ' is deleted!')
+    return redirect_back()
 
 @bp_main.route('/delete/<filename>', methods=['GET'])
 @login_required
