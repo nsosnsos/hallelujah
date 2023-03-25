@@ -1,9 +1,16 @@
 {% extends '_base.html' %}
 
 {% block content %}
-    <div class="row">
+    <div class="row mt-5">
         <div class="col-sm-9">
-            Search Result: {{ data }}
+            <div class="d-flex justify-content-center mb-5">
+                <h5><i class="bi bi-search mx-1"></i>"{{ ' '.join(keywords.split('+')) }}"</h5>
+            </div>
+            <div id="data_div">
+            </div>
+            <div class="d-flex justify-content-center mb-5" id="sentinel">
+                <div class="spinner-border" role="status"></div>
+            </div>
         </div>
         <div class="col-sm-3 sticky-top-container">
             <div class="container sticky-top">
@@ -13,11 +20,51 @@
     </div>
 {% endblock content %}
 
+
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
         window.addEventListener("load", data_container_adaption);
         window.addEventListener("resize", data_container_adaption);
+        var data_div = document.querySelector("#data_div");
+        var sentinel = document.querySelector("#sentinel");
+        var offset = 0;
+        var limit = {{ config.ITEMS_PER_PAGE | tojson }};
+        var load_url = {{ url_for('api.search', _external=True) | tojson }};
+        var keywords = {{ keywords | tojson }};
+
+        var intersectionObserver = new IntersectionObserver(entries => {
+            if (entries[0].intersectionRatio <= 0) {
+                return;
+            }
+            var fetch_url = `${load_url}?keywords=${keywords}&offset=${offset}`;
+            load_data(fetch_url);
+        });
+        intersectionObserver.observe(sentinel);
+
+        function load_data(fetch_url) {
+            fetch(fetch_url).then(response => response.json()).then(data => {
+                offset += data.length;
+                if (!data.length || data.length < limit) {
+                    sentinel.innerHTML = '<div class="text-muted">No more articles.</div>';
+                    intersectionObserver.unobserve(sentinel);
+                }
+                for (var index = 0; index < data.length; index++) {
+                    var data_item = `
+                        <div class="card mb-5">
+                            <div class="card-header">
+                                <h5 class="my-auto"><a href="` + data[index].url + `" class="stretched-link"><i class="bi-justify mx-1"></i>` + data[index].title +`</a></h5>
+                            </div>
+                            <div class="card-body"> ` + data[index].truncated_content + ` </div>
+                            <div class="card-footer d-flex justify-content-between text-muted">
+                                <div><i class="bi-people-fill mx-1"></i>` + data[index].author + `</div>
+                                <div><i class="bi-calendar3 mx-1"></i>` + moment(data[index].timestamp).format("YYYY-MM-DD HH:mm:ss") + `</div>
+                            </div>
+                        </div>`;
+                    $("#data_div").append(data_item);
+                }
+            });
+        };
     </script>
 {% endblock scripts %}
 
