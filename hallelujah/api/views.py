@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 
-from sqlalchemy import and_
 from flask_login import current_user
 from flask import Blueprint, current_app, request, jsonify
 
@@ -12,6 +11,21 @@ from ..models import Article, User, Media, Resource
 
 
 bp_api = Blueprint('api', __name__)
+
+@bp_api.route('/search')
+def search():
+    keywords = request.args.get('keywords', None)
+    if not keywords:
+        return jsonify([])
+    keywords = keywords.split()
+    offset = int(request.args.get('offset', 0))
+    limit = current_app.config.get('ITEMS_PER_PAGE')
+    user_id = current_user.id if current_user.is_authenticated else -1
+    articles = Article.query.filter(db.or_(Article.user_id == user_id, Article.is_public == True))
+    for keyword in keywords:
+        articles = articles.filter(db.or_(Article.title.like(f'%{keyword}%'), Article.content.like(f'%{keyword}%')))
+    articles = articles.order_by(Article.timestamp.desc()).offset(offset).limit(limit)
+    return jsonify([article.to_json() for article in articles])
 
 @bp_api.route('/get_articles')
 def get_articles():
@@ -27,7 +41,7 @@ def get_user_articles():
     user_id = user.id if user else -1
     offset = int(request.args.get('offset', 0))
     limit = current_app.config.get('ITEMS_PER_PAGE')
-    articles = Article.query.filter(and_(Article.is_public == True, Article.user_id == user_id)).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
+    articles = Article.query.filter(db.and_(Article.is_public == True, Article.user_id == user_id)).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
 
 @bp_api.route('/get_self_articles')
@@ -56,7 +70,7 @@ def get_self_resources():
             Resource.uri.like(f'%{search}%'),
             Resource.category.like(f'%{search}%'),
             Resource.title.like(f'%{search}%')
-        ));
+        ))
     sort = request.args.get('sort')
     if sort:
         column_names = Resource.__table__.columns.keys()

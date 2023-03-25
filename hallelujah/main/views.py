@@ -274,8 +274,9 @@ def about():
 
 @bp_main.route('/search', methods=['POST'])
 def search():
-    data = request.form.get('search', None)
-    return render_template('main/search.html', data=data)
+    keywords = request.form.get('search', None)
+    keywords = '+'.join(keywords.split())
+    return render_template('main/search.html', keywords=keywords)
 
 @bp_main.route('/theme', methods=['POST'])
 def theme_switch():
