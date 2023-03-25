@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, send_email
+from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_recovery, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -93,6 +93,16 @@ def register_commands(app):
     def test():
         test_set = unittest.TestLoader().discover('test')
         unittest.TextTestRunner(verbosity=2).run(test_set)
+
+    @app.cli.command()
+    def backup():
+        if app.config.get('SYS_MARIADB'):
+            mariadb_backup()
+
+    @app.cli.command()
+    def recovery():
+        if app.config.get('SYS_MARIADB'):
+            mariadb_recovery()
 
     @app.cli.command()
     @click.option('--username', prompt=True, required=True,

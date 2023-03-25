@@ -44,6 +44,14 @@ elif [ ${OPTION} == 'deploy' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     nohup gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()' > /dev/null 2>&1 &
+elif [ ${OPTION} == 'backup' ]; then
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    flask backup
+elif [ ${OPTION} == 'recovery' ]; then
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    flask recovery
 else
     echo "Usage: ${SCRIPT_FILE} [run|clean|test|init|deploy]"
 fi
