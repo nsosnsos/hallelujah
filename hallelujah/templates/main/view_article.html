@@ -6,12 +6,12 @@
         <div class="col-md-9">
             <div class="card">
                 <div class="card-header d-flex justify-content-between">
-                    <div>
-                        <h5><i class="bi-justify mx-1"></i>{{ article.title }}</h5>
+                    <div class="d-flex align-items-center">
+                        <h5 class="my-auto"><i class="bi-justify mx-1"></i>{{ article.title }}</h5>
                     </div>
                     {% if is_self %}
                         <div>
-                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-1"><i class="bi-vector-pen">Edit</i></a>
+                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-auto"><i class="bi-vector-pen">Edit</i></a>
                             &nbsp;
                             {{ render_modal('Delete Article', article.title, os_path_join(article.url, 'delete'), article.id) }}
                         </div>

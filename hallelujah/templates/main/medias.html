@@ -78,16 +78,20 @@
                     {% for file in files %}
                         <tr>
                             <td>
-                                <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
-                                    <div style="height: 40px">
-                                        {% if file.media_type >= 2 %}
+                                <div style="height: 40px">
+                                    {% if file.media_type >= 2 %}
+                                        <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
                                             <img src="{{ url_for('main.get_thumbnail', filename=file.uuidname, _external=True) }}" class="image-fluid mx-1" style="height: 100%"></img>
-                                        {% endif %}
-                                        <a href="{{ url_for('main.get_file', filename=file.uuidname, download='yes', _external=True) }}">
-                                            {{ file.filename }}
                                         </a>
-                                    </div>
-                                </a>
+                                    {% else %}
+                                        <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
+                                            <i class="bi-file-earmark-text mx-1"></i>
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('main.get_file', filename=file.uuidname, download='yes', _external=True) }}">
+                                        {{ file.filename }}
+                                    </a>
+                                </div>
                             </td>
                             <td class="align-middle">
                                 {{ render_modal('Delete Media', file.filename, url_for('main.delete_media', filename=file.uuidname, _external=True), file.id) }}
@@ -138,7 +142,7 @@
                             files[i].previewElement.querySelector('[data-dz-name]').innerHTML = response[files[i].name];
                         }
                     }
-                    formData.append("is_public", document.querySelector("#is_public").value);
+                    window.location.reload();
                 },
                 removedfile: function(file, response) {
                     fetch("{{ url_for('main.delete_dropzone_file', _external=True) }}", {
