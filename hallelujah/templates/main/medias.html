@@ -166,7 +166,7 @@
             var sentinel = document.querySelector("#sentinel");
             var offset = 0;
             var limit = {{ config.ITEMS_PER_PAGE | tojson }};
-            var load_url = {{ url_for('api.get_self_medias', _external=True) | tojson }};
+            var load_url = {{ url_for('api.get_self_medias', current_path=current_path, _external=True) | tojson }};
 
             var intersectionObserver = new IntersectionObserver(entries => {
                 if (entries[0].intersectionRatio <= 0) {
