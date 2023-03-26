@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from .extensions import db, login_manager
-from .utility import markdown_to_html, get_thumbnail_size, import_user_medias, MediaType
+from .utility import markdown_to_html, get_thumbnail_size, import_user_medias, MediaType, IMAGE_SUFFIXES
 from .config import Config
 
 
@@ -273,7 +273,13 @@ class Media(db.Model):
     def to_json(self):
         view_url = url_for('main.get_file', filename=self.uuidname, _external=True)
         download_url = url_for('main.get_file', filename=self.uuidname, download='yes', _external=True)
-        thumbnail_url = url_for('main.get_thumbnail', filename=self.uuidname, _external=True)
+        if self.media_type == MediaType.VIDEO:
+            video_thumbnail = os.path.splitext(self.uuidname)[0] + IMAGE_SUFFIXES[0]
+            thumbnail_url = url_for('main.get_thumbnail', filename=video_thumbnail, _external=True)
+        elif self.media_type == MediaType.IMAGE:
+            thumbnail_url = url_for('main.get_thumbnail', filename=self.uuidname, _external=True)
+        else:
+            thumbnail_url = view_url
         thumbnail_size = get_thumbnail_size((self.width, self.height), Config.SYS_MEDIA_THUMBNAIL_HEIGHT)
         json_media = {
             'author': self.author.name,

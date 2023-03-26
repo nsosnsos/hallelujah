@@ -52,12 +52,13 @@ def get_self_articles():
     articles = Article.query.filter(Article.user_id == user_id).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
 
-@bp_api.route('/get_self_medias')
-def get_self_medias():
+@bp_api.route('/get_self_medias/<path:current_path>')
+def get_self_medias(current_path):
     user_id = current_user.id if current_user.is_authenticated else -1
     offset = int(request.args.get('offset', 0))
     limit = current_app.config.get('ITEMS_PER_PAGE')
-    medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE)).order_by(Media.timestamp.desc()).offset(offset).limit(limit)
+    medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE))
+    medias = medias.filter(Media.path.like(f'{current_path}%')).order_by(Media.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([media.to_json() for media in medias])
 
 @bp_api.route('/get_self_resources')

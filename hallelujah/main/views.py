@@ -161,17 +161,23 @@ def get_file(filename):
         return Response('', status=204, mimetype='text/xml')
     full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     download_name = filename if not as_attachment else media.filename
+    if not os.path.isfile(full_path_name):
+        return Response('', status=204, mimetype='text/xml')
     return send_file(full_path_name, as_attachment=as_attachment, download_name=download_name)
 
 @bp_main.route('/thumbnail/<filename>')
 def get_thumbnail(filename):
-    media = Media.query.filter(Media.uuidname == filename).first()
+    uuid = os.path.splitext(os.path.basename(filename))[0]
+    media = Media.query.filter(Media.uuidname.like(f'{uuid}%')).first()
     if not media or media.media_type < MediaType.IMAGE or (not media.is_public and (not current_user.is_authenticated or current_user.name != media.author.name)):
         return Response('', status=204, mimetype='text/xml')
-    media_filename = media.filename
-    if os.path.splitext(media_filename)[1] in VIDEO_SUFFIXES:
-        media_filename = os.path.splitext(media_filename)[0] + IMAGE_SUFFIXES[0]
+    if media.media_type == MediaType.VIDEO:
+        media_filename = os.path.splitext(media.filename)[0] + IMAGE_SUFFIXES[0]
+    else:
+        media_filename = media.filename
     full_path_name = os.path.join(_get_thumbnail_path(), media.path, media_filename)
+    if not os.path.isfile(full_path_name):
+        return Response('', status=204, mimetype='text/xml')
     return send_file(full_path_name, as_attachment=False, download_name=filename)
 
 def _delete_file(media):
