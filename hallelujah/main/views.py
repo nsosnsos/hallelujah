@@ -184,7 +184,11 @@ def _delete_file(media):
     full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
-    full_path_name = os.path.join(_get_thumbnail_path(), media.path, media.filename)
+    if media.media_type == MediaType.VIDEO:
+        thumbnail_filename = os.path.splitext(media.filename)[0] + IMAGE_SUFFIXES[0]
+    else:
+        thumbnail_filename = media.filename
+    full_path_name = os.path.join(_get_thumbnail_path(), media.path, thumbnail_filename)
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
 
