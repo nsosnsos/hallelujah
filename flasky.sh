@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 #set -x
 set -e
 
@@ -14,9 +13,12 @@ else
 fi
 
 WORK_PATH=${SCRIPT_PATH}
-PYTHON_ENV=${HOME_PATH}/python_env/bin/activate
+PYTHON_PATH=${HOME_PATH}/python_env
+PYTHON_ENV=${PYTHON_PATH}/bin/activate
 EXEC_FILE=${SCRIPT_PATH}/app.py
 TRAVERSE_PATH=${SCRIPT_PATH}
+SERVICE_PATH=/etc/systemd/system
+SERVICE_NAME=hallelujah.service
 
 function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
@@ -41,9 +43,16 @@ elif [ ${OPTION} == 'test' ]; then
     source ${PYTHON_ENV}
     flask test
 elif [ ${OPTION} == 'deploy' ]; then
-    cd ${SCRIPT_PATH}
-    source ${PYTHON_ENV}
-    nohup gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()' > /dev/null 2>&1 &
+    sudo cp ${SCRIPT_PATH}/service.conf ${SERVICE_PATH}/${SERVICE_NAME}
+    sudo sed -i "s|USER_NAME|${USER}|g" ${SERVICE_PATH}/${SERVICE_NAME}
+    sudo sed -i "s|PROJECT_PATH|${SCRIPT_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
+    sudo sed -i "s|PYTHON_PATH|${PYTHON_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
+    sudo systemctl daemon-reload
+    sudo systemctl enable ${SERVICE_NAME}
+    sudo systemctl start ${SERVICE_NAME}
+    # cd ${SCRIPT_PATH}
+    # source ${PYTHON_ENV}
+    # nohup gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()' > /dev/null 2>&1 &
 elif [ ${OPTION} == 'backup' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
