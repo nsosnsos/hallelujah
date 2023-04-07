@@ -12,6 +12,7 @@ else
     OPTION=${1}
 fi
 
+NUM_WORKERS=$(( $(nproc) * 2 + 1))
 WORK_PATH=${SCRIPT_PATH}
 PYTHON_PATH=${HOME_PATH}/python_env
 PYTHON_ENV=${PYTHON_PATH}/bin/activate
@@ -26,7 +27,7 @@ function clean () {
     find ${SCRIPT_PATH} -type f -name '*.db' -delete
 }
 
-if [[ ${#} -eq 0 || ${OPTION} == 'run' ]]; then
+if [[ ${#} -eq 0 || ${OPTION} == 'debug' ]]; then
     cd ${WORK_PATH}
     source ${PYTHON_ENV}
     python3 ${EXEC_FILE}
@@ -47,12 +48,14 @@ elif [ ${OPTION} == 'deploy' ]; then
     sudo sed -i "s|USER_NAME|${USER}|g" ${SERVICE_PATH}/${SERVICE_NAME}
     sudo sed -i "s|PROJECT_PATH|${SCRIPT_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
     sudo sed -i "s|PYTHON_PATH|${PYTHON_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
+    sudo sed -i "s|NUM_WORKERS|${NUM_WORKERS}|g" ${SERVICE_PATH}/${SERVICE_NAME}
     sudo systemctl daemon-reload
     sudo systemctl enable ${SERVICE_NAME}
-    sudo systemctl start ${SERVICE_NAME}
-    # cd ${SCRIPT_PATH}
-    # source ${PYTHON_ENV}
-    # nohup gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()' > /dev/null 2>&1 &
+    sudo systemctl restart ${SERVICE_NAME}
+elif [ ${OPTION} == 'run' ]; then
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    nohup gunicorn -w 1 -b 127.0.0.1:4100 'hallelujah:create_app()' > /dev/null 2>&1 &
 elif [ ${OPTION} == 'backup' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}

@@ -1,7 +1,12 @@
 ## hallelujah
 ### flask website project based on python 3.10.6
 
-## dependency
+## deploy dependency
+nginx 1.18.0
+mariadb-server 10.6.12
+redis-server 6.0.16
+
+## component dependency
 1. jquery@3.6.1
 2. bootstrap@5.2.2
 3. bootstrap-icons@1.9.1

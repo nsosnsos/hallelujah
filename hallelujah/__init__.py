@@ -9,7 +9,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, jsonify
 
 from .config import configs
-from .extensions import db, migrate, bootstrap, login_manager, mail, moment
+from .extensions import db, migrate, bootstrap, login_manager, mail, moment, session
 from .models import User, AnonymousUser, Article, Media, Resource
 from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_recovery, send_email
 from .main.views import bp_main
@@ -45,6 +45,8 @@ def register_extensions(app):
     login_manager.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
+    if app.config.get('REDIS_SWITCH'):
+        session.init_app(app)
 
 def register_blueprints(app):
     app.register_blueprint(bp_main)
