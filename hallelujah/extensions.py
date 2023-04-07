@@ -8,6 +8,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
+from flask_session import Session
 
 
 db = SQLAlchemy()
@@ -16,4 +17,5 @@ bootstrap = Bootstrap()
 login_manager = LoginManager()
 mail = Mail()
 moment = Moment()
+session = Session()
 

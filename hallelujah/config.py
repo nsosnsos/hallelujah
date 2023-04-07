@@ -6,8 +6,9 @@ import os
 import re
 import sys
 import json
-import requests
+import redis
 import logging
+import requests
 from logging import handlers
 
 
@@ -59,10 +60,12 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # SITE
     SITE_NAME = 'hallelujah'
     SITE_DESCRIPTION = 'In God We Trust'
     SITE_AUTHOR = 'Stan Lee'
 
+    # SYSTEM
     SYS_HOST = '127.0.0.1'
     SYS_PORT = 4100
     SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
@@ -95,6 +98,7 @@ class Config:
         sys.exit(-1)
     MAIL_SERVER = 'smtp.' + MAIL_USERNAME[MAIL_USERNAME.find('@')+1:]
 
+    # MARIADB
     MARIADB_HOST = SYS_HOST
     MARIADB_PORT = 3306
     MARIADB_DB = SITE_NAME
@@ -102,23 +106,32 @@ class Config:
     MARIADB_PASSWORD = os.environ.get('MARIADB_PASSWORD', None) or SITE_NAME
     MARIADB_CHARSET = 'utf8mb4'
 
+    # SQLITE
     SQLITE_PATH = os.path.dirname(os.path.realpath(__file__))
     SQLITE_DB = 'sqlite.db'
 
+    # REDIS
+    REDIS_SWITCH = True
+    REDIS_HOST = SYS_HOST
+    REDIS_PORT = 6379
+
+    # SESSION
+    SESSION_TYPE = 'redis'
+    SESSION_REDIS = redis.from_url('redis://' + REDIS_HOST + ':' + str(REDIS_PORT))
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+
+    # SSH TUNNEL
     SSH_TUNNEL_SWITCH = False
     SSH_TUNNEL_PORT = 22
     SSH_TUNNEL_USERNAME = os.environ.get('SSH_TUNNEL_USERNAME', None) or 'SSH_TUNNEL_USERNAME'
     SSH_TUNNEL_PASSWORD = os.environ.get('SSH_TUNNEL_PASSWORD', None) or 'SSH_TUNNEL_PASSWORD'
 
-    REDIS_SWITCH = False
-    REDIS_HOST = SYS_HOST
-    REDIS_PORT = 3389
-    REDIS_DB = SITE_NAME
-
+    # LOGGER
     LOG_SWITCH = True
     LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), SITE_NAME + '.log')
-
     LOGGER = _get_logger(LOG_SWITCH, LOG_FILE, SITE_NAME)
+
     MARIADB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
         MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_PORT, MARIADB_DB, MARIADB_CHARSET)
     SQLITE_CONN_STR = 'sqlite:///' + os.path.join(SQLITE_PATH, SQLITE_DB)
