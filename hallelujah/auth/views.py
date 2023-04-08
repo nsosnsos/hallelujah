@@ -80,7 +80,9 @@ def setting():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        if User.query.filter(User.name == form.username.data).first():
+        if not current_app.config.get('SYS_REGISTER'):
+            flash('Register is closed for now, sorry about that.')
+        elif User.query.filter(User.name == form.username.data).first():
             flash('Username has been taken, please choose again')
         elif User.query.filter(User.email == form.email.data.lower()).first():
             flash('Email has been taken, please choose again')
