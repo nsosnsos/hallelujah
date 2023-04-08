@@ -7,7 +7,7 @@ import os
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
 
-from ..utility import redirect_back, browse_directory, import_user_media, MediaType, VIDEO_SUFFIXES, IMAGE_SUFFIXES
+from ..utility import redirect_save, redirect_back, browse_directory, import_user_media, MediaType, VIDEO_SUFFIXES, IMAGE_SUFFIXES
 from ..models import User, Article, Media, Resource
 from .forms import ArticleForm, ResourceForm, DirectoryForm
 
@@ -50,7 +50,8 @@ def new_article():
             return redirect_back('main.article', article_url=article.url)
         else:
             flash('Failed to post the article!')
-            return redirect_back()
+            return redirect_back(redirect_before=True)
+    redirect_save(request.referrer)
     return render_template('main/edit_article.html', form=form)
 
 @bp_main.route('/article/<article_url>/edit', methods=['GET', 'POST'])
@@ -67,10 +68,11 @@ def edit_article(article_url):
             return redirect_back('main.article', article_url=article.url)
         else:
             flash('Failed to post the article!')
-            return redirect_back()
+            return redirect_back(redirect_before=True)
     form.title.data = article.title
     form.content.data = article.content
     form.is_public.data = article.is_public
+    redirect_save(request.referrer)
     return render_template('main/edit_article.html', form=form)
 
 @bp_main.route('/article/<article_url>/delete')
@@ -264,7 +266,6 @@ def manage_resources():
             flash('Resource is added successfully!')
         else:
             flash('Resource is failed to be added!')
-        return redirect_back('main.resources')
     columns = list(Resource(id=-1, uri=request.url_root).to_json().keys())
     return render_template('main/resources.html', columns=columns, form=form)
 
