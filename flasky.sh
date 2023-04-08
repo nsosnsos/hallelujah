@@ -23,7 +23,7 @@ SERVICE_NAME=hallelujah.service
 
 function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
-    find ${SCRIPT_PATH} -type f -name '*.log' -delete
+    find ${SCRIPT_PATH} -type f -name '*.log*' -delete
     find ${SCRIPT_PATH} -type f -name '*.db' -delete
 }
 

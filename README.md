@@ -1,12 +1,12 @@
 ## hallelujah
 ### flask website project based on python 3.10.6
 
-## deploy dependency
-nginx 1.18.0
-mariadb-server 10.6.12
-redis-server 6.0.16
+## software dependency for deploy
+- nginx 1.18.0
+- mariadb-server 10.6.12
+- redis-server 6.0.16
 
-## component dependency
+## front-end component dependency
 1. jquery@3.6.1
 2. bootstrap@5.2.2
 3. bootstrap-icons@1.9.1
@@ -38,6 +38,14 @@ redis-server 6.0.16
   flask db upgrade
   ```
 
+  - debug application.
+  ```shell
+  bash flasky.sh debug
+  ```
+  - run application.
+  ```shell
+  bash flasky.sh run
+  ```
   - Deploy application.
   ```shell
   bash flasky.sh deploy
