@@ -78,6 +78,7 @@ class Config:
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
     SYS_MARIADB = True
+    SYS_REGISTER = False
 
     # BLUEMAP
     AUTH_URL_PREFIX = '/auth'
