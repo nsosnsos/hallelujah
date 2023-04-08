@@ -36,8 +36,9 @@ def login():
             login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
             flash(login_info, category='login')
             current_user.update_last_seen()
-            return redirect_back(is_auth=True)
+            return redirect_back(redirect_before=True)
         flash('Invalid Username or Password')
+    redirect_save(request.referrer)
     return render_template('auth/login.html', form=form)
 
 @bp_auth.route('logout')
@@ -71,7 +72,8 @@ def setting():
                 current_app.config.get('LOGGER').error('setting: {}'.format(str(e)))
                 return
             flash('Your password has been updated.')
-            return redirect_back()
+            return redirect_back(redirect_before=True)
+    redirect_save(request.referrer)
     return render_template('auth/setting.html', form=form)
 
 @bp_auth.route('register', methods=['GET', 'POST'])

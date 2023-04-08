@@ -36,13 +36,13 @@ def markdown_to_html(text):
     return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
 
 
-def redirect_back(endpoint=None, is_auth=False, **kwargs):
+def redirect_back(endpoint=None, redirect_before=False, **kwargs):
     if endpoint:
         target_url = url_for(endpoint, **kwargs, _external=True)
         return redirect(target_url)
-    if is_auth and 'url' in session:
+    if redirect_before and 'url' in session:
         return redirect(session['url'])
-    if not is_auth and request.referrer and request.referrer != request.url:
+    if request.referrer and request.referrer != request.url:
         return redirect(request.referrer)
     return redirect(url_for('main.index', _external=True))
 
