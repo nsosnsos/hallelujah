@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment, session
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_recovery, send_email
+from .utility import get_request_ip, redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_recovery, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -31,6 +31,7 @@ def create_app(config_name='default'):
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
+    register_requesthandlers(app)
     register_shell_context_processor(app)
     register_commands(app)
 
@@ -83,6 +84,12 @@ def register_errorhandlers(app):
         if request.path.startswith(app.config.get('API_URL_PREFIX')):
             return jsonify({'error': 'internal server error', 'message': str(e)})
         return redirect_back('main.index')
+
+def register_requesthandlers(app):
+    @app.before_request
+    def request_handler():
+        logger = app.config.get('LOGGER')
+        logger.info('[{}] {}'.format(get_request_ip(request), request.url))
 
 def register_shell_context_processor(app):
     @app.shell_context_processor
