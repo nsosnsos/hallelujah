@@ -70,7 +70,7 @@ def setting():
             except exc.SQLAlchemyError as e:
                 current_app.logger.error('setting: {}'.format(str(e)))
                 return
-            current_app.logger.info('Auth: setting user {}.'.format(user.name))
+            current_app.logger.info('Auth: setting user {}.'.format(current_user.name))
             flash('Your password has been updated.')
             return redirect_back(redirect_before=True)
     redirect_save(request.referrer)
