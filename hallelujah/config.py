@@ -17,20 +17,22 @@ def _is_valid_email(email):
     return re.fullmatch(regex, email)
 
 
-def _get_logger(log_switch, log_file, log_name):
+def _get_logger(debug_switch, log_file, log_name):
     log_format = logging.Formatter('[%(asctime)s][{0}]: %(message)s'.format(log_name))
     logger = logging.getLogger(name=log_name)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(log_format)
-    stream_handler.setLevel(logging.WARNING)
-    logger.addHandler(stream_handler)
-    if log_switch:
+    if debug_switch:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(log_format)
+        stream_handler.setLevel(logging.INFO)
+        logger.addHandler(stream_handler)
+    else:
         file_handler = logging.handlers.TimedRotatingFileHandler(
             filename=log_file, encoding='utf8', when='W0', backupCount=7)
         file_handler.setFormatter(log_format)
-        file_handler.setLevel(logging.ERROR)
+        file_handler.setLevel(logging.INFO)
         logger.addHandler(file_handler)
+
     return logger
 
 
@@ -129,9 +131,8 @@ class Config:
     SSH_TUNNEL_PASSWORD = os.environ.get('SSH_TUNNEL_PASSWORD', None) or 'SSH_TUNNEL_PASSWORD'
 
     # LOGGER
-    LOG_SWITCH = True
     LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), SITE_NAME + '.log')
-    LOGGER = _get_logger(LOG_SWITCH, LOG_FILE, SITE_NAME)
+    LOGGER = _get_logger(DEBUG, LOG_FILE, SITE_NAME)
 
     MARIADB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
         MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_PORT, MARIADB_DB, MARIADB_CHARSET)

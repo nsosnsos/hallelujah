@@ -36,6 +36,10 @@ def markdown_to_html(text):
     return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
 
 
+def get_request_ip(request):
+    return request.headers.get('Cf-Connecting-Ip') or request.headers.get('X-Real-Ip') or request.remote_addr
+
+
 def redirect_back(endpoint=None, redirect_before=False, **kwargs):
     if endpoint:
         target_url = url_for(endpoint, **kwargs, _external=True)

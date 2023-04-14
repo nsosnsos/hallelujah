@@ -8,7 +8,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from ..extensions import db, login_manager
 from ..models import User
-from ..utility import redirect_save, redirect_back, send_email
+from ..utility import get_request_ip, redirect_save, redirect_back, send_email
 from .forms import LoginForm, RegisterForm, SettingForm
 
 
@@ -29,13 +29,11 @@ def login():
         user = User.query.filter(db.or_(User.name == form.username.data, User.email == form.username.data.lower())).first()
         if user and user.verify_password(form.password.data):
             login_user(user, remember=form.remember.data)
-            if 'Cf-Connecting-Ip' in request.headers:
-                ip_addr = request.headers['Cf-Connecting-Ip']
-            else:
-                ip_addr = request.headers.get('X-Real-Ip', request.remote_addr)
+            ip_addr = get_request_ip(request)
             login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
-            flash(login_info, category='login')
             current_user.update_last_seen()
+            current_app.config.get('LOGGER').info('Auth: login user {}.'.format(user.name))
+            flash(login_info, category='login')
             return redirect_back(redirect_before=True)
         flash('Invalid Username or Password')
     redirect_save(request.referrer)
@@ -44,6 +42,7 @@ def login():
 @bp_auth.route('logout')
 @login_required
 def logout():
+    current_app.config.get('LOGGER').info('Auth: logout user {}.'.format(user.name))
     logout_user()
     flash('You are logged out.')
     return redirect_back()
@@ -71,6 +70,7 @@ def setting():
             except exc.SQLAlchemyError as e:
                 current_app.config.get('LOGGER').error('setting: {}'.format(str(e)))
                 return
+            current_app.config.get('LOGGER').info('Auth: setting user {}.'.format(user.name))
             flash('Your password has been updated.')
             return redirect_back(redirect_before=True)
     redirect_save(request.referrer)
@@ -99,6 +99,7 @@ def register():
             thread = send_email(to=user.email, subject=current_app.config.get('SITE_NAME'),
                                 msg=f'Hello, {user.name}. Thanks for registering!')
             thread.join()
+            current_app.config.get('LOGGER').info('Auth: register user {}.'.format(user.name))
             flash('Success! Welcome {}!'.format(user.name))
             return redirect_back('auth.login')
     return render_template('auth/register.html', form=form)
