@@ -71,7 +71,7 @@ def mariadb_backup():
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.config.get('LOGGER').error('mariadb_backup failed: {}'.format(str(e)))
+        current_app.logger.error('mariadb_backup failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
@@ -85,7 +85,7 @@ def mariadb_recovery():
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.config.get('LOGGER').error('mariadb_backup failed: {}'.format(str(e)))
+        current_app.logger.error('mariadb_backup failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
@@ -98,7 +98,7 @@ def mariadb_is_exist_db(db_name=None):
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.config.get('LOGGER').error('mariadb_is_exist_database: {}'.format(str(e)))
+        current_app.logger.error('mariadb_is_exist_database: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
@@ -111,7 +111,7 @@ def mariadb_drop_db(db_name=None):
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.config.get('LOGGER').error('mariadb_drop_database: {}'.format(str(e)))
+        current_app.logger.error('mariadb_drop_database: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
@@ -125,7 +125,7 @@ def mariadb_create_db(db_name=None):
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.config.get('LOGGER').error('mariadb_create_database: {}'.format(str(e)))
+        current_app.logger.error('mariadb_create_database: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() == ''
 
 
@@ -134,7 +134,7 @@ def send_async_email(app, message):
         try:
             mail.send(message)
         except Exception as e:
-            app.config.get('LOGGER').error('send_async_email: {}'.format(str(e)))
+            app.config.logger.error('send_async_email: {}'.format(str(e)))
 
 
 def send_email(to, subject, msg):
@@ -188,7 +188,7 @@ def _rotate_image_by_orientation(image):
                 pass
             """
     except Exception as e:
-        current_app.config.get('LOGGER').error('_rotate_image_by_orientation: {}'.format(str(e)))
+        current_app.logger.error('_rotate_image_by_orientation: {}'.format(str(e)))
     return image
 
 def get_thumbnail_size(image_size, thumbnail_height):

@@ -32,7 +32,7 @@ def login():
             ip_addr = get_request_ip(request)
             login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
             current_user.update_last_seen()
-            current_app.config.get('LOGGER').info('Auth: login user {}.'.format(user.name))
+            current_app.logger.info('Auth: login user {}.'.format(user.name))
             flash(login_info, category='login')
             return redirect_back(redirect_before=True)
         flash('Invalid Username or Password')
@@ -42,7 +42,7 @@ def login():
 @bp_auth.route('logout')
 @login_required
 def logout():
-    current_app.config.get('LOGGER').info('Auth: logout user {}.'.format(user.name))
+    current_app.logger.info('Auth: logout user {}.'.format(current_user.name))
     logout_user()
     flash('You are logged out.')
     return redirect_back()
@@ -68,9 +68,9 @@ def setting():
             try:
                 db.session.commit()
             except exc.SQLAlchemyError as e:
-                current_app.config.get('LOGGER').error('setting: {}'.format(str(e)))
+                current_app.logger.error('setting: {}'.format(str(e)))
                 return
-            current_app.config.get('LOGGER').info('Auth: setting user {}.'.format(user.name))
+            current_app.logger.info('Auth: setting user {}.'.format(user.name))
             flash('Your password has been updated.')
             return redirect_back(redirect_before=True)
     redirect_save(request.referrer)
@@ -94,12 +94,12 @@ def register():
             try:
                 db.session.commit()
             except exc.SQLAlchemyError as e:
-                current_app.config.get('LOGGER').error('register: {}'.format(str(e)))
+                current_app.logger.error('register: {}'.format(str(e)))
                 return
             thread = send_email(to=user.email, subject=current_app.config.get('SITE_NAME'),
                                 msg=f'Hello, {user.name}. Thanks for registering!')
             thread.join()
-            current_app.config.get('LOGGER').info('Auth: register user {}.'.format(user.name))
+            current_app.logger.info('Auth: register user {}.'.format(user.name))
             flash('Success! Welcome {}!'.format(user.name))
             return redirect_back('auth.login')
     return render_template('auth/register.html', form=form)

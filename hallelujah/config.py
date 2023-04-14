@@ -17,25 +17,6 @@ def _is_valid_email(email):
     return re.fullmatch(regex, email)
 
 
-def _get_logger(debug_switch, log_file, log_name):
-    log_format = logging.Formatter('[%(asctime)s][{0}]: %(message)s'.format(log_name))
-    logger = logging.getLogger(name=log_name)
-
-    if debug_switch:
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(log_format)
-        stream_handler.setLevel(logging.INFO)
-        logger.addHandler(stream_handler)
-    else:
-        file_handler = logging.handlers.TimedRotatingFileHandler(
-            filename=log_file, encoding='utf8', when='W0', backupCount=7)
-        file_handler.setFormatter(log_format)
-        file_handler.setLevel(logging.INFO)
-        logger.addHandler(file_handler)
-
-    return logger
-
-
 def _get_themes():
     try:
         bootswatch5 = requests.get('https://bootswatch.com/api/5.json')
@@ -132,7 +113,7 @@ class Config:
 
     # LOGGER
     LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), SITE_NAME + '.log')
-    LOGGER = _get_logger(DEBUG, LOG_FILE, SITE_NAME)
+    LOGGER = None
 
     MARIADB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
         MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_PORT, MARIADB_DB, MARIADB_CHARSET)
@@ -146,8 +127,30 @@ class Config:
         return self.__repr__()
 
     @classmethod
+    def _get_logger(cls):
+        log_format = logging.Formatter('[%(asctime)s] %(message)s')
+        logger = logging.getLogger(name=cls.SITE_NAME)
+        logger.setLevel(logging.DEBUG)
+
+        if cls.DEBUG:
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(log_format)
+            stream_handler.setLevel(logging.INFO)
+            logger.addHandler(stream_handler)
+        else:
+            file_handler = logging.handlers.TimedRotatingFileHandler(
+                filename=cls.LOG_FILE, encoding='utf8', when='W0', backupCount=7)
+            file_handler.setFormatter(log_format)
+            file_handler.setLevel(logging.INFO)
+            logger.addHandler(file_handler)
+
+        return logger
+
+    @classmethod
     def init_app(cls, app):
-        app.logger.addHandler(cls.LOGGER)
+        if not cls.LOGGER:
+            cls.LOGGER = cls._get_logger()
+        app.logger = cls.LOGGER
 
 
 class TestingConfig(Config):

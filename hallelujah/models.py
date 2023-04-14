@@ -57,7 +57,7 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('update_last_seen: {}'.format(str(e)))
+            current_app.logger.error('update_last_seen: {}'.format(str(e)))
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -93,7 +93,7 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_user: {}'.format(str(e)))
+            current_app.logger.error('add_user: {}'.format(str(e)))
             return None
         user._import_self_medias()
         return user
@@ -124,7 +124,7 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('delete_user: {}'.format(str(e)))
+            current_app.logger.error('delete_user: {}'.format(str(e)))
             return False
         user_path = os.path.join(Config.SYS_MEDIA_ORIGINAL, user.name)
         User._remove_user_source(user_path)
@@ -196,7 +196,7 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            current_app.logger.error('add_article: {}'.format(str(e)))
             return None
         return article
 
@@ -213,7 +213,7 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            current_app.logger.error('add_article: {}'.format(str(e)))
             return None
         return article
 
@@ -226,7 +226,7 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_article: {}'.format(str(e)))
+            current_app.logger.error('add_article: {}'.format(str(e)))
             return False
         return True
 
@@ -304,7 +304,7 @@ class Media(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_media: {}'.format(str(e)))
+            current_app.logger.error('add_media: {}'.format(str(e)))
             return None
         return media
 
@@ -317,7 +317,7 @@ class Media(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('delete_media: {}'.format(str(e)))
+            current_app.logger.error('delete_media: {}'.format(str(e)))
             return False
         return True
 
@@ -364,7 +364,7 @@ class Resource(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('add_resource: {}'.format(str(e)))
+            current_app.logger.error('add_resource: {}'.format(str(e)))
             return None
         return resource
 
@@ -385,7 +385,7 @@ class Resource(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('modify_resource: {}'.format(str(e)))
+            current_app.logger.error('modify_resource: {}'.format(str(e)))
             return None
         return ret
 
@@ -398,7 +398,7 @@ class Resource(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            Config.LOGGER.error('delete_resource: {}'.format(str(e)))
+            current_app.logger.error('delete_resource: {}'.format(str(e)))
             return False
         return True
 
