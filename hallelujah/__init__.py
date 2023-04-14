@@ -88,8 +88,7 @@ def register_errorhandlers(app):
 def register_requesthandlers(app):
     @app.before_request
     def request_handler():
-        logger = app.config.get('LOGGER')
-        logger.info('[{}] {}'.format(get_request_ip(request), request.url))
+        app.logger.info('[{}] {}'.format(get_request_ip(request), request.url))
 
 def register_shell_context_processor(app):
     @app.shell_context_processor
