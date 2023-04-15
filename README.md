@@ -13,8 +13,9 @@
 4. dropzone@6.0.0
 5. highlightjs@11.6.0
 6. github-markdown-css@5.1.0
-7. gridjs
-8. simplemde
+7. bootswatch5
+8. gridjs
+9. simplemde
 
 ## features
 1. mark-down article, including code syntax highlight.
