@@ -75,7 +75,7 @@ def mariadb_backup():
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
-def mariadb_recovery():
+def mariadb_restore():
     db_usr = current_app.config.get('MARIADB_USERNAME')
     db_pwd = current_app.config.get('MARIADB_PASSWORD')
     db_name = current_app.config.get('MARIADB_DB')
