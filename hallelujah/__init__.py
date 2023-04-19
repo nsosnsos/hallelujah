@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment, session
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import get_request_ip, redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_recovery, send_email
+from .utility import get_request_ip, redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_restore, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -108,9 +108,9 @@ def register_commands(app):
             mariadb_backup()
 
     @app.cli.command()
-    def recovery():
+    def restore():
         if app.config.get('SYS_MARIADB'):
-            mariadb_recovery()
+            mariadb_restore()
 
     @app.cli.command()
     @click.option('--username', prompt=True, required=True,

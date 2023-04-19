@@ -62,10 +62,10 @@ elif [ ${OPTION} == 'backup' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     flask backup
-elif [ ${OPTION} == 'recovery' ]; then
+elif [ ${OPTION} == 'restore' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
-    flask recovery
+    flask restore
 else
     echo "Usage: ${SCRIPT_FILE} [run|clean|test|init|deploy]"
 fi

@@ -23,7 +23,7 @@
 3. file browser, support file multiple upload by dropping or selecting.
 4. favorite hyperlink with categories.
 5. redis session support for multiple workers.
-6. easy to use by flasky script with command: init|debug|run|deploy|clean|backup|recovery.
+6. easy to use by flasky script with command: init|debug|run|deploy|clean|backup|restore.
 7. log every view url access with real ip address.
 
 ## about
@@ -66,8 +66,8 @@
   ```shell
   bash flasky.sh backup
   ```
-  - Recovery mariadb.
+  - Restore mariadb.
   ```shell
-  bash flasky.sh recovery
+  bash flasky.sh restore
   ```
 
