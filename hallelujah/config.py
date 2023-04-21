@@ -57,6 +57,7 @@ class Config:
     SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, 'original')
     SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, 'thumbnail')
     SYS_MEDIA_THUMBNAIL_HEIGHT = 200
+    SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
