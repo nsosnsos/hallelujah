@@ -57,8 +57,12 @@ def get_self_medias(current_path):
     user_id = current_user.id if current_user.is_authenticated else -1
     offset = int(request.args.get('offset', 0))
     limit = current_app.config.get('ITEMS_PER_PAGE')
+    excludes = current_app.config.get('SYS_MEDIA_EXCLUDES').split(',')
     medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE))
-    medias = medias.filter(Media.path.like(f'{current_path}%')).order_by(Media.timestamp.desc()).offset(offset).limit(limit)
+    medias = medias.filter(Media.path.like(f'{current_path}%'))
+    for exclude_dir in excludes:
+        medias = medias.filter(Media.path.notlike(f'%{exclude_dir}%'))
+    medias = medias.order_by(Media.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([media.to_json() for media in medias])
 
 @bp_api.route('/get_self_resources')
