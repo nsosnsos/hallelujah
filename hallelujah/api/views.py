@@ -61,7 +61,7 @@ def get_self_medias(current_path):
     medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE))
     medias = medias.filter(Media.path.like(f'{current_path}%'))
     for exclude_dir in excludes:
-        medias = medias.filter(Media.path.notlike(f'%{exclude_dir}%'))
+        medias = medias.filter(Media.path.notlike(f'{current_path}%{exclude_dir}%'))
     medias = medias.order_by(Media.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([media.to_json() for media in medias])
 
