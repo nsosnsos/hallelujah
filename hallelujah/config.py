@@ -60,7 +60,7 @@ class Config:
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
-    SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
+    SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
     SYS_MARIADB = True
     SYS_REGISTER = False
 
@@ -70,7 +70,7 @@ class Config:
 
     # DROPZONE
     DROPZONE_PARALLEL_UPLOADS = 999
-    DROPZONE_MAX_FILE_SIZE = 1024
+    DROPZONE_MAX_FILE_SIZE = 1024 * 1024 * 1024
 
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
