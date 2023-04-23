@@ -61,7 +61,7 @@ class Config:
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_THEMES = _get_themes()
     SYS_THEME_DAY = SYS_THEMES.get('United')
-    SYS_THEME_NIGHT = SYS_THEMES.get('Superhero')
+    SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
     SYS_MARIADB = True
     SYS_REGISTER = False
 
