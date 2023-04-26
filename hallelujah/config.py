@@ -96,7 +96,6 @@ class Config:
     SQLITE_DB = 'sqlite.db'
 
     # REDIS
-    REDIS_SWITCH = True
     REDIS_HOST = SYS_HOST
     REDIS_PORT = 6379
 
@@ -160,11 +159,13 @@ class TestingConfig(Config):
     TESTING = True
     SYS_MARIADB = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SESSION_TYPE = 'null'
 
 
 class DevelopmentConfig(Config):
     ENV = 'development'
     DEBUG = True
+    SESSION_TYPE = 'null'
 
 
 class ProductionConfig(Config):
