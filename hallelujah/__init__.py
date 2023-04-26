@@ -46,8 +46,7 @@ def register_extensions(app):
     login_manager.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
-    if app.config.get('REDIS_SWITCH'):
-        session.init_app(app)
+    session.init_app(app)
 
 def register_blueprints(app):
     app.register_blueprint(bp_main)
