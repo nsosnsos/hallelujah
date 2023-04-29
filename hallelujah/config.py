@@ -165,7 +165,7 @@ class TestingConfig(Config):
 class DevelopmentConfig(Config):
     ENV = 'development'
     DEBUG = True
-    SESSION_TYPE = 'null'
+    SESSION_TYPE = 'filesystem'
 
 
 class ProductionConfig(Config):

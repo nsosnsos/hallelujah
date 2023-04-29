@@ -149,7 +149,7 @@ def upload(current_path):
         file.save(full_path_name)
         if not os.path.isfile(full_path_name):
             return make_response('file not found', 404)
-        media = import_user_media(full_path_name, current_user.name, is_public, current_user.add_user_media)
+        media = import_user_media(full_path_name, is_public, current_user.query_user_media, current_user.add_user_media)
         if not media:
             return make_response('internal error', 500)
         result_dict[filename] = media.uuidname
