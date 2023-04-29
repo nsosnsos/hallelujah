@@ -84,7 +84,7 @@ class User(UserMixin, db.Model):
         if not os.path.exists(user_path):
             os.makedirs(user_path)
         else:
-            import_user_medias(self.name, self.add_user_media)
+            import_user_medias(self.name, self.query_user_media, self.add_user_media)
 
     @staticmethod
     def add_user(name, email, password):
@@ -97,6 +97,15 @@ class User(UserMixin, db.Model):
             return None
         user._import_self_medias()
         return user
+
+    @staticmethod
+    def query_user_media(username, path, filename):
+        user = User.query.filter(User.name==username).first()
+        if not user:
+            return False
+        name = os.path.splitext(filename)[0]
+        media = Media.query.filter(Media.path==path).filter(Media.filename.like(f'{name}%')).first()
+        return media is not None
 
     @staticmethod
     def add_user_media(username, path, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):

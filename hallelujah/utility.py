@@ -227,19 +227,38 @@ def _get_image_timestamp(image_file):
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
 
-def _create_image_thumbnail(image_file, thumbnail_dirname, height):
+def _is_file_exist(cur_filename, query_func):
+    path = os.path.dirname(_get_relative_name(cur_filename))
+    filename = os.path.basename(cur_filename)
+    username = path.split(os.sep)[0]
+    return query_func(username, path, filename)
+
+def _get_solid_filename(cur_filename, query_func):
+    while _is_file_exist(cur_filename, query_func):
+        file_path = os.path.dirname(cur_filename)
+        file_name, file_ext = os.path.splitext(os.path.basename(cur_filename))
+        prefix_str, dt_str = file_name.split('_', 1)
+        cur_dt = datetime.datetime.strptime(dt_str, '%Y%m%d_%H%M%S')
+        next_dt = cur_dt + datetime.timedelta(seconds=1)
+        file_basename = prefix_str + '_' +  next_dt.strftime('%Y%m%d_%H%M%S') + file_ext
+        cur_filename = os.path.join(file_path, file_basename)
+    return cur_filename
+
+def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
     image_timestamp = _get_image_timestamp(image_file)
     new_filename = 'IMG_' + datetime.datetime.fromtimestamp(image_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(image_file)[1]
     new_file = os.path.join(os.path.dirname(image_file), new_filename)
+    new_file = _get_solid_filename(new_file, query_func)
     if image_file != new_file:
         os.rename(image_file, new_file)
+        new_filename = os.path.basename(new_file)
 
     image = Image.open(new_file)
     ### PIL.Image.rotate is not good enough to be applyed!
     # image = _rotate_image_by_orientation(image)
     image_size = image.size
 
-    thumbnail_file = os.path.join(thumbnail_dirname, os.path.basename(new_file))
+    thumbnail_file = os.path.join(thumbnail_dirname, new_filename)
     if not os.path.isfile(thumbnail_file):
         thumbnail_size = get_thumbnail_size(image_size, height)
         if thumbnail_size != image_size:
@@ -272,15 +291,17 @@ def _get_video_timestamp(video_file):
             return timestamp
     return file_ctime
 
-def _create_video_thumbnail(video_file, thumbnail_dirname, height):
+def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
     video_size = (image.shape[1], image.shape[0])
     video_timestamp = _get_video_timestamp(video_file)
     new_filename = 'VID_' + datetime.datetime.fromtimestamp(video_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(video_file)[1]
     new_file = os.path.join(os.path.dirname(video_file), new_filename)
+    new_file = _get_solid_filename(new_file, query_func)
     if video_file != new_file:
         os.rename(video_file, new_file)
+        new_filename = os.path.basename(new_file)
 
     prefix, ext = os.path.splitext(new_filename)
     thumbnail_filename = prefix + IMAGE_SUFFIXES[0]
@@ -291,47 +312,47 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height):
         cv2.imwrite(thumbnail_file, thumbnail_image)
     return (video_size, MediaType.VIDEO, video_timestamp, new_filename)
 
-def _create_thumbnail(media_full_name, thumbnail_dirname, height):
+def _create_thumbnail(media_full_name, thumbnail_dirname, height, query_func):
     file_ext = os.path.splitext(media_full_name)[1]
     if file_ext in IMAGE_SUFFIXES:
-        meta_data = _create_image_thumbnail(media_full_name, thumbnail_dirname, height)
+        meta_data = _create_image_thumbnail(media_full_name, thumbnail_dirname, height, query_func)
     elif file_ext in VIDEO_SUFFIXES:
-        meta_data = _create_video_thumbnail(media_full_name, thumbnail_dirname, height)
+        meta_data = _create_video_thumbnail(media_full_name, thumbnail_dirname, height, query_func)
     elif file_ext in MUSIC_SUFFIXES:
         meta_data = ((None, None), MediaType.MUSIC, get_file_ctime(media_full_name), os.path.basename(media_full_name))
     else:
         meta_data = ((None, None), MediaType.OTHER, get_file_ctime(media_full_name), os.path.basename(media_full_name))
     return meta_data
 
-def _get_relative_path(media_full_name):
+def _get_relative_name(media_full_name):
     original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
     media_relative_name = media_full_name[len(original_path)+1:]
-    return os.path.dirname(media_relative_name)
+    return media_relative_name
 
-def _get_thumbnail_dirname(media_full_name):
-    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
+def _get_thumbnail_name(media_full_name):
     thumbnail_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
-    media_relative_name = media_full_name[len(original_path)+1:]
+    media_relative_name = _get_relative_name(media_full_name)
     thumbnail_full_name = os.path.join(thumbnail_path, media_relative_name)
-    return os.path.dirname(thumbnail_full_name)
+    return thumbnail_full_name
 
-def import_user_media(media_full_name, user_name, is_public, user_add_media_func):
+def import_user_media(media_full_name, is_public, user_query_media_func, user_add_media_func):
     prefix, ext = os.path.splitext(media_full_name)
     target_ext = ext.lower()
     if ext != target_ext:
         media_old_name, media_full_name = media_full_name, prefix + target_ext
         os.rename(media_old_name, media_full_name)
-    thumbnail_dirname = _get_thumbnail_dirname(media_full_name)
-    relative_path = _get_relative_path(media_full_name)
+    thumbnail_dirname = os.path.dirname(_get_thumbnail_name(media_full_name))
+    relative_path = os.path.dirname(_get_relative_name(media_full_name))
+    user_name = relative_path.split(os.sep)[0]
     os.makedirs(thumbnail_dirname, mode=0o750, exist_ok=True)
-    metadata = _create_thumbnail(media_full_name, thumbnail_dirname, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'))
+    metadata = _create_thumbnail(media_full_name, thumbnail_dirname, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'), user_query_media_func)
     (width, height), media_type, media_datetime, media_filename = metadata
     timestamp = datetime.datetime.fromtimestamp(media_datetime)
     return user_add_media_func(username=user_name, path=relative_path, filename=media_filename,
                                width=width, height=height, timestamp=timestamp,
                                media_type=media_type, is_public=is_public)
 
-def import_user_medias(user_name, user_add_media_func):
+def import_user_medias(user_name, user_query_media_func, user_add_media_func):
     original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
 
     cur_path = os.path.join(original_path, user_name)
@@ -341,5 +362,5 @@ def import_user_medias(user_name, user_add_media_func):
 
     for root, dirs, files in os.walk(cur_path, topdown=False):
         for filename in files:
-            import_user_media(os.path.join(root, filename), user_name, False, user_add_media_func)
+            import_user_media(os.path.join(root, filename), False, user_query_media_func, user_add_media_func)
 
