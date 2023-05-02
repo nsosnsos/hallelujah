@@ -1,7 +1,15 @@
 /* markdown code block */
 .markdown-body {
+    background-color: transparent;
     box-sizing: border-box;
     padding: 15px;
+}
+.markdown-body table tr {
+    background-color: transparent;
+}
+.markdown-body table tr:nth-child(2n) {
+    background-color: transparent;
+    opacity: 0.7;
 }
 .markdown-body pre {
     margin-top, margin-bottom: 5px;
@@ -24,7 +32,6 @@
     display: table;
 }
 .markdown-body code.hljs table.hljs-ln tr {
-    background-color: #f6f8fa;
     border: 0;
 }
 .markdown-body code.hljs table.hljs-ln td.hljs-ln-line {

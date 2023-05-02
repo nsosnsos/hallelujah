@@ -6,7 +6,7 @@ HOME_PATH=$(eval echo ~${SUDO_USER})
 SCRIPT_FILE=$(basename $(readlink -f "${0}"))
 SCRIPT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-if [ ${#} -eq 0 ]; then
+if [[ ${#} -eq 0 ]]; then
     OPTION='run'
 else
     OPTION=${1}
@@ -34,11 +34,31 @@ if [[ ${#} -eq 0 || ${OPTION} == 'debug' ]]; then
 elif [ ${OPTION} == 'clean' ]; then
     clean
 elif [ ${OPTION} == 'init' ]; then
+    if [[ ${#} -ne 5 ]]; then
+        echo "${SCRIPT_FILE} init --mail_address EMAIL_ADDRESS --mail_password EMAIL_PASSWORD"
+        exit -1
+    fi
     sudo apt install libgl1 -y
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     pip3 install -r ${SCRIPT_PATH}/requirements.txt
-    flask init
+    flask init --mail_address ${3} --mail_password ${5}
+elif [ ${OPTION} == 'addusr' ]; then
+    if [[ ${#} -ne 5 ]]; then
+        echo "${SCRIPT_FILE} addusr --username USERNAME --password PASSWORD"
+        exit -1
+    fi
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    flask addusr --username ${3} --password ${5}
+elif [ ${OPTION} == 'delusr' ]; then
+    if [[ ${#} -ne 3 ]]; then
+        echo "${SCRIPT_FILE} delusr --username"
+        exit -1
+    fi
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    flask delusr --username ${3}
 elif [ ${OPTION} == 'test' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
@@ -67,6 +87,6 @@ elif [ ${OPTION} == 'restore' ]; then
     source ${PYTHON_ENV}
     flask restore
 else
-    echo "Usage: ${SCRIPT_FILE} [run|clean|test|init|deploy]"
+    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|test|clean|addusr|delusr|backup|restore]"
 fi
 
