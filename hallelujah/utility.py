@@ -134,7 +134,7 @@ def send_async_email(app, message):
         try:
             mail.send(message)
         except Exception as e:
-            app.config.logger.error('send_async_email: {}'.format(str(e)))
+            app.logger.error('send_async_email: {}'.format(str(e)))
 
 
 def send_email(to, subject, msg):
