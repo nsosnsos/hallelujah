@@ -169,11 +169,12 @@
             var load_url = {{ url_for('api.get_self_medias', current_path=current_path, _external=True) | tojson }};
 
             var intersectionObserver = new IntersectionObserver(entries => {
-                if (entries[0].intersectionRatio <= 0) {
+                if (!entries[0].isIntersecting) {
                     return;
                 }
                 var fetch_url = `${load_url}?offset=${offset}`;
                 load_data(fetch_url);
+                offset += 1;
             });
             intersectionObserver.observe(sentinel);
 
@@ -193,11 +194,10 @@
                         intersectionObserver.unobserve(sentinel);
                     }
                     for (var index = 0; index < data.length; index++) {
-                        var media_index = "media_" + (offset + index);
-                        var data_item = `<a target="_blank" href="` + data[index].view_url + `" data-index="` + (offset + index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><div><img "type="` + data[index].media_type + `" id="` + media_index + `" src="` + data[index].thumbnail_url +`" class="rounded thumbnail-image" onload="image_loaded(this, ` + data[index].media_type + `)"></div></a>`;
+                        var media_index = "media_" + (offset * limit + index);
+                        var data_item = `<a target="_blank" href="` + data[index].view_url + `" data-index="` + (offset * limit + index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><div><img "type="` + data[index].media_type + `" id="` + media_index + `" src="` + data[index].thumbnail_url +`" class="rounded thumbnail-image" onload="image_loaded(this, ` + data[index].media_type + `)"></div></a>`;
                         $("#data_div").append(data_item);
                     }
-                    offset += data.length;
                 });
             };
         {% endif %}
