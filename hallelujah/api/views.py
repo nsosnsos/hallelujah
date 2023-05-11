@@ -18,7 +18,7 @@ def search():
     if not keywords:
         return jsonify([])
     keywords = keywords.split()
-    offset = int(request.args.get('offset', 0))
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     user_id = current_user.id if current_user.is_authenticated else -1
     articles = Article.query.filter(db.or_(Article.user_id == user_id, Article.is_public == True))
@@ -29,7 +29,7 @@ def search():
 
 @bp_api.route('/get_articles')
 def get_articles():
-    offset = int(request.args.get('offset', 0))
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     articles = Article.query.filter(Article.is_public == True).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
@@ -39,7 +39,7 @@ def get_user_articles():
     user_name = request.args.get('name', '')
     user = User.query.filter(User.name == user_name).first()
     user_id = user.id if user else -1
-    offset = int(request.args.get('offset', 0))
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     articles = Article.query.filter(db.and_(Article.is_public == True, Article.user_id == user_id)).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
@@ -47,7 +47,7 @@ def get_user_articles():
 @bp_api.route('/get_self_articles')
 def get_self_articles():
     user_id = current_user.id if current_user.is_authenticated else -1
-    offset = int(request.args.get('offset', 0))
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PSER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     articles = Article.query.filter(Article.user_id == user_id).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
@@ -55,7 +55,7 @@ def get_self_articles():
 @bp_api.route('/get_self_medias/<path:current_path>')
 def get_self_medias(current_path):
     user_id = current_user.id if current_user.is_authenticated else -1
-    offset = int(request.args.get('offset', 0))
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     excludes = current_app.config.get('SYS_MEDIA_EXCLUDES').split(',')
     medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE))

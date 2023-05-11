@@ -39,12 +39,12 @@
             }
             var fetch_url = `${load_url}?keywords=${keywords}&offset=${offset}`;
             load_data(fetch_url);
+            offset += 1;
         });
         intersectionObserver.observe(sentinel);
 
         function load_data(fetch_url) {
             fetch(fetch_url).then(response => response.json()).then(data => {
-                offset += data.length;
                 if (!data.length || data.length < limit) {
                     sentinel.innerHTML = '<div class="text-muted">No more articles.</div>';
                     intersectionObserver.unobserve(sentinel);
