@@ -25,6 +25,7 @@ function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
     find ${SCRIPT_PATH} -type f -name '*.log*' -delete
     find ${SCRIPT_PATH} -type f -name '*.db' -delete
+    git checkout . && git clean -xdf
 }
 
 if [[ ${#} -eq 0 || ${OPTION} == 'debug' ]]; then
@@ -32,6 +33,7 @@ if [[ ${#} -eq 0 || ${OPTION} == 'debug' ]]; then
     source ${PYTHON_ENV}
     python3 ${EXEC_FILE}
 elif [ ${OPTION} == 'clean' ]; then
+    cd ${WORK_PATH}
     clean
 elif [ ${OPTION} == 'init' ]; then
     if [[ ${#} -ne 5 ]]; then
