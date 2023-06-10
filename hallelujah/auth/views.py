@@ -29,10 +29,12 @@ def login():
         user = User.query.filter(db.or_(User.name == form.username.data, User.email == form.username.data.lower())).first()
         if user and user.verify_password(form.password.data):
             login_user(user, remember=form.remember.data)
-            ip_addr = get_request_ip(request)
-            login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
+            if form.remember.data:
+                session.permanent = True
             current_user.update_last_seen()
             current_app.logger.info('Auth: login user {}.'.format(user.name))
+            ip_addr = get_request_ip(request)
+            login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
             flash(login_info, category='login')
             return redirect_back(redirect_before=True)
         flash('Invalid Username or Password')
