@@ -55,7 +55,7 @@ a {
 }
 
 .gallery>a {
-    margin: 0.25rem;
+    margin: 0.1rem;
     flex-grow: calc(var(--w) / var(--h) * 100);
     width: calc(var(--w) * 1px);
 }
