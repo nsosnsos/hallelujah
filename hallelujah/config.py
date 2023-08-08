@@ -9,6 +9,7 @@ import json
 import redis
 import logging
 import requests
+import datetime
 from logging import handlers
 
 
@@ -38,8 +39,8 @@ class Config:
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 128
     MAX_STR_LEN = 512
-    EXPIRATION_TIME = 3600
     ITEMS_PER_PAGE = 30
+    PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
