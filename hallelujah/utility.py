@@ -262,7 +262,7 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
     if not os.path.isfile(thumbnail_file):
         thumbnail_size = get_thumbnail_size(image_size, height)
         if thumbnail_size != image_size:
-            image = image.resize(thumbnail_size, Image.ANTIALIAS)
+            image = image.resize(thumbnail_size, Image.Resampling.LANCZOS)
         if image.mode != 'RGB':
             image = image.convert('RGB')
         image.save(thumbnail_file)
