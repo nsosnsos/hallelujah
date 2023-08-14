@@ -195,7 +195,7 @@
                     }
                     for (var index = 0; index < data.length; index++) {
                         var media_index = "media_" + (offset * limit + index);
-                        var data_item = `<a target="_blank" href="` + data[index].view_url + `" data-index="` + (offset * limit + index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><div><img "type="` + data[index].media_type + `" id="` + media_index + `" src="` + data[index].thumbnail_url +`" class="rounded thumbnail-image" onload="image_loaded(this, ` + data[index].media_type + `)"></div></a>`;
+                        var data_item = `<a target="_blank" href="` + data[index].view_url + `" data-index="` + (offset * limit + index) + `" data-width="` + data[index].width + `" data-height="` + data[index].height + `" style="--w: ` + data[index].thumbnail_width + `; --h: ` + data[index].thumbnail_height + `"><div><img "type="` + data[index].media_type + `" id="` + media_index + `" src="` + data[index].thumbnail_url +`" class="thumbnail-image" onload="image_loaded(this, ` + data[index].media_type + `)"></div></a>`;
                         $("#data_div").append(data_item);
                     }
                 });
