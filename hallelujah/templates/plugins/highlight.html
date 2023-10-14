@@ -1,10 +1,9 @@
-{% extends '_base.html' %}
+{% extends 'base.html' %}
 
 {% block styles %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.6.0/build/styles/googlecode.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css">
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/markdown_patch.css', _external=True) }}">
 {% endblock styles %}
 
 {% block scripts %}

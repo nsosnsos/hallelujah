@@ -1,9 +1,9 @@
 {% if form %}
-    {% extends '_dropzone.html' %}
-    {% from '_form.html' import render_field %}
-    {% from '_modal.html' import render_modal %}
+    {% extends 'plugins/dropzone.html' %}
+    {% from 'macros/form.html' import render_field %}
+    {% from 'macros/modal.html' import render_modal %}
 {% else %}
-    {% extends '_base.html' %}
+    {% extends 'base.html' %}
 {% endif %}
 
 {% block content %}
