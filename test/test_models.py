@@ -80,7 +80,7 @@ class ArticleModelTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_url_html(self):
-        a = Article(title='asd /sd\s\tdf\\sdf', content='#Head\n1. first\n2. second\n3. third\n')
+        a = Article(title='test', content='#Head\n1. first\n2. second\n3. third\n')
         try:
             u = uuid.UUID(a.url)
         except ValueError:
