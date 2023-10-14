@@ -44,35 +44,89 @@ a {
     transform: translate(-50%, -50%);
 }
 
+/* thumbnail image */
+.thumbnail-image {
+  position: relative;
+  width: 100%;
+}
+
 /* gallery */
 .gallery {
     display: flex;
     flex-wrap: wrap;
 }
-
 .gallery>a, .gallery::after {
     flex-basis: var(--w);
 }
-
 .gallery>a {
     margin: 0.1rem;
     flex-grow: calc(var(--w) / var(--h) * 100);
     width: calc(var(--w) * 1px);
 }
-
 .gallery::after {
   --w: 2;
   --h: 1;
   content: '';
   flex-grow: 1000000;
 }
-
 .gallery>a>div {
   position: relative;
 }
 
-.thumbnail-image {
-  position: relative;
-  width: 100%;
+/* markdown body */
+.markdown-body {
+    background-color: transparent;
+    box-sizing: border-box;
+    padding: 15px;
+}
+.markdown-body table tr {
+    background-color: transparent;
+}
+.markdown-body table tr:nth-child(2n) {
+    background-color: transparent;
+    opacity: 1.0;
+}
+.markdown-body pre {
+    margin-top, margin-bottom: 5px;
+    padding: 0;
+    background-color: #cccccc;
+}
+.markdown-body code.hljs {
+    white-space: pre-wrap;
+    overflow: auto;
+}
+.markdown-body code.hljs table.hljs-ln {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    border: 0;
+    padding: 2px;
+}
+.markdown-body code.hljs table.hljs-ln tbody {
+    width: 100%;
+    min-width: 200px;
+    display: table;
+}
+.markdown-body code.hljs table.hljs-ln tr {
+    border: 0;
+}
+.markdown-body code.hljs table.hljs-ln td.hljs-ln-line {
+    border: 0;
+    padding: 0 5px;
+}
+.markdown-body code.hljs table.hljs-ln td.hljs-ln-numbers {
+    font-family: inherit;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-align: right;
+    vertical-align: top;
+    color: #373737;
+    border-right: 1px solid #373737;
+    width: 1rem;
+    min-width: 1rem;
 }
 

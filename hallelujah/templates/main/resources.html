@@ -1,8 +1,8 @@
 {% if not columns and not form %}
-    {% extends '_base.html' %}
+    {% extends 'base.html' %}
 {% else %}
-    {% extends '_gridjs.html' %}
-    {% from '_form.html' import render_field %}
+    {% extends 'plugins/gridjs.html' %}
+    {% from 'macros/form.html' import render_field %}
 {% endif %}
 
 {% block content %}
