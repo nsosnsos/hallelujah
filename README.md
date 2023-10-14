@@ -7,13 +7,13 @@
 - mariadb-server 10.6.12(optional)
 
 ## Front-end component dependency
-1. jquery@3.6.1
-2. bootstrap@5.2.2
-3. bootstrap-icons@1.9.1
-4. dropzone@6.0.0
-5. highlightjs@11.6.0
-6. github-markdown-css@5.1.0
-7. bootswatch5
+1. jquery@3.7.1
+2. bootstrap@5.3.2
+3. bootswatch@5.3.2
+4. bootstrap-icons@1.11.1
+5. dropzone@6.0.0-beta.2
+6. highlightjs@11.9.0
+7. github-markdown-css@5.3.0
 8. gridjs
 9. simplemde
 
