@@ -2,12 +2,20 @@
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    {% if config.SYS_LOCAL_PLUGINS %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='plugins/simplemde/simplemde.min.css', _external=True) }}">
+    {% else %}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    {% endif %}
 {% endblock styles %}
 
 {% block scripts %}
     {{ super() }}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    {% if config.SYS_LOCAL_PLUGINS %}
+        <script type="text/javascript" src="{{ url_for('static', filename='plugins/simplemde/simplemde.min.js', _external=True) }}"></script>
+    {% else %}
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    {% endif %}
     <script type="text/javascript">
         var mde = new SimpleMDE({
             element: document.getElementById("content"),
