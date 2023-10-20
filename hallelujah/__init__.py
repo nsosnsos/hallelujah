@@ -26,7 +26,7 @@ def create_app(config_name='default'):
                 template_folder=configs[config_name].SYS_TEMPLATE)
     app.config.from_object(configs[config_name])
     configs[config_name].init_app(app)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
 
     register_extensions(app)
     register_blueprints(app)
