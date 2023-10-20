@@ -129,4 +129,7 @@ a {
     width: 1rem;
     min-width: 1rem;
 }
+.markdown-body code.hljs table.hljs-ln td.hljs-ln-code {
+    word-break: break-word;
+}
 
