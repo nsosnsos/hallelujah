@@ -18,10 +18,17 @@ def _is_valid_email(email):
     return re.fullmatch(regex, email)
 
 
-def _get_themes():
+def _get_themes(static_dir, is_local):
     try:
-        bootswatch5 = requests.get('https://bootswatch.com/api/5.json')
-        themes = {theme['name']: theme['cssCdn'] for theme in json.loads(bootswatch5.text)['themes']}
+        if is_local:
+            bootswatch_cfg_file = os.path.join(static_dir, 'plugins/bootswatch/5.json')
+            with open(bootswatch_cfg_file, 'r') as f:
+                bootswatch_cfg = json.load(f)
+                cdn_prefix = r'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/'
+                themes = {theme['name']: theme['cssCdn'].replace(cdn_prefix, 'plugins/bootswatch/') for theme in bootswatch_cfg['themes']}
+        else:
+            bootswatch_cfg_obj = requests.get('https://bootswatch.com/api/5.json')
+            themes = {theme['name']: theme['cssCdn'] for theme in json.loads(bootswatch_cfg_obj.text)['themes']}
     except Exception as e:
         print('_get_themes: {}'.format(str(e)))
         sys.exit(-1)
@@ -59,12 +66,12 @@ class Config:
     SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, 'thumbnail')
     SYS_MEDIA_THUMBNAIL_HEIGHT = 200
     SYS_MEDIA_EXCLUDES = 'public,private'
-    SYS_THEMES = _get_themes()
+    SYS_REGISTER = False
+    SYS_MARIADB = True
+    SYS_LOCAL_PLUGINS = True
+    SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_PLUGINS)
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
-    SYS_LOCAL_PLUGINS = True
-    SYS_MARIADB = True
-    SYS_REGISTER = False
 
     # BLUEMAP
     AUTH_URL_PREFIX = '/auth'
