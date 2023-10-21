@@ -119,9 +119,9 @@ def register_commands(app):
     @click.option('--mail_address', prompt=True, required=True,
                   help='new user mail address')
     def addusr(username, password, mail_address):
-        print(f'Adding user: {username} ...')
+        app.logger.info(f'Adding user: {username} ...')
         User.add_user(name=username, email=mail_address, password=password)
-        print(f'Sending email to {mail_address} ...')
+        app.logger.info(f'Sending email to {mail_address} ...')
         thread = send_email(to=mail_address, subject=app.config.get('SITE_NAME'),
                            msg=f'Hello, {username}. Thanks for registering!')
         thread.join()
@@ -132,11 +132,11 @@ def register_commands(app):
     def delusr(username):
         u = User.query.filter(User.name==username).first()
         if not u:
-            print(f'User[{username}] is not exists')
+            app.logger.error(f'User[{username}] is not exists')
             return
-        print(f'Deleting user: {username} ...')
+        app.logger.info(f'Deleting user: {username} ...')
         User.delete_user(name=username)
-        print(f'Sending email to {u.email} ...')
+        app.logger.info(f'Sending email to {u.email} ...')
         thread = send_email(to=u.email, subject=app.config.get('SITE_NAME'),
                            msg=f'Bye, {username}. I wish you good luck!')
         thread.join()
@@ -150,28 +150,27 @@ def register_commands(app):
                   help='Administrator mail password')
     def init(mail_address, mail_password):
         if not mariadb_is_in_use():
-            print('Drop all tables in SQLite...')
+            app.logger.info('Drop all tables in SQLite...')
             db.drop_all()
         else:
             if mariadb_is_exist_db():
-                print('Dropping database for MariaDB...')
+                app.logger.info('Dropping database for MariaDB...')
                 mariadb_drop_db()
-            print('Creating database for MariaDB...')
+            app.logger.info('Creating database for MariaDB...')
             mariadb_create_db()
             if not mariadb_is_exist_db():
-                print('Failed to create database!')
+                app.logger.error('Failed to create database!')
                 return
-        print('Creating all tables...')
+        app.logger.info('Creating all tables...')
         db.create_all()
         user_name = mail_address.split('@')[0]
-        print(f'Adding administrator: {user_name} ...')
+        app.logger.info(f'Adding administrator: {user_name} ...')
         User.add_user(name=user_name, email=mail_address, password=mail_password)
         '''
-        print('Adding fake users ...')
+        app.logger.info('Adding fake users ...')
         User.add_fake_users(5)
-        print('Adding fake articles ...')
+        app.logger.info('Adding fake articles ...')
         Article.add_fake_articles(20)
-        print('Adding fake resources ...')
+        app.logger.info('Adding fake resources ...')
         Resource.add_fake_resources(20)
         '''
-
