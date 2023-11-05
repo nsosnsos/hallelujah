@@ -14,7 +14,7 @@ fi
 
 NUM_WORKERS=$(nproc)
 WORK_PATH=${SCRIPT_PATH}
-PYTHON_PATH=${HOME_PATH}/python_env
+PYTHON_PATH=${HOME_PATH}/.python_env
 PYTHON_ENV=${PYTHON_PATH}/bin/activate
 EXEC_FILE=${SCRIPT_PATH}/app.py
 TRAVERSE_PATH=${SCRIPT_PATH}
@@ -36,15 +36,18 @@ elif [ ${OPTION} == 'clean' ]; then
     cd ${WORK_PATH}
     clean
 elif [ ${OPTION} == 'init' ]; then
-    if [[ ${#} -ne 5 ]]; then
-        echo "${SCRIPT_FILE} init --mail_address EMAIL_ADDRESS --mail_password EMAIL_PASSWORD"
-        exit -1
-    fi
     sudo apt install libgl1 -y
     cd ${SCRIPT_PATH}
+    mkdir -p ${PYTHON_PATH}
+    virtualenv ${PYTHON_PATH}
     source ${PYTHON_ENV}
     pip3 install -r ${SCRIPT_PATH}/requirements.txt
-    flask init --mail_address ${3} --mail_password ${5}
+    if [[ ${#} -eq 5 ]]; then
+        flask init --mail_address ${3} --mail_password ${5}
+    else
+        echo "${SCRIPT_FILE} init --mail_address EMAIL_ADDRESS --mail_password EMAIL_PASSWORD"
+        exit 0
+    fi
 elif [ ${OPTION} == 'addusr' ]; then
     if [[ ${#} -ne 5 ]]; then
         echo "${SCRIPT_FILE} addusr --username USERNAME --password PASSWORD"
