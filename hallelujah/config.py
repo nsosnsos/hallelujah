@@ -25,7 +25,8 @@ def _get_themes(static_dir, is_local):
             with open(bootswatch_cfg_file, 'r') as f:
                 bootswatch_cfg = json.load(f)
                 cdn_prefix = r'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/'
-                themes = {theme['name']: theme['cssCdn'].replace(cdn_prefix, 'plugins/bootswatch/') for theme in bootswatch_cfg['themes']}
+                themes = {theme['name']: theme['cssCdn'].replace(cdn_prefix, 'plugins/bootswatch/')
+                    for theme in bootswatch_cfg['themes']}
         else:
             bootswatch_cfg_obj = requests.get('https://bootswatch.com/api/5.json')
             themes = {theme['name']: theme['cssCdn'] for theme in json.loads(bootswatch_cfg_obj.text)['themes']}
@@ -68,10 +69,10 @@ class Config:
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_REGISTER = False
     SYS_MARIADB = True
-    SYS_LOCAL_DEPLOY = True
+    SYS_LOCAL_DEPLOY = False
     SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
-    SYS_THEME_DAY = SYS_THEMES.get('United')
-    SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
+    SYS_THEME_DAY = 'United'
+    SYS_THEME_NIGHT = 'Darkly'
 
     # BLUEMAP
     AUTH_URL_PREFIX = '/auth'
