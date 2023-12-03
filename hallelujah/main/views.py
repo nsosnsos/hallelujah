@@ -305,6 +305,6 @@ def theme_choose(theme_name):
     if theme_name not in themes.keys():
         abort(404)
     response = make_response(redirect_back())
-    response.set_cookie('theme', themes[theme_name])
+    response.set_cookie('theme', theme_name)
     return response
 

@@ -13,7 +13,7 @@
 
 <div class="container-fluid mt-5">
     <form method="post" role="form" class="form-check form-switch mb-3" id="toggleForm" action="{{ url_for('main.theme_switch', _external=True) }}">
-        <input class="form-check-input" type="checkbox" id="toggle" name="toggle"{% if request.cookies.get('theme') and request.cookies['theme'] == config.SYS_THEME_NIGHT %} checked="y"{% endif %}>
+        <input class="form-check-input" type="checkbox" id="toggle" name="toggle"{% if request.cookies.get('theme') and request.cookies['theme'] != config.SYS_THEME_DAY %} checked="y"{% endif %}>
         <label class="form-check-label mx-1" for="toggle"><i class="bi-moon-stars mx-1"></i>Night Mode</label>
     </form>
 </div>
