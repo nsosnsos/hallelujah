@@ -18,8 +18,8 @@
     </form>
 </div>
 
-{% if not config.SYS_LOCAL_PLUGINS %}
-<div class="container-fluid drop-down mt-5">
+{% if not config.SYS_LOCAL_DEPLOY %}
+<div class="container-fluid drop-down mt-5 d-none">
     <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Themes</a>
     <div class="dropdown-menu dropdown-scroll">
         {% for theme_name, theme_uri in config.SYS_THEMES.items() %}

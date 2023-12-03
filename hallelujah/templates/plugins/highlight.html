@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block styles %}
-    {% if config.SYS_LOCAL_PLUGINS %}
+    {% if config.SYS_LOCAL_DEPLOY %}
         <link rel="stylesheet" href="{{ url_for('static', filename='plugins/highlight/styles/googlecode.min.css', _external=True) }}">
         <link rel="stylesheet" href="{{ url_for('static', filename='plugins/github_markdown/github-markdown.css', _external=True) }}">
     {% else %}
@@ -13,7 +13,7 @@
 
 {% block scripts %}
     {{ super() }}
-    {% if config.SYS_LOCAL_PLUGINS %}
+    {% if config.SYS_LOCAL_DEPLOY %}
         <script type="text/javascript" src="{{ url_for('static', filename='plugins/highlight/highlight.min.js', _external=True) }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='plugins/highlight_line_number/highlightjs-line-numbers.min.js', _external=True) }}"></script>
     {% else %}

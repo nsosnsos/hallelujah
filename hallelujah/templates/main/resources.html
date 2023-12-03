@@ -47,7 +47,11 @@
                             {% for item in items %}
                                 <td class="text-center">
                                     <a target="_blank" href="{{ item.get('uri') }}">
-                                        <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
+                                        {% if config.SYS_LOCAL_DEPLOY %}
+                                            <img height="16" width="16" src="{{ url_for('static', filename='img/favicons.png', _external=True) }}">
+                                        {% else %}
+                                            <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
+                                        {% endif %}
                                         {{ item.get('title', '') }}
                                     </a>
                                 </td>
