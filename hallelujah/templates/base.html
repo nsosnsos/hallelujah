@@ -14,7 +14,7 @@
             <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename=os_path_join('img', 'favicon16.png'), _external=True) }}">
         {% endblock icons %}
         {% block styles %}
-            {% if config.SYS_LOCAL_PLUGINS %}
+            {% if config.SYS_LOCAL_DEPLOY %}
                 <link rel="stylesheet" href="{{ url_for('static', filename='plugins/bootstrap_icons/bootstrap-icons.min.css', _external=True) }}">
             {% else %}
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
@@ -107,7 +107,7 @@
             </div>
         </footer>
         {% block scripts %}
-            {% if config.SYS_LOCAL_PLUGINS %}
+            {% if config.SYS_LOCAL_DEPLOY %}
                 <script type="text/javascript" src="{{ url_for('static', filename='plugins/jquery/jquery.min.js', _external=True) }}"></script>
                 <script type="text/javascript" src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.bundle.min.js', _external=True) }}"></script>
                 {{ moment.include_moment(local_js=url_for('static', filename='plugins/moment/moment-with-locales.min.js', _external=True), no_js=False) }}

@@ -68,8 +68,8 @@ class Config:
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_REGISTER = False
     SYS_MARIADB = True
-    SYS_LOCAL_PLUGINS = True
-    SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_PLUGINS)
+    SYS_LOCAL_DEPLOY = True
+    SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
     SYS_THEME_DAY = SYS_THEMES.get('United')
     SYS_THEME_NIGHT = SYS_THEMES.get('Darkly')
 

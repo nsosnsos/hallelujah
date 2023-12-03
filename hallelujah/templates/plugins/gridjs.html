@@ -2,7 +2,7 @@
 
 {% block styles %}
     {{ super() }}
-    {% if config.SYS_LOCAL_PLUGINS %}
+    {% if config.SYS_LOCAL_DEPLOY %}
         <link rel="stylesheet" href="{{ url_for('static', filename='plugins/gridjs/mermaid.min.css', _external=True) }}">
     {% else %}
         <link rel="stylesheet" href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css">
@@ -11,7 +11,7 @@
 
 {% block scripts %}
     {{ super() }}
-    {% if config.SYS_LOCAL_PLUGINS %}
+    {% if config.SYS_LOCAL_DEPLOY %}
         <script type="text/javascript" src="{{ url_for('static', filename='plugins/gridjs/gridjs.umd.js', _external=True) }}"></script>
     {% else %}
         <script type="text/javascript" src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
