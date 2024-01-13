@@ -1,20 +1,24 @@
+{% if not config.SYS_LOCAL_DEPLOY %}
+<div class="container-fluid">
+    <audio preload="auto" controls="controls" autoplay="autoplay" type="audio/mpeg">
+        <source src="https://stream.live.vc.bbcmedia.co.uk/bbc_world_service" type="audio/mpeg">
+    </audio>
+</div>
+
+<div class="container-fluid mt-5">
+{% else %}
 <div class="container-fluid pt-2">
+{% endif %}
     <form method="post" role="form" class="input-group mb-3" action="{{ url_for('main.search', _external=True) }}">
         <input class="form-control" type="search" id="search" name="search" placeholder="Search" required>
         <button class="btn btn-primary" type="submit"><i class="bi-search"></i></button>
     </form>
 </div>
 
-<!--
-<div class="container-fluid mt-5 d-none">
-<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=337 height=280 src="//www.bbc.co.uk/sounds/player/bbc_world_service"></iframe>
-</div>
--->
-
 <div class="container-fluid mt-5">
     <form method="post" role="form" class="form-check form-switch mb-3" id="toggleForm" action="{{ url_for('main.theme_switch', _external=True) }}">
         <input class="form-check-input" type="checkbox" id="toggle" name="toggle"{% if request.cookies.get('theme') and request.cookies['theme'] != config.SYS_THEME_DAY %} checked="y"{% endif %}>
-        <label class="form-check-label mx-1" for="toggle"><i class="bi-moon-stars mx-1"></i>Night Mode</label>
+        <label class="form-check-label mx-1" for="toggle"><strong><i class="bi-moon-stars mx-1"></i></strong></label>
     </form>
 </div>
 
