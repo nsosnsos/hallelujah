@@ -17,10 +17,10 @@ class LoginForm(FlaskForm):
 
 class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(Config.MIN_STR_LEN, Config.SHORT_STR_LEN),
-                           Regexp(regex='^[A-Za-z][A-Za-z0-9_.]*$', message='Invalid username.')],
+                           Regexp(regex=r'^[A-Za-z][A-Za-z0-9_.]*$', message='Invalid username.')],
                            render_kw={'autofocus': True})
     email = StringField('Email', validators=[DataRequired(), Length(Config.MIN_STR_LEN, Config.SHORT_STR_LEN),
-                        Regexp(regex='([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+',
+                        Regexp(regex=r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+',
                                message='Invalid email.')])
     password = StringField('Password', validators=[DataRequired(), Length(Config.MIN_STR_LEN, Config.SHORT_STR_LEN)])
     confirm_password = StringField('Confirm Password', validators=[DataRequired(), Length(Config.MIN_STR_LEN, Config.SHORT_STR_LEN),
