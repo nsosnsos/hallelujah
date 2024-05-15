@@ -8,12 +8,12 @@
 
 {% block content %}
     {% if form %}
-        <div class="d-flex justify-content-center mt-5">
+        <div class="d-flex justify-content-center mt-4">
             <a class="btn btn-primary" href="{{ url_for('main.show_medias', current_path=current_path, _external=True) }}">
                 <i class="bi-link-45deg mx-1"></i>Show Medias
             </a>
         </div>
-        <div class="row mt-5">
+        <div class="row mt-4">
             <form action="{{ url_for('main.upload', current_path=current_path, _external=True) }}" class="dropzone" id="upload-dropzone">
                 <div class="form-check my-0">
                     <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
@@ -21,7 +21,7 @@
                 </div>
             </form>
         </div>
-        <div class="row mt-5">
+        <div class="row mt-4">
             <div class="col d-flex align-items-center">
                 <ol class="breadcrumb my-auto">
                     {% set path_list = current_path.split('/') %}
@@ -60,7 +60,7 @@
                 </div>
             </div>
         </div>
-        <div class="row my-5">
+        <div class="row my-4">
             <table class="table table-responsive table-sm table-hover">
                 <tbody>
                     {% for dir in dirs %}
@@ -102,16 +102,16 @@
             </table>
         </div>
     {% else %}
-        <div class="d-flex justify-content-center mt-5">
+        <div class="d-flex justify-content-center mt-4">
             <a class="btn btn-primary" href="{{ url_for('main.manage_medias', current_path=current_path, _external=True) }}">
                 <i class="bi-wrench-adjustable mx-1"></i>Manage Medias
             </a>
         </div>
-        <div class="row my-5">
+        <div class="row my-4">
             <div class="col gallery" id="data_div">
             </div>
         </div>
-        <div class="d-flex justify-content-center mb-5" id="sentinel">
+        <div class="d-flex justify-content-center mb-4" id="sentinel">
             <div class="spinner-border" role="status"></div>
         </div>
     {% endif %}

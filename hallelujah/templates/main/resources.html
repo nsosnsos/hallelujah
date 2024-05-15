@@ -6,10 +6,37 @@
 {% endif %}
 
 {% block content %}
-    <div class="d-flex justify-content-center my-5">
-        {% if not columns and not form %}
+    {% if not columns and not form %}
+        <div class="my-4">
+            {% for category, items in resources.items() %}
+                <div class="row justify-content-center{{ ' mb-4' if loop.last else ' mb-3' }}">
+                    <p><b><i class="bi-bookmark-star mx-1"></i>{{ category }}</b></p>
+                    <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
+                        <tbody>
+                            <tr>
+                                {% for item in items %}
+                                    <td class="text-center">
+                                        <a target="_blank" href="{{ item.get('uri') }}">
+                                            {% if config.SYS_LOCAL_DEPLOY %}
+                                                <img height="16" width="16" src="{{ url_for('static', filename='img/favicons.png', _external=True) }}">
+                                            {% else %}
+                                                <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
+                                            {% endif %}
+                                            {{ item.get('title', '') }}
+                                        </a>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="d-flex justify-content-center my-4">
             <a href="{{ url_for('main.manage_resources', _external=True) }}" class="btn btn-primary"><i class="bi-wrench-adjustable mx-1"></i>Manage Resources</a>
-        {% else %}
+        </div>
+    {% else %}
+        <div class="d-flex justify-content-center my-4">
             <a href="{{ url_for('main.resources', _external=True) }}" class="btn btn-primary mx-2"><i class="bi-link-45deg mx-1"></i>View Resources</a>
             <button type="button" class="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#resource_add"><i class="bi-plus-square mx-1"></i>Add Resource</button>
             <div class="modal fade" id="resource_add" tabindex="-1" role="dialog" aria-labelledby="resource_add" aria-hidden="true">
@@ -35,34 +62,8 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
-    </div>
-    {% if not columns and not form %}
-        {% for category, items in resources.items() %}
-            <div class="row justify-content-center{{ ' mb-5' if loop.last else ' mb-3' }}">
-                <p><b><i class="bi-bookmark-star mx-1"></i>{{ category }}</b></p>
-                <table class="table table-responsive table-sm table-bordered table-striped table-hover caption-top">
-                    <tbody>
-                        <tr>
-                            {% for item in items %}
-                                <td class="text-center">
-                                    <a target="_blank" href="{{ item.get('uri') }}">
-                                        {% if config.SYS_LOCAL_DEPLOY %}
-                                            <img height="16" width="16" src="{{ url_for('static', filename='img/favicons.png', _external=True) }}">
-                                        {% else %}
-                                            <img height="16" width="16" src="https://www.google.com/s2/favicons?domain={{ item.get('uri') }}&size=16">
-                                        {% endif %}
-                                        {{ item.get('title', '') }}
-                                    </a>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        {% endfor %}
-    {% else %}
-        <div class="mb-5" id="manage_resources"></div>
+        </div>
+        <div class="mb-4" id="manage_resources"></div>
     {% endif %}
 {% endblock content %}
 

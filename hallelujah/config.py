@@ -169,7 +169,7 @@ class TestingConfig(Config):
     TESTING = True
     SYS_MARIADB = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SESSION_TYPE = 'null'
+    SESSION_TYPE = 'filesystem'
 
 
 class DevelopmentConfig(Config):
