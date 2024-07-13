@@ -32,8 +32,8 @@ def login():
             if form.remember.data:
                 session.permanent = True
             current_user.update_last_seen()
-            current_app.logger.info('Auth: login user {}.'.format(user.name))
             ip_addr = get_request_ip(request)
+            current_app.logger.info('Auth: login user {} from {}.'.format(user.name, ip_addr))
             login_info = {'user_name': user.name, 'ip_addr': ip_addr, 'last_seen': user.last_seen}
             flash(login_info, category='login')
             return redirect_back(redirect_before=True)

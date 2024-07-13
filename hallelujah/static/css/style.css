@@ -89,7 +89,16 @@ a {
 .markdown-body pre {
     margin-top, margin-bottom: 5px;
     padding: 0;
-    background-color: #cccccc;
+    background-color: #bdbdbd;
+}
+.markdown-body pre div.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    background-color: #a9a9a9;
+}
+.markdown-body pre div.container-fluid div.col button.copy-button {
+    border: none;
+    background-color: #a9a9a9;
 }
 .markdown-body code.hljs {
     white-space: pre-wrap;

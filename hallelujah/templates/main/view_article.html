@@ -1,4 +1,4 @@
-{% extends 'plugins/highlight.html' %}
+{% extends 'plugins/highlight_markdown_clipboard.html' %}
 {% from 'macros/modal.html' import render_modal %}
 
 {% block content %}
@@ -41,8 +41,44 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        window.addEventListener("load", data_container_adaption);
-        window.addEventListener("resize", data_container_adaption);
+        const copySymbol = '\uD83D\uDCCB Copy code';
+        window.addEventListener('load', data_container_adaption);
+        window.addEventListener('resize', data_container_adaption);
+        document.addEventListener('DOMContentLoaded', function() {
+            var preElements = document.querySelectorAll('pre');
+            preElements.forEach(function(preElement, index) {
+                var codeElements = preElement.querySelectorAll('code');
+                    codeElements.forEach(codeElement => {
+                    var codeId = 'code_' + index;
+                    var copyItem = document.createElement('div');
+                    copyItem.className = 'container-fluid';
+                    copyItem.innerHTML = '<div class="col text-end"><button class="copy-button" data-clipboard-target="#' + codeId + '">' + copySymbol + '</button></div>';
+                    codeElement.id = codeId;
+                    codeElement.className = 'container';
+                    codeElement.parentNode.className = 'container';
+                    codeElement.parentNode.insertBefore(copyItem, codeElement);
+                });
+            });
+
+            var copyButtons = document.querySelectorAll('.copy-button');
+            copyButtons.forEach(function(button) {
+                var clipboard = new ClipboardJS(button);
+                clipboard.on('success', function(e) {
+                    copyResp(button, '\u2714 copied!');
+                });
+
+                clipboard.on('error', function(e) {
+                    copyResp(button, '\u2716 failed!');
+                });
+            });
+
+            function copyResp(button, rspText) {
+                button.innerText = rspText;
+                setTimeout(function() {
+                    button.innerText = copySymbol;
+                }, 3000);
+            }
+        });
     </script>
 {% endblock scripts %}
 
