@@ -1,0 +1,11 @@
+{% extends 'plugins/highlight_markdown.html' %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if config.SYS_LOCAL_DEPLOY %}
+        <script type="text/javascript" src="{{ url_for('static', filename='plugins/clipboard/clipboard.min.js', _external=True) }}"></script>
+    {% else %}
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script>
+    {% endif %}
+{% endblock scripts %}
+
