@@ -73,6 +73,37 @@ a {
   position: relative;
 }
 
+audio {
+    width: 100%;
+    min-width: 200px;
+    max-width: 600px;
+    box-sizing: border-box;
+}
+
+.search-group {
+    position: relative;
+    width: 100%;
+    min-width: 200px;
+    max-width: 600px;
+    margin: 0;
+}
+.search-group .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #BBB;
+    background: transparent;
+    pointer-events: none;
+}
+.search-group .search-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid #CCC;
+    border-radius: 25px;
+}
+
 /* markdown body */
 .markdown-body {
     background-color: transparent;

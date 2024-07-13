@@ -41,7 +41,7 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        const copySymbol = '\uD83D\uDCCB Copy code';
+        const copySymbol = '<i class="bi-copy mx-1"></i>Copy code';
         window.addEventListener('load', data_container_adaption);
         window.addEventListener('resize', data_container_adaption);
         document.addEventListener('DOMContentLoaded', function() {
@@ -75,7 +75,7 @@
             function copyResp(button, rspText) {
                 button.innerText = rspText;
                 setTimeout(function() {
-                    button.innerText = copySymbol;
+                    button.innerHTML = copySymbol;
                 }, 3000);
             }
         });
