@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment, session
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import get_request_ip, redirect_back, mariadb_is_in_use, mariadb_is_exist_db, mariadb_drop_db, mariadb_create_db, mariadb_backup, mariadb_restore, send_email
+from .utility import get_request_ip, redirect_back, db_in_use, db_is_exist, db_drop, db_create, db_backup, db_restore, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -104,12 +104,12 @@ def register_commands(app):
     @app.cli.command()
     def backup():
         if app.config.get('SYS_MARIADB'):
-            mariadb_backup()
+            db_backup()
 
     @app.cli.command()
     def restore():
         if app.config.get('SYS_MARIADB'):
-            mariadb_restore()
+            db_restore()
 
     @app.cli.command()
     @click.option('--username', prompt=True, required=True,
@@ -149,16 +149,16 @@ def register_commands(app):
                   default=app.config.get('MAIL_PASSWORD'),
                   help='Administrator mail password')
     def init(mail_address, mail_password):
-        if not mariadb_is_in_use():
+        if not db_in_use():
             app.logger.info('Drop all tables in SQLite...')
             db.drop_all()
         else:
-            if mariadb_is_exist_db():
+            if db_is_exist():
                 app.logger.info('Dropping database for MariaDB...')
-                mariadb_drop_db()
+                db_drop()
             app.logger.info('Creating database for MariaDB...')
-            mariadb_create_db()
-            if not mariadb_is_exist_db():
+            db_create()
+            if not db_is_exist():
                 app.logger.error('Failed to create database!')
                 return
         app.logger.info('Creating all tables...')

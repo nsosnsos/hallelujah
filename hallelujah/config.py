@@ -93,13 +93,13 @@ class Config:
         sys.exit(-1)
     MAIL_SERVER = 'smtp.' + MAIL_USERNAME[MAIL_USERNAME.find('@')+1:]
 
-    # MARIADB
-    MARIADB_HOST = SYS_HOST
-    MARIADB_PORT = 3306
-    MARIADB_DB = SITE_NAME
-    MARIADB_USERNAME = os.environ.get('MARIADB_USERNAME', None) or SITE_NAME
-    MARIADB_PASSWORD = os.environ.get('MARIADB_PASSWORD', None) or SITE_NAME
-    MARIADB_CHARSET = 'utf8mb4'
+    # DATABASE
+    DB_HOST = SYS_HOST
+    DB_PORT = 3306
+    DB_NAME = SITE_NAME
+    DB_USERNAME = os.environ.get('DB_USERNAME', None) or SITE_NAME
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', None) or SITE_NAME
+    DB_CHARSET = 'utf8mb4'
 
     # SQLITE
     SQLITE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -127,7 +127,7 @@ class Config:
 
     # DATABASE
     MARIADB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
-        MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOST, MARIADB_PORT, MARIADB_DB, MARIADB_CHARSET)
+        DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_CHARSET)
     SQLITE_CONN_STR = 'sqlite:///' + os.path.join(SQLITE_PATH, SQLITE_DB)
     SQLALCHEMY_DATABASE_URI = MARIADB_CONN_STR if SYS_MARIADB else SQLITE_CONN_STR
 

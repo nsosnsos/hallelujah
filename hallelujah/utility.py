@@ -57,75 +57,75 @@ def redirect_save(url=None):
     session['url'] = url
 
 
-def mariadb_is_in_use():
+def db_in_use():
     return current_app.config.get('SYS_MARIADB')
 
 
-def mariadb_backup():
-    db_usr = current_app.config.get('MARIADB_USERNAME')
-    db_pwd = current_app.config.get('MARIADB_PASSWORD')
-    db_name = current_app.config.get('MARIADB_DB')
+def db_backup():
+    db_usr = current_app.config.get('DB_USERNAME')
+    db_pwd = current_app.config.get('DB_PASSWORD')
+    db_name = current_app.config.get('DB_NAME')
     data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
     target_db = os.path.join(data_directory, db_name + '.sql')
-    command = f'mariadb-dump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
+    command = f'mysqldump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('mariadb_backup failed: {}'.format(str(e)))
+        current_app.logger.error('db_backup failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
-def mariadb_restore():
-    db_usr = current_app.config.get('MARIADB_USERNAME')
-    db_pwd = current_app.config.get('MARIADB_PASSWORD')
-    db_name = current_app.config.get('MARIADB_DB')
+def db_restore():
+    db_usr = current_app.config.get('DB_USERNAME')
+    db_pwd = current_app.config.get('DB_PASSWORD')
+    db_name = current_app.config.get('DB_NAME')
     data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
     target_db = os.path.join(data_directory, db_name + '.sql')
-    command = f'mariadb -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
+    command = f'mysql -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('mariadb_backup failed: {}'.format(str(e)))
+        current_app.logger.error('db_restore failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
-def mariadb_is_exist_db(db_name=None):
-    db_usr = current_app.config.get('MARIADB_USERNAME')
-    db_pwd = current_app.config.get('MARIADB_PASSWORD')
+def db_is_exist(db_name=None):
+    db_usr = current_app.config.get('DB_USERNAME')
+    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
-        db_name = current_app.config.get('MARIADB_DB')
-    command = f'mariadb -u {db_usr} -p\'{db_pwd}\' -e \"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=\'{db_name}\';\"'
+        db_name = current_app.config.get('DB_NAME')
+    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=\'{db_name}\';\"'
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('mariadb_is_exist_database: {}'.format(str(e)))
+        current_app.logger.error('db_is_exist: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
-def mariadb_drop_db(db_name=None):
-    db_usr = current_app.config.get('MARIADB_USERNAME')
-    db_pwd = current_app.config.get('MARIADB_PASSWORD')
+def db_drop(db_name=None):
+    db_usr = current_app.config.get('DB_USERNAME')
+    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
-        db_name = current_app.config.get('MARIADB_DB')
-    command = f'mariadb -u {db_usr} -p\'{db_pwd}\' -e \"DROP DATABASE IF EXISTS {db_name};\"'
+        db_name = current_app.config.get('DB_NAME')
+    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"DROP DATABASE IF EXISTS {db_name};\"'
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('mariadb_drop_database: {}'.format(str(e)))
+        current_app.logger.error('db_drop: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
-def mariadb_create_db(db_name=None):
-    db_usr = current_app.config.get('MARIADB_USERNAME')
-    db_pwd = current_app.config.get('MARIADB_PASSWORD')
+def db_create(db_name=None):
+    db_usr = current_app.config.get('DB_USERNAME')
+    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
-        db_name = current_app.config.get('MARIADB_DB')
-    db_charset = current_app.config.get('MARIADB_CHARSET')
-    command = f'mariadb -u {db_usr} -p\'{db_pwd}\' -e \"CREATE DATABASE IF NOT EXISTS {db_name} DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;\"'
+        db_name = current_app.config.get('DB_NAME')
+    db_charset = current_app.config.get('DB_CHARSET')
+    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"CREATE DATABASE IF NOT EXISTS {db_name} DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;\"'
     try:
         ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('mariadb_create_database: {}'.format(str(e)))
+        current_app.logger.error('db_create: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() == ''
 
 
