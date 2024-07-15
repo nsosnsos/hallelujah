@@ -103,12 +103,12 @@ def register_commands(app):
 
     @app.cli.command()
     def backup():
-        if app.config.get('SYS_MARIADB'):
+        if not app.config.get('SYS_SQLITE'):
             db_backup()
 
     @app.cli.command()
     def restore():
-        if app.config.get('SYS_MARIADB'):
+        if not app.config.get('SYS_SQLITE'):
             db_restore()
 
     @app.cli.command()
@@ -150,13 +150,13 @@ def register_commands(app):
                   help='Administrator mail password')
     def init(mail_address, mail_password):
         if not db_in_use():
-            app.logger.info('Drop all tables in SQLite...')
+            app.logger.info('Drop all tables...')
             db.drop_all()
         else:
             if db_is_exist():
-                app.logger.info('Dropping database for MariaDB...')
+                app.logger.info('Dropping database...')
                 db_drop()
-            app.logger.info('Creating database for MariaDB...')
+            app.logger.info('Creating database...')
             db_create()
             if not db_is_exist():
                 app.logger.error('Failed to create database!')

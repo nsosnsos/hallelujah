@@ -68,7 +68,7 @@ class Config:
     SYS_MEDIA_THUMBNAIL_HEIGHT = 200
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_REGISTER = False
-    SYS_MARIADB = True
+    SYS_SQLITE = False
     SYS_LOCAL_DEPLOY = False
     SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
     SYS_THEME_DAY = 'United'
@@ -126,10 +126,10 @@ class Config:
     LOGGER = None
 
     # DATABASE
-    MARIADB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
+    MDB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
         DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_CHARSET)
     SQLITE_CONN_STR = 'sqlite:///' + os.path.join(SQLITE_PATH, SQLITE_DB)
-    SQLALCHEMY_DATABASE_URI = MARIADB_CONN_STR if SYS_MARIADB else SQLITE_CONN_STR
+    SQLALCHEMY_DATABASE_URI = SQLITE_CONN_STR if SYS_SQLITE else MDB_CONN_STR
 
     def __repr__(self):
         return '<%s : %s>' % (self.__class__.__name__, Config.__dict__)
@@ -167,7 +167,7 @@ class Config:
 class TestingConfig(Config):
     ENV = 'testing'
     TESTING = True
-    SYS_MARIADB = False
+    SYS_SQLITE = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SESSION_TYPE = 'filesystem'
 

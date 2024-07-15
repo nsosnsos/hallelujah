@@ -4,7 +4,7 @@
 ## Software dependency for deploy
 - nginx 1.18.0
 - redis-server 6.0.16
-- mariadb-server 10.6.12(optional)
+- mariadb-server 10.6.12(optional, mysql/sqlite are also supported)
 
 ## Front-end component dependency
 1. jquery@3.7.1
@@ -14,8 +14,9 @@
 5. dropzone@6.0.0-beta.2
 6. highlightjs@11.9.0
 7. github-markdown-css@5.3.0
-8. gridjs
-9. simplemde
+8. clipboard@2.0.11
+9. gridjs
+10. simplemde
 
 ## Features
 1. mark-down article, including code syntax highlight.
@@ -23,7 +24,7 @@
 3. file browser, support file multiple upload by dropping or selecting.
 4. favorite hyperlink with categories.
 5. redis session support for multiple workers.
-6. easy to use by flasky script with command: init|debug|run|deploy|clean|backup|restore.
+6. easy to use by flasky script with command: init|debug|run|deploy|crontab|test|clean|addusr|delusr|backup|restore.
 7. log every view url access with real ip address, and authentication information.
 
 ## About
@@ -54,6 +55,10 @@
   ```shell
   bash flasky.sh deploy
   ```
+  - Add crontab jobs for backup and synchronization.
+  ```shell
+  bash flasky.sh crontab
+  ```
   - Test application.
   ```shell
   bash flasky.sh test
@@ -70,11 +75,11 @@
   ```shell
   bash flasky.sh delusr --username USERNAME
   ```
-  - Backup mariadb.
+  - Backup database.
   ```shell
   bash flasky.sh backup
   ```
-  - Restore mariadb.
+  - Restore database.
   ```shell
   bash flasky.sh restore
   ```

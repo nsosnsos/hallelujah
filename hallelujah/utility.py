@@ -58,7 +58,7 @@ def redirect_save(url=None):
 
 
 def db_in_use():
-    return current_app.config.get('SYS_MARIADB')
+    return not current_app.config.get('SYS_SQLITE')
 
 
 def db_backup():

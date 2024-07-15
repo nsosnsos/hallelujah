@@ -20,7 +20,6 @@ EXEC_FILE=${SCRIPT_PATH}/app.py
 TRAVERSE_PATH=${SCRIPT_PATH}
 SERVICE_PATH=/etc/systemd/system
 SERVICE_NAME=hallelujah.service
-CRON_JOB="0 1 * * * ${SCRIPT_PATH}/bakcup.sh"
 
 function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
@@ -80,11 +79,17 @@ elif [ ${OPTION} == 'deploy' ]; then
     sudo systemctl daemon-reload
     sudo systemctl enable ${SERVICE_NAME}
     sudo systemctl restart ${SERVICE_NAME}
-    CRON_TAB=$(crontab -l 2>/dev/null)
+elif [ ${OPTION} == 'crontab' ]; then
+    CRON_TAB=$(crontab -l 2>/dev/null) || true
+    CRON_JOB="0 1 * * * ${SCRIPT_PATH}/backup.sh"
     if echo "${CRON_TAB}" | grep -Fxq "${CRON_JOB}"; then
-        CRON_TAB=$(echo "${CRON_TAB}" | grep -Fv "${CRON_JOB}")
+        CRON_TAB=$(echo "${CRON_TAB}" | grep -vFq "${CRON_JOB}")
     fi
-    echo "${CRON_TAB}" | ( cat; echo "${CRON_JOB}") | crontab -
+    if [[ -z ${CRON_TAB} ]]; then
+        echo "${CRON_JOB}" | crontab -
+    else
+        (echo "${CRON_TAB}"; echo "${CRON_JOB}") | crontab -
+    fi
 elif [ ${OPTION} == 'run' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
@@ -98,6 +103,6 @@ elif [ ${OPTION} == 'restore' ]; then
     source ${PYTHON_ENV}
     flask restore
 else
-    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|test|clean|addusr|delusr|backup|restore]"
+    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|crontab|test|clean|addusr|delusr|backup|restore]"
 fi
 
