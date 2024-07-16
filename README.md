@@ -24,7 +24,7 @@
 3. file browser, support file multiple upload by dropping or selecting.
 4. favorite hyperlink with categories.
 5. redis session support for multiple workers.
-6. easy to use by flasky script with command: init|debug|run|deploy|crontab|test|clean|addusr|delusr|backup|restore.
+6. easy to use by flasky script with command: init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore.
 7. log every view url access with real ip address, and authentication information.
 
 ## About
@@ -55,9 +55,9 @@
   ```shell
   bash flasky.sh deploy
   ```
-  - Add crontab jobs for backup and synchronization.
+  - Add cron job for backup and synchronization.
   ```shell
-  bash flasky.sh crontab
+  bash flasky.sh cron
   ```
   - Test application.
   ```shell

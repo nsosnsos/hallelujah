@@ -7,7 +7,7 @@ SCRIPT_FILE=$(basename $(readlink -f "${0}"))
 SCRIPT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 if [[ ${#} -eq 0 ]]; then
-    OPTION='run'
+    OPTION='help'
 else
     OPTION=${1}
 fi
@@ -18,14 +18,68 @@ PYTHON_PATH=${HOME_PATH}/.python_env
 PYTHON_ENV=${PYTHON_PATH}/bin/activate
 EXEC_FILE=${SCRIPT_PATH}/app.py
 TRAVERSE_PATH=${SCRIPT_PATH}
+APP_NAME=hallelujah
 SERVICE_PATH=/etc/systemd/system
-SERVICE_NAME=hallelujah.service
+SERVICE_NAME=${APP_NAME}.service
 
 function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
     find ${SCRIPT_PATH} -type f -name '*.log*' -delete
     find ${SCRIPT_PATH} -type f -name '*.db' -delete
-    git checkout . && git clean -xdf
+}
+
+function cron_add () {
+    read -p "input backup server: " BACKUP_SERVER
+    CRON_TAB=$(crontab -l) || true
+    CRON_JOB="0 1 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron $(whoami) ${BACKUP_SERVER}"
+    if echo "${CRON_TAB}" | grep -Fq "${SCRIPT_FILE}"; then
+        CRON_TAB=$(echo "${CRON_TAB}" | grep -Fqv "${SCRIPT_FILE}") || true
+    fi
+    if [[ -z "${CRON_TAB}" ]]; then
+        echo "${CRON_JOB}" | crontab -
+    else
+        (echo "${CRON_TAB}"; echo "${CRON_JOB}") | crontab -
+    fi
+}
+
+function cron_job () {
+    BACKUP_USER=${1}
+    BACKUP_SERVER=${2}
+    DATA_PATH="${HOME_PATH}/data"
+    DB_FILE="${DATA_PATH}/${APP_NAME}.sql"
+    BACKUP_PATH="${HOME_PATH}/backup"
+    BACKUP_FILE="data_$(date +"%Y%m%d_%H%M%S").tar.gz"
+    KEEP_CNT=2
+
+    function clean () {
+        cd "${BACKUP_PATH}" || exit
+        DELETE_LIST=$(ls -1 "${BACKUP_PATH}" | sort | head -n -${KEEP_CNT})
+        for DELETE_FILE in ${DELETE_LIST}; do
+            rm -f "${BACKUP_PATH}/${DELETE_FILE}"
+            ssh "${BACKUP_USER}@${BACKUP_SERVER}" "rm -f '${BACKUP_PATH}/${DELETE_FILE}'"
+        done
+        cd -
+    }
+
+    function backup () {
+        rm -f ${DATA_PATH}/${DB_FILE}
+        ${SCRIPT_PATH}/${SCRIPT_FILE} backup
+        cd ${DATA_PATH}/.. && tar -zcf "${BACKUP_PATH}/${BACKUP_FILE}" "$(basename ${DATA_PATH})"
+    }
+
+    function sync () {
+        scp "${BACKUP_PATH}/${BACKUP_FILE}" "${BACKUP_USR}@${BACKUP_SERVER}:${BACKUP_PATH}/"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "sudo service ${APP_NAME} stop"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "rm -rf ${DATA_PATH}/*"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${BACKUP_FILE}"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "${SCRIPT_PATH}/${SCRIPT_FILE} restore"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "cd ${SCRIPT_PATH}; git clean -xdf; git checkout .; git pull"
+        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "sudo service ${APP_NAME} start"
+    }
+
+    clean
+    backup
+    sync
 }
 
 if [[ ${#} -eq 0 || ${OPTION} == 'debug' ]]; then
@@ -79,16 +133,11 @@ elif [ ${OPTION} == 'deploy' ]; then
     sudo systemctl daemon-reload
     sudo systemctl enable ${SERVICE_NAME}
     sudo systemctl restart ${SERVICE_NAME}
-elif [ ${OPTION} == 'crontab' ]; then
-    CRON_TAB=$(crontab -l 2>/dev/null) || true
-    CRON_JOB="0 1 * * * ${SCRIPT_PATH}/backup.sh"
-    if echo "${CRON_TAB}" | grep -Fxq "${CRON_JOB}"; then
-        CRON_TAB=$(echo "${CRON_TAB}" | grep -vFq "${CRON_JOB}")
-    fi
-    if [[ -z ${CRON_TAB} ]]; then
-        echo "${CRON_JOB}" | crontab -
+elif [ ${OPTION} == 'cron' ]; then
+    if [[ ${#} -ne 3 ]]; then
+        cron_add
     else
-        (echo "${CRON_TAB}"; echo "${CRON_JOB}") | crontab -
+        cron_job ${2} ${3}
     fi
 elif [ ${OPTION} == 'run' ]; then
     cd ${SCRIPT_PATH}
@@ -103,6 +152,6 @@ elif [ ${OPTION} == 'restore' ]; then
     source ${PYTHON_ENV}
     flask restore
 else
-    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|crontab|test|clean|addusr|delusr|backup|restore]"
+    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore]"
 fi
 
