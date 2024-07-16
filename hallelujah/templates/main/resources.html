@@ -70,8 +70,6 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        window.addEventListener("load", data_container_adaption);
-        window.addEventListener("resize", data_container_adaption);
         {% if columns and form %}
             const tableDiv = document.getElementById("manage_resources");
             const updateUrl = (prev, query) => {

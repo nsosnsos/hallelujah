@@ -41,14 +41,25 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        const copySymbol = '<i class="bi-copy mx-1"></i>Copy code';
-        window.addEventListener('load', data_container_adaption);
-        window.addEventListener('resize', data_container_adaption);
+        function iframeAdjust() {
+            var iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                const parentClientWidth = iframe.parentElement.clientWidth;
+                const parentStyle = getComputedStyle(iframe.parentElement);
+                const parentLeftPadding = parseFloat(parentStyle.paddingLeft);
+                const parentRightPadding = parseFloat(parentStyle.paddingRight);
+                const parentWidth = parentClientWidth - parentLeftPadding - parentRightPadding;
+                iframe.style.width = parentWidth + 'px';
+            });
+        }
+        window.addEventListener('load', iframeAdjust);
+        window.addEventListener('resize', iframeAdjust);
         document.addEventListener('DOMContentLoaded', function() {
+            const copySymbol = '<i class="bi-copy mx-1"></i>Copy code';
             var preElements = document.querySelectorAll('pre');
             preElements.forEach(function(preElement, index) {
                 var codeElements = preElement.querySelectorAll('code');
-                    codeElements.forEach(codeElement => {
+                codeElements.forEach(codeElement => {
                     var codeId = 'code_' + index;
                     var copyItem = document.createElement('div');
                     copyItem.className = 'container-fluid';
