@@ -41,19 +41,6 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        function iframeAdjust() {
-            var iframes = document.querySelectorAll('iframe');
-            iframes.forEach(iframe => {
-                const parentClientWidth = iframe.parentElement.clientWidth;
-                const parentStyle = getComputedStyle(iframe.parentElement);
-                const parentLeftPadding = parseFloat(parentStyle.paddingLeft);
-                const parentRightPadding = parseFloat(parentStyle.paddingRight);
-                const parentWidth = parentClientWidth - parentLeftPadding - parentRightPadding;
-                iframe.style.width = parentWidth + 'px';
-            });
-        }
-        window.addEventListener('load', iframeAdjust);
-        window.addEventListener('resize', iframeAdjust);
         document.addEventListener('DOMContentLoaded', function() {
             const copySymbol = '<i class="bi-copy mx-1"></i>Copy code';
             var preElements = document.querySelectorAll('pre');
