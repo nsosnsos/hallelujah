@@ -80,6 +80,10 @@ audio {
     box-sizing: border-box;
 }
 
+video, iframe {
+    width: 100%;
+}
+
 .search-group {
     position: relative;
     width: 100%;
