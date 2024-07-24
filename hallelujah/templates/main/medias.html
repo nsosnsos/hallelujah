@@ -188,7 +188,7 @@
             function load_data(fetch_url) {
                 fetch(fetch_url).then(response => response.json()).then(data => {
                     if (!data.length || data.length < limit) {
-                        sentinel.innerHTML = '<div class="text-muted">No more medias.</div>';
+                        sentinel.innerHTML = '';
                         intersectionObserver.unobserve(sentinel);
                     }
                     for (var index = 0; index < data.length; index++) {
