@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="d-flex flex-column">
+        <div class="row justify-content-center mt-3" id="div_input">
+            <div class="col-md-6">
+                <form method="post" role="form" class="search-group mb-3" action="{{ url_for('main.proxy', _external=True) }}">
+                    <span class="search-icon"><i class="bi-ladder mx-1"></i></span>
+                    <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" autofocus required>
+                </form>
+            </div>
+        </div>
+        <div class"d-flex flex-grow-1" id="div_output">
+            <iframe class="mb-3" id="iframe_output" name="iframe_output"> </iframe>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        function iframe_adaption() {
+            header = document.querySelector("header");
+            footer = document.querySelector("footer");
+            header_style = getComputedStyle(header);
+            footer_style = getComputedStyle(footer);
+            header_height = header.clientHeight + parseInt(header_style.marginTop) + parseInt(header_style.marginBottom);
+            footer_height = footer.clientHeight + parseInt(footer_style.marginTop) + parseInt(footer_style.marginBottom);
+            data_container_height = window.innerHeight - header_height - footer_height;
+            data_container = document.querySelector("#data_container");
+            data_container.style.minHeight = data_container_height + "px";
+
+            div_input = document.querySelector("#div_input");
+            div_input_style = getComputedStyle(div_input);
+            div_input_height = div_input.clientHeight + parseInt(div_input_style.marginTop) + parseInt(div_input_style.marginBottom);
+            div_output_height = data_container_height - div_input_height;
+            div_output = document.querySelector("#div_output");
+            div_output.style.minHeight = div_output_height + "px";
+
+            iframe_output = document.querySelector("#iframe_output");
+            iframe_output.style.height = "100%";
+        }
+        window.addEventListener('load', iframe_adaption);
+        window.addEventListener('resize', iframe_adaption);
+    </script>
+{% endblock scripts %}
+

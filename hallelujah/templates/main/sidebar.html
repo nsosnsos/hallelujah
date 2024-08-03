@@ -1,14 +1,12 @@
 {% if not config.SYS_LOCAL_DEPLOY %}
-<div class="container-fluid" my-4>
+<div class="container-fluid" mt-4>
     <audio preload="auto" controls="controls" autoplay="autoplay" type="audio/mpeg">
         <source src="https://stream.live.vc.bbcmedia.co.uk/bbc_world_service" type="audio/mpeg">
     </audio>
 </div>
+{% endif %}
 
 <div class="container-fluid mt-4">
-{% else %}
-<div class="container-fluid pt-2">
-{% endif %}
     <form method="post" role="form" class="search-group mb-3" action="{{ url_for('main.search', _external=True) }}">
         <span class="search-icon"><i class="bi-search mx-1"></i></span>
         <input class="form-control search-input" type="search" id="search" name="search" placeholder="Search" required>

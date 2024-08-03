@@ -279,6 +279,11 @@ def delete_resource(resource_id):
         flash('Resource ' + resource.title + ' ' + resource.uri +' is deleted!')
     return redirect_back()
 
+@bp_main.route('/proxy')
+@login_required
+def proxy():
+    return render_template('main/proxy.html')
+
 @bp_main.route('/about')
 def about():
     return render_template('main/about.html')
