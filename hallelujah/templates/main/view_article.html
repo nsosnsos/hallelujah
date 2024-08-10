@@ -2,18 +2,21 @@
 {% from 'macros/modal.html' import render_modal %}
 
 {% block content %}
-    <div class="row justify-content-center my-4">
-        <div class="col-md-9">
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-9 mb-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between">
                     <div class="d-flex align-items-center">
                         <h5 class="my-auto"><i class="bi-justify mx-1"></i>{{ article.title }}</h5>
                     </div>
                     {% if is_self %}
-                        <div>
-                            <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-auto"><i class="bi-vector-pen">Edit</i></a>
-                            &nbsp;
-                            {{ render_modal('Delete Article', article.title, os_path_join(article.url, 'delete'), article.id) }}
+                        <div class="row">
+                            <div class="col-auto">
+                                <a href="{{ article.url }}/edit" class="btn btn-primary btn-sm my-auto"><i class="bi-vector-pen">Edit</i></a>
+                            </div>
+                            <div class="col">
+                                {{ render_modal('Delete Article', article.title, os_path_join(article.url, 'delete'), article.id) }}
+                            </div>
                         </div>
                     {% endif %}
                 </div>
@@ -30,7 +33,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 sticky-top-container">
+        <div class="col-md-3 sticky-top-container mb-4">
             <div class="sticky-top">
                 {% include "main/sidebar.html" %}
             </div>
@@ -63,6 +66,7 @@
                 var clipboard = new ClipboardJS(button);
                 clipboard.on('success', function(e) {
                     copyResp(button, '\u2714 copied!');
+                    e.clearSelection();
                 });
 
                 clipboard.on('error', function(e) {
