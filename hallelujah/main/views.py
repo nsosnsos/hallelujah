@@ -291,6 +291,8 @@ def about():
 @bp_main.route('/search', methods=['POST'])
 def search():
     keywords = request.form.get('search', None)
+    if keywords == '':
+        return redirect_back()
     keywords = '+'.join(keywords.split())
     return render_template('main/search.html', keywords=keywords)
 
