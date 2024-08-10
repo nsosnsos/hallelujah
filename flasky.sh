@@ -30,15 +30,15 @@ function clean () {
 
 function cron_add () {
     read -p "input backup server: " BACKUP_SERVER
-    CRON_TAB=$(crontab -l) || true
     CRON_JOB="0 1 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron $(whoami) ${BACKUP_SERVER}"
-    if echo "${CRON_TAB}" | grep -Fq "${SCRIPT_FILE}"; then
-        CRON_TAB=$(echo "${CRON_TAB}" | grep -Fqv "${SCRIPT_FILE}") || true
+    if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
+        crontab -l | grep -Fv "${CRON_JOB}" | crontab -
     fi
-    if [[ -z "${CRON_TAB}" ]]; then
+
+    if [[ -z "$(crontab -l)" ]]; then
         echo "${CRON_JOB}" | crontab -
     else
-        (echo "${CRON_TAB}"; echo "${CRON_JOB}") | crontab -
+        (echo "$(crontab -l)"; echo "${CRON_JOB}") | crontab -
     fi
 }
 
