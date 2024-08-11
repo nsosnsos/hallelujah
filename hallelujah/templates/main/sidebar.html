@@ -9,7 +9,7 @@
 <div class="container-fluid mt-4">
     <form method="post" role="form" class="search-group mb-3" action="{{ url_for('main.search', _external=True) }}">
         <span class="search-icon"><i class="bi-search mx-1"></i></span>
-        <input class="form-control search-input" type="search" id="search" name="search" placeholder="Search">
+        <input class="form-control search-input" type="search" id="search" name="search" placeholder="Search" required>
         <button class="btn btn-primary d-none" type="submit"><i class="bi-search mx-1"></i></button>
     </form>
 </div>
