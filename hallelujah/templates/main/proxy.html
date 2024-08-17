@@ -6,7 +6,7 @@
             <div class="col-md-6">
                 <form method="post" role="form" class="search-group mb-3" action="{{ url_for('main.proxy', _external=True) }}">
                     <span class="search-icon"><i class="bi-ladder mx-1"></i></span>
-                    <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" autofocus required>
+                    <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" onkeydown="handleKeyDown(event)"  autofocus required>
                 </form>
             </div>
         </div>
@@ -19,6 +19,20 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
+        function loadUrl() {
+            let url = document.getElementById("proxy").value;
+            if (!/^https?:\/\//i.test(url)) {
+                url = "https://" + url
+            }
+            const outputIframe = document.getElementById("iframe_output");
+            outputIframe.src = `/proxy?url=${encodeURIComponent(url)}`;
+        }
+        function handleKeyDown(event) {
+            if (event.key == "Enter") {
+                event.preventDefault();
+                loadUrl();
+            }
+        }
         function iframe_adaption() {
             header = document.querySelector("header");
             footer = document.querySelector("footer");
@@ -40,8 +54,8 @@
             iframe_output = document.querySelector("#iframe_output");
             iframe_output.style.height = "100%";
         }
-        window.addEventListener('load', iframe_adaption);
-        window.addEventListener('resize', iframe_adaption);
+        window.addEventListener("load", iframe_adaption);
+        window.addEventListener("resize", iframe_adaption);
     </script>
 {% endblock scripts %}
 

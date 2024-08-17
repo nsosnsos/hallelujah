@@ -3,6 +3,9 @@
 
 
 import os
+import requests
+import urllib.parse
+from bs4 import BeautifulSoup
 
 from flask_login import login_required, current_user
 from flask import Blueprint, render_template, request, current_app, abort, make_response, url_for, flash, jsonify, Response, send_file
@@ -279,10 +282,28 @@ def delete_resource(resource_id):
         flash('Resource ' + resource.title + ' ' + resource.uri +' is deleted!')
     return redirect_back()
 
-@bp_main.route('/proxy')
+@bp_main.route('/proxy', methods=['GET'])
 @login_required
 def proxy():
-    return render_template('main/proxy.html')
+    url = request.args.get('url', None)
+    if not url:
+        return render_template('main/proxy.html')
+    try:
+        rsp = requests.get(url)
+        rsp.raise_for_status()
+        content_type = rsp.headers.get('Content-Type', 'text/html')
+        if 'text/html' in content_type:
+            soup = BeautifulSoup(rsp.content, 'html.parser')
+            for tag in soup.find_all(['a', 'link'], href=True):
+                tag['href'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, tag["href"]))}'
+            for tag in soup.find_all(['img', 'script'], href=True):
+                tag['src'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, tag["src"]))}'
+            modified_html = str(soup)
+            return Response(modified_html, content_type=content_type)
+        else:
+            return Response(rsp.content, content_type=content_type)
+    except requests.RequestException as e:
+        return f'Error fetching the url:{url}, {str(e)}', 500
 
 @bp_main.route('/about')
 def about():
@@ -291,7 +312,7 @@ def about():
 @bp_main.route('/search', methods=['POST'])
 def search():
     keywords = request.form.get('search', None)
-    if keywords == '':
+    if not keywords:
         return redirect_back()
     keywords = '+'.join(keywords.split())
     return render_template('main/search.html', keywords=keywords)

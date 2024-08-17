@@ -8,6 +8,7 @@ flask_moment >= 1.0.2
 flask_wtf >= 1.0.1
 flask_session >= 0.4.0
 bleach >= 5.0.0
+beautifulsoup4 >= 4.12.3
 markdown >= 3.3.7
 faker >= 13.14.0
 pymysql >= 1.0.2
