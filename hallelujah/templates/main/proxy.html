@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="d-flex flex-column">
-        <div class="row justify-content-center mt-3" id="div_input">
-            <div class="col-md-6">
-                <form method="post" role="form" class="search-group mb-3" action="{{ url_for('main.proxy', _external=True) }}">
-                    <span class="search-icon"><i class="bi-ladder mx-1"></i></span>
-                    <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" onkeydown="handleKeyDown(event)"  autofocus required>
-                </form>
-            </div>
+    <div class="row justify-content-center" id="div_input">
+        <div class="col-md-6">
+            <form method="post" role="form" class="search-group my-3" action="{{ url_for('main.proxy', _external=True) }}">
+                <span class="search-icon"><i class="bi-ladder mx-1"></i></span>
+                <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" onkeydown="handleKeyDown(event)"  autofocus required>
+            </form>
         </div>
-        <div class"d-flex flex-grow-1" id="div_output">
-            <iframe class="mb-3" id="iframe_output" name="iframe_output"> </iframe>
-        </div>
+    </div>
+    <div class="row" id="div_output">
+        <iframe class="mb-3" id="iframe_output" name="iframe_output" sandbox="allow-scripts allow-same-origin"> </iframe>
     </div>
 {% endblock content %}
 
@@ -42,17 +40,18 @@
             footer_height = footer.clientHeight + parseInt(footer_style.marginTop) + parseInt(footer_style.marginBottom);
             data_container_height = window.innerHeight - header_height - footer_height;
             data_container = document.querySelector("#data_container");
-            data_container.style.minHeight = data_container_height + "px";
+            data_container.style.height = data_container_height + "px";
 
             div_input = document.querySelector("#div_input");
             div_input_style = getComputedStyle(div_input);
             div_input_height = div_input.clientHeight + parseInt(div_input_style.marginTop) + parseInt(div_input_style.marginBottom);
             div_output_height = data_container_height - div_input_height;
             div_output = document.querySelector("#div_output");
-            div_output.style.minHeight = div_output_height + "px";
+            div_output.style.height = div_output_height + "px";
 
             iframe_output = document.querySelector("#iframe_output");
-            iframe_output.style.height = "100%";
+            iframe_mb = parseInt(window.getComputedStyle(iframe_output).marginBottom);
+            iframe_output.style.height = (div_output_height - iframe_mb) + "px";
         }
         window.addEventListener("load", iframe_adaption);
         window.addEventListener("resize", iframe_adaption);

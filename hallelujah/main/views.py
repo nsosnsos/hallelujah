@@ -282,28 +282,45 @@ def delete_resource(resource_id):
         flash('Resource ' + resource.title + ' ' + resource.uri +' is deleted!')
     return redirect_back()
 
-@bp_main.route('/proxy', methods=['GET'])
+@bp_main.route('/proxy', methods=['POST', 'GET', 'OPTIONS'])
 @login_required
 def proxy():
-    url = request.args.get('url', None)
-    if not url:
-        return render_template('main/proxy.html')
     try:
-        rsp = requests.get(url)
+        method = request.method
+        if request.method == 'POST':
+            url = request.form.get('url', None)
+            rsp = requests.post(url, data=request.form)
+        elif request.method == 'GET':
+            url = request.args.get('url', None)
+            if not url:
+                return render_template('main/proxy.html')
+            rsp = requests.get(url)
+        else:
+            url = None
+            rsp = Response()
         rsp.raise_for_status()
-        content_type = rsp.headers.get('Content-Type', 'text/html')
+        rsp.headers['Access-Control-Allow-Origin'] = '*'
+        rsp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        rsp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        if request.method == 'OPTIONS':
+            return rsp
+        content_type = rsp.headers.get('Content-Type', '')
+        headers = dict(rsp.headers)
+        headers.pop('X-Frame-Options', None)
+        headers.pop('Content-Security-Policy', None)
         if 'text/html' in content_type:
             soup = BeautifulSoup(rsp.content, 'html.parser')
-            for tag in soup.find_all(['a', 'link'], href=True):
+            for tag in soup.find_all(['a', 'link', 'form'], href=True):
                 tag['href'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, tag["href"]))}'
-            for tag in soup.find_all(['img', 'script'], href=True):
+            for form in soup.find_all(['form'], action=True):
+                form['action'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, form["action"]))}'
+            for tag in soup.find_all(['img', 'script', 'link'], src=True):
                 tag['src'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, tag["src"]))}'
-            modified_html = str(soup)
-            return Response(modified_html, content_type=content_type)
+            return Response(str(soup), headers=headers, content_type=content_type)
         else:
-            return Response(rsp.content, content_type=content_type)
+            return Response(rsp.content, headers=headers, content_type=content_type)
     except requests.RequestException as e:
-        return f'Error fetching the url:{url}, {str(e)}', 500
+        return render_template('main/proxy.html')
 
 @bp_main.route('/about')
 def about():
