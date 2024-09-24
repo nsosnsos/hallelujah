@@ -57,36 +57,64 @@ def redirect_save(url=None):
     session['url'] = url
 
 
-def db_in_use():
-    return not current_app.config.get('SYS_SQLITE')
+def sqlite_in_use():
+    return current_app.config.get('SYS_SQLITE')
 
 
 def db_backup():
-    db_usr = current_app.config.get('DB_USERNAME')
-    db_pwd = current_app.config.get('DB_PASSWORD')
-    db_name = current_app.config.get('DB_NAME')
     data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
-    target_db = os.path.join(data_directory, db_name + '.sql')
-    command = f'mysqldump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
-    try:
-        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_backup failed: {}'.format(str(e)))
-    return ret.returncode == 0 and ret.stdout.decode() != ''
+    if sqlite_in_use():
+        sqlite_path = current_app.config.get('SQLITE_PATH')
+        sqlite_db = current_app.config.get('SQLITE_DB')
+        src_file = os.path.join(sqlite_path, sqlite_db)
+        dst_file = os.path.join(data_directory, sqlite_db)
+        if os.path.exists(src_file):
+            with open(src_file, 'rb') as src, open(dst_file, 'wb') as dst:
+                dst.write(src.read())
+            return True
+        else:
+            current_app.logger.error('db_backup failed: {}'.format('sqlite db not found.'))
+            return False
+    else:
+        db_usr = current_app.config.get('DB_USERNAME')
+        db_pwd = current_app.config.get('DB_PASSWORD')
+        db_name = current_app.config.get('DB_NAME')
+        target_db = os.path.join(data_directory, db_name + '.sql')
+        command = f'mysqldump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
+        try:
+            ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            current_app.logger.error('db_backup failed: {}'.format(str(e)))
+        return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
 def db_restore():
-    db_usr = current_app.config.get('DB_USERNAME')
-    db_pwd = current_app.config.get('DB_PASSWORD')
-    db_name = current_app.config.get('DB_NAME')
     data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
-    target_db = os.path.join(data_directory, db_name + '.sql')
-    command = f'mysql -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
-    try:
-        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-    except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_restore failed: {}'.format(str(e)))
-    return ret.returncode == 0 and ret.stdout.decode() != ''
+    if sqlite_in_use():
+        sqlite_path = current_app.config.get('SQLITE_PATH')
+        sqlite_db = current_app.config.get('SQLITE_DB')
+        src_file = os.path.join(data_directory, sqlite_db)
+        dst_file = os.path.join(sqlite_path, sqlite_db)
+        if os.path.exists(src_file):
+            if os.path.exists(dst_file):
+                os.remove(dst_file)
+            with open(src_file, 'rb') as src, open(dst_file, 'wb') as dst:
+                dst.write(src.read())
+            return True
+        else:
+            current_app.logger.error('db_backup failed: {}'.format('backup db not found.'))
+            return False
+    else:
+        db_usr = current_app.config.get('DB_USERNAME')
+        db_pwd = current_app.config.get('DB_PASSWORD')
+        db_name = current_app.config.get('DB_NAME')
+        target_db = os.path.join(data_directory, db_name + '.sql')
+        command = f'mysql -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
+        try:
+            ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            current_app.logger.error('db_restore failed: {}'.format(str(e)))
+        return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
 def db_is_exist(db_name=None):

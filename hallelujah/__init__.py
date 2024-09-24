@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from .config import configs
 from .extensions import db, migrate, bootstrap, login_manager, mail, moment, session
 from .models import User, AnonymousUser, Article, Media, Resource
-from .utility import get_request_ip, redirect_back, db_in_use, db_is_exist, db_drop, db_create, db_backup, db_restore, send_email
+from .utility import get_request_ip, redirect_back, sqlite_in_use, db_is_exist, db_drop, db_create, db_backup, db_restore, send_email
 from .main.views import bp_main
 from .auth.views import bp_auth
 from .api.views import bp_api
@@ -103,13 +103,11 @@ def register_commands(app):
 
     @app.cli.command()
     def backup():
-        if not app.config.get('SYS_SQLITE'):
-            db_backup()
+        db_backup()
 
     @app.cli.command()
     def restore():
-        if not app.config.get('SYS_SQLITE'):
-            db_restore()
+        db_restore()
 
     @app.cli.command()
     @click.option('--username', prompt=True, required=True,
@@ -149,7 +147,7 @@ def register_commands(app):
                   default=app.config.get('MAIL_PASSWORD'),
                   help='Administrator mail password')
     def init(mail_address, mail_password):
-        if not db_in_use():
+        if sqlite_in_use():
             app.logger.info('Drop all tables...')
             db.drop_all()
         else:
