@@ -69,7 +69,7 @@ class Config:
     SYS_MEDIA_EXCLUDES = 'public,private'
     SYS_REGISTER = False
     SYS_SQLITE = False
-    SYS_LOCAL_DEPLOY = False
+    SYS_LOCAL_DEPLOY = True
     SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
     SYS_THEME_DAY = 'United'
     SYS_THEME_NIGHT = 'Darkly'
@@ -170,6 +170,7 @@ class TestingConfig(Config):
     SYS_SQLITE = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SESSION_TYPE = 'filesystem'
+    SYS_LOCAL_DEPLOY = False
 
 
 class DevelopmentConfig(Config):

@@ -289,12 +289,12 @@ def proxy():
         method = request.method
         if request.method == 'POST':
             url = request.form.get('url', None)
-            rsp = requests.post(url, data=request.form)
+            rsp = requests.post(url, data=request.form, allow_redirects=True)
         elif request.method == 'GET':
             url = request.args.get('url', None)
             if not url:
                 return render_template('main/proxy.html')
-            rsp = requests.get(url)
+            rsp = requests.get(url, allow_redirects=True)
         else:
             url = None
             rsp = Response()
@@ -320,7 +320,12 @@ def proxy():
         else:
             return Response(rsp.content, headers=headers, content_type=content_type)
     except requests.RequestException as e:
+        current_app.logger.info(f'failed to request {url}, {str(e)}.')
         return render_template('main/proxy.html')
+    except Exception as e:
+        current_app.logger.info(f'failed to proxy {url}, {str(e)}.')
+        return render_template('main/proxy.html')
+
 
 @bp_main.route('/about')
 def about():
