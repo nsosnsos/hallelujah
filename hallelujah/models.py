@@ -46,7 +46,7 @@ class User(UserMixin, db.Model):
         return hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     def get_gravatar_icon(self, size=100, default='identicon', rating='g'):
-        if Config.SYS_LOCAL_DEPLOY:
+        if current_app.config.get('SYS_LOCAL_DEPLOY', False):
             return url_for('static', filename='img/user.png', _external=True)
         url = 'https://www.gravatar.com/avatar'
         avatar_hash = self.avatar_hash or self._generate_avatar_hash()
