@@ -87,7 +87,9 @@ def register_errorhandlers(app):
 def register_requesthandlers(app):
     @app.before_request
     def request_handler():
-        app.logger.info('[{}] {}'.format(get_request_ip(request), request.url))
+        parts = request.url.split('/')
+        if len(parts) < 4 or parts[3] != 'static':
+            app.logger.info('[{}] {}'.format(get_request_ip(request), request.url))
 
 def register_shell_context_processor(app):
     @app.shell_context_processor
