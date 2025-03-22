@@ -38,7 +38,6 @@ def login():
             flash(login_info, category='login')
             return redirect_back(redirect_before=True)
         flash('Invalid Username or Password')
-    redirect_save(request.referrer)
     return render_template('auth/login.html', form=form)
 
 @bp_auth.route('logout')
