@@ -12,7 +12,7 @@ else
     OPTION=${1}
 fi
 
-NUM_WORKERS=$(nproc)
+NUM_WORKERS=$(($(nproc) * 2 + 1))
 WORK_PATH=${SCRIPT_PATH}
 PYTHON_PATH=${HOME_PATH}/.python_env
 PYTHON_ENV=${PYTHON_PATH}/bin/activate
