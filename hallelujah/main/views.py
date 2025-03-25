@@ -288,12 +288,10 @@ def delete_resource(resource_id):
 @login_required
 def proxy():
     try:
-        method = request.method
+        url = request.args.get('url', None)
         if request.method == 'POST':
-            url = request.form.get('url', None)
             rsp = requests.post(url, data=request.form, allow_redirects=True)
         elif request.method == 'GET':
-            url = request.args.get('url', None)
             if not url:
                 return render_template('main/proxy.html')
             rsp = requests.get(url, allow_redirects=True)
