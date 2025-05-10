@@ -249,6 +249,7 @@ def delete_media(filename):
         flash('Media ' + media.filename +' is deleted!')
     return redirect_back()
 
+@bp_main.route('/resourcesl')
 @bp_main.route('/resources')
 @login_required
 def resources():
@@ -258,7 +259,8 @@ def resources():
     resources = {category: [] for category in categories}
     for resource in json_resources:
         resources[resource['category']].append(resource)
-    return render_template('main/resources.html', resources=resources)
+    local_icon = request.url.endswith('resourcesl')
+    return render_template('main/resources.html', resources=resources, local_icon=local_icon)
 
 @bp_main.route('/manage_resources', methods=['GET', 'POST'])
 @login_required
@@ -286,12 +288,10 @@ def delete_resource(resource_id):
 @login_required
 def proxy():
     try:
-        method = request.method
+        url = request.args.get('url', None)
         if request.method == 'POST':
-            url = request.form.get('url', None)
             rsp = requests.post(url, data=request.form, allow_redirects=True)
         elif request.method == 'GET':
-            url = request.args.get('url', None)
             if not url:
                 return render_template('main/proxy.html')
             rsp = requests.get(url, allow_redirects=True)

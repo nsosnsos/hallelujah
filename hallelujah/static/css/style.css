@@ -89,6 +89,17 @@ video, iframe {
     width: 100%;
 }
 
+.proxy-border {
+    border: 3px solid #CCCCCC;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.proxy-border:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
 .search-group {
     position: relative;
     width: 100%;
