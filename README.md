@@ -1,5 +1,5 @@
 ## Hallelujah
-### Flask project based on python 3.10.6
+### Flask project based on python 3.10.6/3.12.3
 
 ## Software dependency for deploy
 - nginx 1.18.0
