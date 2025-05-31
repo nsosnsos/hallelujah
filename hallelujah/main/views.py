@@ -302,13 +302,13 @@ def proxy():
         rsp.headers['Access-Control-Allow-Origin'] = '*'
         rsp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         rsp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        if request.method == 'OPTIONS':
+        if request.method != 'GET' and request.method != 'POST':
             return rsp
-        content_type = rsp.headers.get('Content-Type', '')
+        content_type = rsp.headers.get('Content-Type', 'text/html')
         headers = dict(rsp.headers)
         headers.pop('X-Frame-Options', None)
         headers.pop('Content-Security-Policy', None)
-        if 'text/html' in content_type:
+        if 'text/html' in content_type or 'text/javascript' in content_type:
             soup = BeautifulSoup(rsp.content, 'html.parser')
             for tag in soup.find_all(['a', 'link', 'form'], href=True):
                 tag['href'] = f'/proxy?url={urllib.parse.quote_plus(urllib.parse.urljoin(url, tag["href"]))}'

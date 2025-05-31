@@ -31,6 +31,7 @@
                 loadUrl();
             }
         }
+
         function iframe_adaption() {
             header = document.querySelector("header");
             footer = document.querySelector("footer");
@@ -52,6 +53,33 @@
             iframe_output = document.querySelector("#iframe_output");
             iframe_mb = parseInt(window.getComputedStyle(iframe_output).marginBottom);
             iframe_output.style.height = (div_output_height - iframe_mb) + "px";
+
+            iframe_doc = iframe_output.contentDocument || iframe_output.contentWindow.document;
+            iframe_doc.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var form = e.target();
+                var formData = new FormData(form);
+                var actionUrl = form.action;
+                var method = form.method;
+                var xhr = new XMLHttpRequest();
+                xhr.open(method, '/proxy?url=' + encodeURIComponent(actionUrl), true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        iframe_output.contentWindow.document.open();
+                        iframe_output.contentWindow.document.write(xhr.responseText);
+                        iframe_output.contentWindow.document.close();
+                    }
+                }
+                xhr.send(formData);
+            });
+            iframe_doc.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+                    var linkUrl = e.target.href;
+                    var proxyUrl = '/proxy?url=' + encodeURIComponent(linkUrl);
+                    iframe_output.src = proxyUrl;
+                }
+            });
         }
         window.addEventListener("load", iframe_adaption);
         window.addEventListener("resize", iframe_adaption);

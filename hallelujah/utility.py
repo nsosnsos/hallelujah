@@ -81,8 +81,10 @@ def db_backup():
         db_name = current_app.config.get('DB_NAME')
         target_db = os.path.join(data_directory, db_name + '.sql')
         command = f'mysqldump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
+        current_app.logger.error('db backup cmd: {}'.format(command))
         try:
             ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+            current_app.logger.error('db_backup result: {}'.format(ret))
         except subprocess.CalledProcessError as e:
             current_app.logger.error('db_backup failed: {}'.format(str(e)))
         return ret.returncode == 0 and ret.stdout.decode() != ''
@@ -110,8 +112,10 @@ def db_restore():
         db_name = current_app.config.get('DB_NAME')
         target_db = os.path.join(data_directory, db_name + '.sql')
         command = f'mysql -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
+        current_app.logger.error('db restore cmd: {}'.format(command))
         try:
             ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+            current_app.logger.error('db_restore result: {}'.format(ret))
         except subprocess.CalledProcessError as e:
             current_app.logger.error('db_restore failed: {}'.format(str(e)))
         return ret.returncode == 0 and ret.stdout.decode() != ''
