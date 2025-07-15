@@ -45,7 +45,7 @@ class Config:
     SECRET_KEY = os.urandom(32)
     MIN_STR_LEN = 4
     SHORT_STR_LEN = 64
-    LONG_STR_LEN = 128
+    LONG_STR_LEN = 256
     MAX_STR_LEN = 512
     ITEMS_PER_PAGE = 30
     PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=7)
