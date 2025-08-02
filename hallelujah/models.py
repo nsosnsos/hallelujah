@@ -101,20 +101,20 @@ class User(UserMixin, db.Model):
         return user
 
     @staticmethod
-    def query_user_media(username, path, filename):
+    def query_user_media(username, pathname, filename):
         user = User.query.filter(User.name==username).first()
         if not user:
             return False
         name = os.path.splitext(filename)[0]
-        media = Media.query.filter(Media.path==path).filter(Media.filename.like(f'{name}%')).first()
+        media = Media.query.filter(Media.path==pathname).filter(Media.filename.like(f'{name}%')).first()
         return media is not None
 
     @staticmethod
-    def add_user_media(username, path, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
+    def add_user_media(username, pathname, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
         user = User.query.filter(User.name==username).first()
         if not user:
             return None
-        media = Media.add_media(user.id, path, filename, timestamp, width, height, media_type, is_public)
+        media = Media.add_media(user.id, pathname, filename, timestamp, width, height, media_type, is_public)
         return media
 
     @staticmethod
@@ -309,8 +309,8 @@ class Media(db.Model):
         return json_media
 
     @staticmethod
-    def add_media(user_id, path, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
-        media = Media(user_id=user_id, path=path, filename=filename, timestamp=timestamp, width=width, height=height, media_type=media_type, is_public=is_public)
+    def add_media(user_id, pathname, filename, timestamp, width=None, height=None, media_type=MediaType.OTHER, is_public=False):
+        media = Media(user_id=user_id, path=pathname, filename=filename, timestamp=timestamp, width=width, height=height, media_type=media_type, is_public=is_public)
         db.session.add(media)
         try:
             db.session.commit()
