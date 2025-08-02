@@ -260,10 +260,10 @@ def _get_image_timestamp(image_file):
     return image_timestamp
 
 def _is_file_exist(cur_filename, query_func):
-    path = os.path.dirname(_get_relative_name(cur_filename))
+    pathname = os.path.dirname(_get_relative_name(cur_filename))
     filename = os.path.basename(cur_filename)
-    username = path.split(os.sep)[0]
-    return query_func(username, path, filename)
+    username = pathname.split(os.sep)[0]
+    return query_func(username, pathname, filename)
 
 def _get_solid_filename(cur_filename, query_func):
     while _is_file_exist(cur_filename, query_func):
@@ -323,6 +323,11 @@ def _get_video_timestamp(video_file):
             return timestamp
     return file_ctime
 
+def _get_video_thumbnail_filename(original_filename):
+    prefix, ext = os.path.splitext(original_filename)
+    return prefix + IMAGE_SUFFIXES[0]
+
+
 def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
     video_capture = cv2.VideoCapture(video_file)
     _, image = video_capture.read()
@@ -335,8 +340,7 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
         os.rename(video_file, new_file)
         new_filename = os.path.basename(new_file)
 
-    prefix, ext = os.path.splitext(new_filename)
-    thumbnail_filename = prefix + IMAGE_SUFFIXES[0]
+    thumbnail_filename = _get_video_thumbnail_filename(new_filename)
     thumbnail_file = os.path.join(thumbnail_dirname, thumbnail_filename)
     if not os.path.isfile(thumbnail_file):
         width = round(image.shape[1] * float(height) / image.shape[0])
@@ -367,6 +371,33 @@ def _get_thumbnail_name(media_full_name):
     thumbnail_full_name = os.path.join(thumbnail_path, media_relative_name)
     return thumbnail_full_name
 
+def _get_media_files(pathname, filename, media_type):
+    original_base_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
+    thumbnail_base_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
+    original_media = os.path.join(original_base_path, pathname, filename)
+    if media_type == MediaType.IMAGE:
+        thumbnail_media = os.path.join(thumbnail_base_path, pathname, filename)
+    elif media_type <= MediaType.VIDEO:
+        thumbnail_filename = _get_video_thumbnail_filename(filename)
+        thumbnail_media = os.path.join(thumbnail_base_path, pathname, thumbnail_filename)
+    else:
+        thumbnail_media = None
+    return original_media, thumbnail_media
+
+def _verify_media_integrity(added_media, pathname, filename, media_type):
+    original_media, thumbnail_media = _get_media_files(pathname, filename, media_type)
+    if (not added_media) or (not os.path.isfile(original_media)) or (thumbnail_media and not os.path.isfile(thumbnail_media)):
+        if os.path.isfile(original_media):
+            os.remove(original_media)
+            current_app.logger.error('verify media integrity: remove original media {}'.format(original_media))
+        if thumbnail_media and os.path.isfile(thumbnail_media):
+            os.remove(thumbnail_media)
+            current_app.logger.error('verify media integrity: remove thumbnail media {}'.format(thumbnail_media))
+        if added_media:
+            added_media.delete_media(added_media.uuidname)
+            current_app.logger.error('verify media integrity: remove media {}'.format(added_media.uuidname))
+    return added_media
+
 def import_user_media(media_full_name, is_public, user_query_media_func, user_add_media_func):
     prefix, ext = os.path.splitext(media_full_name)
     target_ext = ext.lower()
@@ -380,9 +411,9 @@ def import_user_media(media_full_name, is_public, user_query_media_func, user_ad
     metadata = _create_thumbnail(media_full_name, thumbnail_dirname, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'), user_query_media_func)
     (width, height), media_type, media_datetime, media_filename = metadata
     timestamp = datetime.datetime.fromtimestamp(media_datetime)
-    return user_add_media_func(username=user_name, path=relative_path, filename=media_filename,
-                               width=width, height=height, timestamp=timestamp,
-                               media_type=media_type, is_public=is_public)
+    added_media = user_add_media_func(user_name, relative_path, media_filename, timestamp,
+                                      width=width, height=height, media_type=media_type, is_public=is_public)
+    return _verify_media_integrity(added_media, relative_path, media_filename, media_type)
 
 def import_user_medias(user_name, user_query_media_func, user_add_media_func):
     original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')

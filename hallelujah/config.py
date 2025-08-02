@@ -84,7 +84,6 @@ class Config:
 
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
-    MAIL_USE_SSL = False
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'MAIL_USERNAME@SERVER.COM'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None) or 'MAIL_PASSWORD'
@@ -139,7 +138,7 @@ class Config:
 
     @classmethod
     def _get_logger(cls):
-        log_format = logging.Formatter('[%(asctime)s] %(message)s')
+        log_format = logging.Formatter('[%(levelname)s][%(asctime)s]: %(message)s')
         logger = logging.getLogger(name=cls.SITE_NAME)
         logger.setLevel(logging.DEBUG)
 
