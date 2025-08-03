@@ -377,7 +377,7 @@ def _get_media_files(pathname, filename, media_type):
     original_media = os.path.join(original_base_path, pathname, filename)
     if media_type == MediaType.IMAGE:
         thumbnail_media = os.path.join(thumbnail_base_path, pathname, filename)
-    elif media_type <= MediaType.VIDEO:
+    elif media_type == MediaType.VIDEO:
         thumbnail_filename = _get_video_thumbnail_filename(filename)
         thumbnail_media = os.path.join(thumbnail_base_path, pathname, thumbnail_filename)
     else:
