@@ -30,6 +30,10 @@ function data_container_adaption() {
     header_height = header.clientHeight + parseInt(header_style.marginTop) + parseInt(header_style.marginBottom);
     footer_height = footer.clientHeight + parseInt(footer_style.marginTop) + parseInt(footer_style.marginBottom);
     data_container_height = window.innerHeight - header_height - footer_height;
-    data_container.style.minHeight = data_container_height + "px";
+    data_container.style.height = data_container_height + "px";
 }
+
+window.addEventListener('DOMContentLoaded', data_container_adaption);
+window.addEventListener('load', data_container_adaption);
+window.addEventListener('resize', data_container_adaption);
 
