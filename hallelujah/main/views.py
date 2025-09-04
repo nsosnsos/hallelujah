@@ -270,7 +270,7 @@ def manage_resources():
         if Resource.add_resource(current_user.id, form.uri.data, form.rank.data, form.title.data, form.category.data):
             flash('Resource is added successfully!')
         else:
-            flash('Resource is failed to be added!')
+            flash('Failed to add resource!')
     columns = list(Resource(id=-1, uri=request.url_root).to_json().keys())
     return render_template('main/resources.html', columns=columns, form=form)
 
