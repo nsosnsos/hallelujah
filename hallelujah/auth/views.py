@@ -22,7 +22,7 @@ def unauthorized():
 @bp_auth.route('login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect_back()
+        return redirect_back('main.index')
 
     form = LoginForm()
     if form.validate_on_submit():

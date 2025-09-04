@@ -3,7 +3,7 @@ a {
     text-decoration: none;
 }
 
-/* minimized width for card */
+/* minimized width for header, content, footer */
 .mw-320 {
     min-width: 320px;
 }
