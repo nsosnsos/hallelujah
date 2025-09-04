@@ -48,7 +48,7 @@
                             <div class="modal-body">
                                 <form method="post" role="form" class="needs-validation" novalidate>
                                     {{ form.hidden_tag() }}
-                                    {{ render_field(form.directory_name, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='directory name') }}
+                                    {{ render_field(form.directory_name, form_group_classes='form-group has-success has-danger form-floating mb-3', type='text', placeholder='directory name', minlength=1) }}
                                     {{ render_field(form.submit, class='container-fluid btn btn-primary') }}
                                 </form>
                             </div>

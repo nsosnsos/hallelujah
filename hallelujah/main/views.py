@@ -131,7 +131,7 @@ def manage_medias(current_path):
         os.makedirs(target_path, mode=0o775, exist_ok=True)
         dirs.append(target_dir)
         dirs.sort()
-        flash('Directory ' + current_path + ' is added successfully!')
+        flash('Directory ' + target_path + ' is added successfully!')
     return render_template('main/medias.html', current_path=current_path, form=form, dirs=dirs, files=files)
 
 @bp_main.route('/upload/<path:current_path>', methods=['POST'])
