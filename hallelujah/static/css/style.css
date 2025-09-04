@@ -13,6 +13,11 @@ a {
     min-width: 180px;
 }
 
+/* inherit height from content */
+#data_container > #data_card {
+    min-height: inherit;
+}
+
 /* footer always at bottom */
 .flex-wrapper {
     display: flex;
@@ -60,10 +65,10 @@ a {
     display: flex;
     flex-wrap: wrap;
 }
-.gallery>a, .gallery::after {
+.gallery > a, .gallery::after {
     flex-basis: var(--w);
 }
-.gallery>a {
+.gallery > a {
     margin: 0.1rem;
     flex-grow: calc(var(--w) / var(--h) * 100);
     width: calc(var(--w) * 1px);
@@ -74,7 +79,7 @@ a {
   content: '';
   flex-grow: 1000000;
 }
-.gallery>a>div {
+.gallery > a > div {
   position: relative;
 }
 
