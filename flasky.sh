@@ -128,6 +128,8 @@ elif [ ${OPTION} == 'deploy' ]; then
     sudo sed -i "s|PROJECT_PATH|${SCRIPT_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
     sudo sed -i "s|PYTHON_PATH|${PYTHON_PATH}|g" ${SERVICE_PATH}/${SERVICE_NAME}
     sudo sed -i "s|NUM_WORKERS|${NUM_WORKERS}|g" ${SERVICE_PATH}/${SERVICE_NAME}
+    SECRET_KEY=$(echo ${RANDOM} | md5sum | head -c 32)
+    sudo sed -i "s|SECRET_KEY = .*|SECRET_KEY = '${SECRET_KEY}'|g" ${SCRIPT_PATH}/hallelujah/config.py
     sudo systemctl daemon-reload
     sudo systemctl enable ${SERVICE_NAME}
     sudo systemctl restart ${SERVICE_NAME}
