@@ -112,6 +112,10 @@ def register_commands(app):
         db_restore()
 
     @app.cli.command()
+    def check():
+        Media.check_media()
+
+    @app.cli.command()
     @click.option('--username', prompt=True, required=True,
                   help='new user name')
     @click.option('--password', prompt=True, required=True, hide_input=True,

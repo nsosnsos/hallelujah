@@ -24,7 +24,7 @@
 3. file browser, support file multiple upload by dropping or selecting.
 4. favorite hyperlink with categories.
 5. redis session support for multiple workers.
-6. easy to use by flasky script with command: init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore.
+6. easy to use by flasky script with command: init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore|check.
 7. log every view url access with real ip address, and authentication information.
 8. simple proxy browser without security check.
 
@@ -83,5 +83,9 @@
   - Restore database.
   ```shell
   bash flasky.sh restore
+  ```
+  - Check data storage.
+  ```shell
+  bash flasky.sh check
   ```
 

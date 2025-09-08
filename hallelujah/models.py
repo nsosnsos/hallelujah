@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from jinja2.filters import do_striptags, do_truncate
 
 from .extensions import db, login_manager
-from .utility import markdown_to_html, get_thumbnail_size, import_user_medias, MediaType, IMAGE_SUFFIXES
+from .utility import markdown_to_html, get_thumbnail_size, get_media_files, import_user_medias, MediaType, IMAGE_SUFFIXES
 from .config import Config
 
 
@@ -331,6 +331,31 @@ class Media(db.Model):
             current_app.logger.error('delete_media: {}'.format(str(e)))
             return False
         return True
+
+    @staticmethod
+    def check_media():
+        data_set = set()
+        items = Media.query.all()
+        for item in items:
+            original_media, thumbnail_media = get_media_files(item.path, item.filename, item.media_type)
+            if original_media in data_set:
+                current_app.logger.error(f'duplicated file in database: {original_media}')
+            elif not os.path.isfile(original_media):
+                current_app.logger.error(f'invalid file in database: {original_media}')
+            else:
+                data_set.add(original_media)
+            if thumbnail_media:
+                if thumbnail_media in data_set:
+                    current_app.logger.error(f'duplicated file in database: {thumbnail_media}')
+                elif not os.path.isfile(thumbnail_media):
+                    current_app.logger.error(f'invalid file in database: {thumbnail_media}')
+                else:
+                    data_set.add(thumbnail_media)
+        for root, _, files in os.walk(current_app.config.get('SYS_MEDIA'), topdown=False):
+            for filename in files:
+                cur_filename = os.path.join(root, filename)
+                if cur_filename not in data_set:
+                    current_app.logger.error(f'unrecorded file: {cur_filename}')
 
 
 class Resource(db.Model):
