@@ -151,7 +151,11 @@ elif [ ${OPTION} == 'restore' ]; then
     cd ${SCRIPT_PATH}
     source ${PYTHON_ENV}
     flask restore
+elif [ ${OPTION} == 'check' ]; then
+    cd ${SCRIPT_PATH}
+    source ${PYTHON_ENV}
+    flask check
 else
-    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore]"
+    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore|check]"
 fi
 
