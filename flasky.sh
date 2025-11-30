@@ -29,8 +29,9 @@ function clean () {
 }
 
 function cron_add () {
-    read -p "input backup server: " BACKUP_SERVER
-    CRON_JOB="0 1 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron $(whoami) ${BACKUP_SERVER}"
+    read -p "input backup server hostname: " BACKUP_HOSTNAME
+    read -p "input backup server username: " BACKUP_USERNAME
+    CRON_JOB="0 2 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron ${BACKUP_USERNAME} ${BACKUP_HOSTNAME}"
     if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
         crontab -l | grep -Fv "${CRON_JOB}" | crontab -
     fi
@@ -44,19 +45,19 @@ function cron_add () {
 
 function cron_job () {
     BACKUP_USER=${1}
-    BACKUP_SERVER=${2}
+    BACKUP_HOST=${2}
     DATA_PATH="${HOME_PATH}/data"
     DB_FILE="${DATA_PATH}/${APP_NAME}.sql"
     BACKUP_PATH="${HOME_PATH}/backup"
     BACKUP_FILE="data_$(date +"%Y%m%d_%H%M%S").tar.gz"
-    KEEP_CNT=2
+    KEEP_CNT=1
 
     function clean () {
         cd "${BACKUP_PATH}" || exit
         DELETE_LIST=$(ls -1 "${BACKUP_PATH}" | sort | head -n -${KEEP_CNT})
         for DELETE_FILE in ${DELETE_LIST}; do
             rm -f "${BACKUP_PATH}/${DELETE_FILE}"
-            ssh "${BACKUP_USER}@${BACKUP_SERVER}" "rm -f '${BACKUP_PATH}/${DELETE_FILE}'"
+            ssh "${BACKUP_USER}@${BACKUP_HOST}" "rm -f '${BACKUP_PATH}/${DELETE_FILE}'"
         done
         cd -
     }
@@ -68,13 +69,13 @@ function cron_job () {
     }
 
     function sync () {
-        scp "${BACKUP_PATH}/${BACKUP_FILE}" "${BACKUP_USR}@${BACKUP_SERVER}:${BACKUP_PATH}/"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "sudo service ${APP_NAME} stop"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "rm -rf ${DATA_PATH}/*"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${BACKUP_FILE}"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "${SCRIPT_PATH}/${SCRIPT_FILE} restore"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "cd ${SCRIPT_PATH}; git clean -xdf; git checkout .; git pull"
-        ssh "${BACKUP_USER}@${BACKUP_SERVER}" "sudo service ${APP_NAME} start"
+        scp "${BACKUP_PATH}/${BACKUP_FILE}" "${BACKUP_USR}@${BACKUP_HOST}:${BACKUP_PATH}/"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "sudo service ${APP_NAME} stop"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "rm -rf ${DATA_PATH}/*"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${BACKUP_FILE}"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "${SCRIPT_PATH}/${SCRIPT_FILE} restore"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "cd ${SCRIPT_PATH}; git clean -xdf; git checkout .; git pull"
+        ssh "${BACKUP_USER}@${BACKUP_HOST}" "sudo service ${APP_NAME} start"
     }
 
     clean
