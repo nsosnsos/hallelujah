@@ -74,7 +74,7 @@ function cron_job () {
     }
 
     function sync () {
-        scp "${BACKUP_PATH}/${BACKUP_FILE}" "${BACKUP_USR}@${REMOTE_HOST}:${REMOTE_BACKUP_PATH}/"
+        scp "${BACKUP_PATH}/${BACKUP_FILE}" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_BACKUP_PATH}/"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "sudo service ${APP_NAME} stop"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "rm -rf ${REMOTE_DATA_PATH}/*"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "cd ${REMOTE_DATA_PATH}/..; tar -zxf ${REMOTE_BACKUP_PATH}/${BACKUP_FILE}"
