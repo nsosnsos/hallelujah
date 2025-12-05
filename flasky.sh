@@ -178,7 +178,7 @@ elif [ ${OPTION} == 'cron' ]; then
         cron_add_sync
     elif [[ ${CRON_CMD} == 'job_backup' ]]; then
         cron_job_backup
-    elif [[ ${CRON_CMD} == 'job_sync' && ${#} -e 4 ]]; then
+    elif [[ ${CRON_CMD} == 'job_sync' && ${#} -eq 4 ]]; then
         cron_job_sync ${3} ${4}
     else
         echo "cron [add_backup|add_sync|job_backup|job_sync remote_user remote_host]"
