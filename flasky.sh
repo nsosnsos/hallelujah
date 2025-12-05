@@ -110,9 +110,9 @@ function cron_job_sync () {
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "sudo service ${APP_NAME} stop"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "rm -rf ${REMOTE_DATA_PATH}/*"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "cd ${REMOTE_DATA_PATH}/..; tar -zxf ${REMOTE_BACKUP_PATH}/${BACKUP_FILE}"
-        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} restore"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "cd ${REMOTE_SCRIPT_PATH}; git clean -xdf; git checkout .; git pull"
-        ssh "${REMOTE_USER}@${REMOTE_HOST}" "sudo service ${APP_NAME} start"
+        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} restore"
+        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} deploy"
     }
 
     clean_remote
@@ -178,7 +178,7 @@ elif [ ${OPTION} == 'cron' ]; then
         cron_add_sync
     elif [[ ${CRON_CMD} == 'job_backup' ]]; then
         cron_job_backup
-    elif [[ ${CRON_CMD} == 'job_sync' && ${#} -e 4 ]]; then
+    elif [[ ${CRON_CMD} == 'job_sync' && ${#} -eq 4 ]]; then
         cron_job_sync ${3} ${4}
     else
         echo "cron [add_backup|add_sync|job_backup|job_sync remote_user remote_host]"
