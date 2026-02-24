@@ -7,7 +7,7 @@ import cv2
 import bleach
 import datetime
 import subprocess
-from PIL import Image, ExifTags
+from PIL import Image, ImageOps, ExifTags
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 from threading import Thread
@@ -286,6 +286,7 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
         new_filename = os.path.basename(new_file)
 
     image = Image.open(new_file)
+    image = ImageOps.exif_transpose(image)
     ### PIL.Image.rotate is not good enough to be applyed!
     # image = _rotate_image_by_orientation(image)
     image_size = image.size
