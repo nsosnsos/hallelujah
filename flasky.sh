@@ -22,6 +22,10 @@ TRAVERSE_PATH=${SCRIPT_PATH}
 APP_NAME=hallelujah
 SERVICE_PATH=/etc/systemd/system
 SERVICE_NAME=${APP_NAME}.service
+DATA_PATH="${HOME_PATH}/data"
+BACKUP_PATH="${HOME_PATH}/backup"
+KEEP_CNT=1
+
 
 function clean () {
     find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
@@ -42,29 +46,11 @@ function cron_add_backup () {
     fi
 }
 
-function cron_add_sync () {
-    read -p "input remote server hostname: " REMOTE_HOST
-    read -p "input remote server username: " REMOTE_USER
-    CRON_JOB="0 4 1 * * ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_sync ${REMOTE_USER} ${REMOTE_HOST}"
-    if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
-        crontab -l | grep -Fv "${CRON_JOB}" | crontab -
-    fi
-
-    if [[ -z "$(crontab -l)" ]]; then
-        echo "${CRON_JOB}" | crontab -
-    else
-        (echo "$(crontab -l)"; echo "${CRON_JOB}") | crontab -
-    fi
-}
-
 function cron_job_backup () {
-    DATA_PATH="${HOME_PATH}/data"
     DB_FILE="${APP_NAME}.sql"
-    BACKUP_PATH="${HOME_PATH}/backup"
     BACKUP_FILE="data_$(date +"%Y%m%d_%H%M%S").tar.gz"
-    KEEP_CNT=1
 
-    function clean_local () {
+    function clean () {
         cd "${BACKUP_PATH}" || exit
         DELETE_LIST=$(ls -1 "${BACKUP_PATH}" | sort | head -n -${KEEP_CNT})
         for DELETE_FILE in ${DELETE_LIST}; do
@@ -79,24 +65,35 @@ function cron_job_backup () {
         cd ${DATA_PATH}/.. && tar -zcf "${BACKUP_PATH}/${BACKUP_FILE}" "$(basename ${DATA_PATH})"
     }
 
-    clean_local
+    clean
     backup
 }
 
-function cron_job_sync () {
+function cron_add_sync_push () {
+    REMOTE_USER=${1}
+    REMOTE_HOST=${2}
+    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_sync_push ${REMOTE_USER} ${REMOTE_HOST}"
+    if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
+        crontab -l | grep -Fv "${CRON_JOB}" | crontab -
+    fi
+
+    if [[ -z "$(crontab -l)" ]]; then
+        echo "${CRON_JOB}" | crontab -
+    else
+        (echo "$(crontab -l)"; echo "${CRON_JOB}") | crontab -
+    fi
+}
+
+function cron_job_sync_push () {
     REMOTE_USER=${1}
     REMOTE_HOST=${2}
     REMOTE_HOME_PATH="${HOME_PATH//${CUR_USER}/${REMOTE_USER}}"
     REMOTE_SCRIPT_PATH="${SCRIPT_PATH//${CUR_USER}/${REMOTE_USER}}"
-    DATA_PATH="${HOME_PATH}/data"
     REMOTE_DATA_PATH="${REMOTE_HOME_PATH}/data"
-    DB_FILE="${APP_NAME}.sql"
-    BACKUP_PATH="${HOME_PATH}/backup"
     REMOTE_BACKUP_PATH="${REMOTE_HOME_PATH}/backup"
     BACKUP_FILE=$(ls -1 "${BACKUP_PATH}" | tail -n 1)
-    KEEP_CNT=1
 
-    function clean_remote () {
+    function clean_push () {
         cd "${BACKUP_PATH}" || exit
         DELETE_LIST=$(ssh "${REMOTE_USER}@${REMOTE_HOST}" "ls -1 '${REMOTE_BACKUP_PATH}' | sort | head -n -${KEEP_CNT}")
         for DELETE_FILE in ${DELETE_LIST}; do
@@ -105,7 +102,7 @@ function cron_job_sync () {
         cd -
     }
 
-    function sync () {
+    function sync_push () {
         scp "${BACKUP_PATH}/${BACKUP_FILE}" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_BACKUP_PATH}/"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "sudo service ${APP_NAME} stop"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "rm -rf ${REMOTE_DATA_PATH}/*"
@@ -115,8 +112,53 @@ function cron_job_sync () {
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} deploy"
     }
 
-    clean_remote
-    sync
+    clean_push
+    sync_push
+}
+
+function cron_add_sync_pull () {
+    REMOTE_USER=${1}
+    REMOTE_HOST=${2}
+    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_sync_pull ${REMOTE_USER} ${REMOTE_HOST}"
+    if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
+        crontab -l | grep -Fv "${CRON_JOB}" | crontab -
+    fi
+
+    if [[ -z "$(crontab -l)" ]]; then
+        echo "${CRON_JOB}" | crontab -
+    else
+        (echo "$(crontab -l)"; echo "${CRON_JOB}") | crontab -
+    fi
+}
+
+function cron_job_sync_pull () {
+    REMOTE_USER=${1}
+    REMOTE_HOST=${2}
+    REMOTE_HOME_PATH="${HOME_PATH//${CUR_USER}/${REMOTE_USER}}"
+    REMOTE_BACKUP_PATH="${REMOTE_HOME_PATH}/backup"
+    REMOTE_BACKUP_FILE=$(ssh "${REMOTE_USER}@${REMOTE_HOST}" "ls -1 '${REMOTE_BACKUP_PATH}' | tail -n 1")
+
+    function clean_pull () {
+        cd "${BACKUP_PATH}" || exit
+        DELETE_LIST=$(ls -1 "${BACKUP_PATH}" | sort | head -n -${KEEP_CNT})
+        for DELETE_FILE in ${DELETE_LIST}; do
+            rm -f ${BACKUP_PATH}/${DELETE_FILE}
+        done
+        cd -
+    }
+
+    function sync_pull () {
+        scp "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_BACKUP_PATH}/${REMOTE_BACKUP_FILE}" "${BACKUP_PATH}/"
+        sudo service ${APP_NAME} stop
+        rm -rf ${DATA_PATH}/*
+        cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${REMOTE_BACKUP_FILE}
+        cd ${SCRIPT_PATH}; git clean -xdf; git checkout .; git pull
+        ${SCRIPT_PATH}/${SCRIPT_FILE} restore
+        ${SCRIPT_PATH}/${SCRIPT_FILE} deploy
+    }
+
+    clean_pull
+    sync_pull
 }
 
 if [[ ${OPTION} == 'debug' ]]; then
@@ -174,14 +216,20 @@ elif [ ${OPTION} == 'cron' ]; then
     CRON_CMD=${2}
     if [[ ${CRON_CMD} == 'add_backup' ]]; then
         cron_add_backup
-    elif [[ ${CRON_CMD} == 'add_sync' ]]; then
-        cron_add_sync
     elif [[ ${CRON_CMD} == 'job_backup' ]]; then
         cron_job_backup
-    elif [[ ${CRON_CMD} == 'job_sync' && ${#} -eq 4 ]]; then
-        cron_job_sync ${3} ${4}
+    elif [[ ${CRON_CMD} == 'add_sync_pull' && ${#} -eq 4 ]]; then
+        cron_add_sync_pull ${3} ${4}
+    elif [[ ${CRON_CMD} == 'job_sync_pull' && ${#} -eq 4 ]]; then
+        cron_job_sync_pull ${3} ${4}
+    elif [[ ${CRON_CMD} == 'add_sync_push' && ${#} -eq 4 ]]; then
+        cron_add_sync_push ${3} ${4}
+    elif [[ ${CRON_CMD} == 'job_sync_push' && ${#} -eq 4 ]]; then
+        cron_job_sync_push ${3} ${4}
     else
-        echo "cron [add_backup|add_sync|job_backup|job_sync remote_user remote_host]"
+        echo "Usage: ${SCRIPT_FILE} cron with command"
+        echo "    cron [add_backup|job_backup]"
+        echo "    cron [add_sync_pull|job_sync_pull|add_sync_push|job_sync_push] remote_user remote_host"
     fi
 elif [ ${OPTION} == 'run' ]; then
     cd ${SCRIPT_PATH}
