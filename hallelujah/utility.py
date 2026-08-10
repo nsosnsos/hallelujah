@@ -4,6 +4,7 @@
 
 import os
 import cv2
+import shutil
 import bleach
 import datetime
 import subprocess
@@ -69,25 +70,28 @@ def db_backup():
         src_file = os.path.join(sqlite_path, sqlite_db)
         dst_file = os.path.join(data_directory, sqlite_db)
         if os.path.exists(src_file):
-            with open(src_file, 'rb') as src, open(dst_file, 'wb') as dst:
-                dst.write(src.read())
+            shutil.copyfile(src_file, dst_file)
             return True
         else:
             current_app.logger.error('db_backup failed: {}'.format('sqlite db not found.'))
             return False
     else:
+        env = os.environ.copy()
+        env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
         db_usr = current_app.config.get('DB_USERNAME')
-        db_pwd = current_app.config.get('DB_PASSWORD')
         db_name = current_app.config.get('DB_NAME')
         target_db = os.path.join(data_directory, db_name + '.sql')
-        command = f'mysqldump -u{db_usr} -p\'{db_pwd}\' --databases \'{db_name}\' > {target_db}'
-        current_app.logger.info('db backup cmd: {}'.format(command))
+        db_charset = current_app.config.get('DB_CHARSET')
+        command = ['mysqldump', '--single-transaction', '--default-character-set=' + db_charset,
+                   '-u', db_usr, '--databases', db_name]
         try:
-            ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-            current_app.logger.info('db_backup result: {}'.format(ret))
+            with open(target_db, 'wb') as out:
+                ret = subprocess.run(command, stdout=out, stderr=subprocess.PIPE, env=env, shell=False)
         except subprocess.CalledProcessError as e:
             current_app.logger.error('db_backup failed: {}'.format(str(e)))
-        return ret.returncode == 0 and ret.stdout.decode() != ''
+            return False
+        current_app.logger.info('db_backup result: {}'.format(ret))
+        return ret.returncode == 0
 
 
 def db_restore():
@@ -98,66 +102,74 @@ def db_restore():
         src_file = os.path.join(data_directory, sqlite_db)
         dst_file = os.path.join(sqlite_path, sqlite_db)
         if os.path.exists(src_file):
-            if os.path.exists(dst_file):
-                os.remove(dst_file)
-            with open(src_file, 'rb') as src, open(dst_file, 'wb') as dst:
-                dst.write(src.read())
+            shutil.copyfile(src_file, dst_file)
             return True
         else:
             current_app.logger.error('db_backup failed: {}'.format('backup db not found.'))
             return False
     else:
+        env = os.environ.copy()
+        env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
         db_usr = current_app.config.get('DB_USERNAME')
-        db_pwd = current_app.config.get('DB_PASSWORD')
         db_name = current_app.config.get('DB_NAME')
         target_db = os.path.join(data_directory, db_name + '.sql')
-        command = f'mysql -u{db_usr} -p\'{db_pwd}\' \'{db_name}\' < {target_db}'
-        current_app.logger.info('db restore cmd: {}'.format(command))
+        db_charset = current_app.config.get('DB_CHARSET')
+        command = ['mysql', '--default-character-set=' + db_charset, '-u', db_usr, db_name]
+        if not os.path.isfile(target_db):
+            current_app.logger.error('db_restore failed: backup db is not found.')
+            return False
         try:
-            ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-            current_app.logger.info('db_restore result: {}'.format(ret))
+            with open(target_db, 'rb') as src:
+                ret = subprocess.run(command, stdin=src, stderr=subprocess.PIPE, env=env, shell=False)
         except subprocess.CalledProcessError as e:
             current_app.logger.error('db_restore failed: {}'.format(str(e)))
-        return ret.returncode == 0 and ret.stdout.decode() != ''
+            return False
+        current_app.logger.info('db_restore result: {}'.format(ret))
+        return ret.returncode == 0
 
 
 def db_is_exist(db_name=None):
+    env = os.environ.copy()
+    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
     db_usr = current_app.config.get('DB_USERNAME')
-    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
         db_name = current_app.config.get('DB_NAME')
-    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=\'{db_name}\';\"'
+    command = ['mysql', '-u', db_usr, '-e',
+               f'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME="{db_name}";']
     try:
-        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_is_exist: {}'.format(str(e)))
+        current_app.logger.error('db_is_exist failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
 def db_drop(db_name=None):
+    env = os.environ.copy()
+    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
     db_usr = current_app.config.get('DB_USERNAME')
-    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
         db_name = current_app.config.get('DB_NAME')
-    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"DROP DATABASE IF EXISTS {db_name};\"'
+    command = ['mysql', '-u', db_usr, '-e', f'DROP DATABASE IF EXISTS {db_name};']
     try:
-        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_drop: {}'.format(str(e)))
+        current_app.logger.error('db_drop failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() != ''
 
 
 def db_create(db_name=None):
+    env = os.environ.copy()
+    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
     db_usr = current_app.config.get('DB_USERNAME')
-    db_pwd = current_app.config.get('DB_PASSWORD')
     if not db_name:
         db_name = current_app.config.get('DB_NAME')
     db_charset = current_app.config.get('DB_CHARSET')
-    command = f'mysql -u {db_usr} -p\'{db_pwd}\' -e \"CREATE DATABASE IF NOT EXISTS {db_name} DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;\"'
+    command = ['mysql', '-u', db_usr, '-e',
+               f'CREATE DATABASE IF NOT EXISTS {db_name} DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;']
     try:
-        ret = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_create: {}'.format(str(e)))
+        current_app.logger.error('db_create failed: {}'.format(str(e)))
     return ret.returncode == 0 and ret.stdout.decode() == ''
 
 

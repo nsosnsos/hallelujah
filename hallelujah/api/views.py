@@ -47,7 +47,7 @@ def get_user_articles():
 @bp_api.route('/get_self_articles')
 def get_self_articles():
     user_id = current_user.id if current_user.is_authenticated else -1
-    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PSER_PAGE', 1)
+    offset = int(request.args.get('offset', 0)) * current_app.config.get('ITEMS_PER_PAGE', 1)
     limit = current_app.config.get('ITEMS_PER_PAGE')
     articles = Article.query.filter(Article.user_id == user_id).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])

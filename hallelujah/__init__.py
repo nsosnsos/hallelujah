@@ -3,6 +3,7 @@
 
 
 import os
+import sys
 import click
 import unittest
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -25,6 +26,9 @@ def create_app(config_name='default'):
                 static_folder=configs[config_name].SYS_STATIC,
                 template_folder=configs[config_name].SYS_TEMPLATE)
     app.config.from_object(configs[config_name])
+    if not app.config.get('SECRET_KEY', None):
+        app.logger.error('secret key is not found!')
+        sys.exit(1)
     configs[config_name].init_app(app)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
 
