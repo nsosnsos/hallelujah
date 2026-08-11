@@ -7,6 +7,7 @@ import re
 import sys
 import json
 import redis
+import secrets
 import logging
 import requests
 import datetime
@@ -42,7 +43,7 @@ class Config:
     TESTING = False
 
     CSRF_ENABLED = True
-    SECRET_KEY = os.urandom(32)
+    SECRET_KEY = os.environ.get('SECRET_KEY', None)
     MIN_STR_LEN = 4
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 256
@@ -170,6 +171,7 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SESSION_TYPE = 'filesystem'
     SYS_LOCAL_DEPLOY = False
+    SECRET_KEY = secrets.token_hex(16)
 
 
 class DevelopmentConfig(Config):
