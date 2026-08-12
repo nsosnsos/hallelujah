@@ -3,6 +3,7 @@
 
 
 import os
+import shutil
 import requests
 import urllib.parse
 from bs4 import BeautifulSoup
@@ -100,14 +101,16 @@ def _get_thumbnail_path():
     return current_app.config.get('SYS_MEDIA_THUMBNAIL')
 
 def _get_full_path(current_path, current_user):
-    base_path = _get_original_path()
-    root = current_path.split(os.sep)[0]
-    if not current_user.is_authenticated or root != current_user.name:
+    if not current_user.is_authenticated:
         return None
-    full_path = os.path.join(base_path, current_path)
-    if os.path.isdir(full_path):
-        return full_path
-    return None
+    base_path = _get_original_path()
+    user_path = os.path.realpath(os.path.join(base_path, current_user.name))
+    full_path = os.path.realpath(os.path.join(base_path, current_path))
+    if (full_path != user_path
+        and not full_path.startswith(user_path + os.sep)
+        and not os.path.isdir(full_path)):
+        return None
+    return full_path
 
 @bp_main.route('/medias/<path:current_path>')
 @login_required
@@ -147,6 +150,9 @@ def upload(current_path):
         file = upload_files.get(item)
         filename = file.filename
         if not filename:
+            return make_response('bad request', 400)
+        filename = os.path.basename(filename.replace('\\', '/'))
+        if not filename or filename in ('.', '..'):
             return make_response('bad request', 400)
         full_path_name = os.path.join(full_path, filename)
         file.save(full_path_name)
@@ -189,6 +195,7 @@ def _delete_file(media):
     full_path_name = os.path.join(_get_original_path(), media.path, media.filename)
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
+        current_app.logger.info(f'deleted file {full_path_name}');
     if media.media_type == MediaType.VIDEO:
         thumbnail_filename = os.path.splitext(media.filename)[0] + IMAGE_SUFFIXES[0]
     else:
@@ -196,14 +203,14 @@ def _delete_file(media):
     full_path_name = os.path.join(_get_thumbnail_path(), media.path, thumbnail_filename)
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
+        current_app.logger.info(f'deleted file {full_path_name}');
 
 def _delete_directory(path):
-    full_path_name = os.path.join(_get_original_path(), path)
-    if os.path.isdir(full_path_name):
-        os.removedirs(full_path_name)
-    full_path_name = os.path.join(_get_thumbnail_path(), path)
-    if os.path.isdir(full_path_name):
-        os.removedirs(full_path_name)
+    for base_path in (_get_original_path(), _get_thumbnail_path()):
+        full_path_name = os.path.realpath(os.path.join(base_path, path))
+        if os.path.isdir(full_path_name):
+            shutil.rmtree(full_path_name)
+            current_app.logger.info(f'deleted directory {full_path_name}');
 
 @bp_main.route('/delete', methods=['POST'])
 def delete_dropzone_file():
