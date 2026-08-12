@@ -26,9 +26,9 @@ fi
 
 
 function code_clean () {
-    find ${SCRIPT_PATH} -type d -name '__pycache__' -exec rm -rf {} +
-    find ${SCRIPT_PATH} -type f -name '*.log*' -delete
-    find ${SCRIPT_PATH} -type f -name '*.db' -delete
+    git clean -xdf
+    git checkout .
+    git pull
 }
 
 function cron_add_backup () {
@@ -150,7 +150,7 @@ function cron_job_sync_pull () {
         sudo service ${APP_NAME} stop
         rm -rf ${DATA_PATH}/*
         cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${REMOTE_BACKUP_FILE}
-        cd ${SCRIPT_PATH}; git clean -xdf; git checkout .; git pull
+        cd ${SCRIPT_PATH}; code_clean
         ${SCRIPT_PATH}/${SCRIPT_FILE} restore
         ${SCRIPT_PATH}/${SCRIPT_FILE} deploy
     }
