@@ -4,8 +4,8 @@ set -e
 
 CUR_USER="${SUDO_USER:-$(whoami)}"
 HOME_PATH="/home/${CUR_USER}"
-SCRIPT_FILE=$(basename $(readlink -f "${0}"))
-SCRIPT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+SCRIPT_PATH=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+SCRIPT_NAME=$(basename $(readlink -f "${BASH_SOURCE[0]}"))
 
 NUM_WORKERS=$(($(nproc) + 1))
 PYTHON_PATH=${HOME_PATH}/.python_env
@@ -32,7 +32,7 @@ function code_clean () {
 }
 
 function cron_add_backup () {
-    CRON_JOB="0 2 * * * ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_backup"
+    CRON_JOB="0 2 * * * ${SCRIPT_PATH}/${SCRIPT_NAME} cron job_backup"
     if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
         crontab -l | grep -Fv "${CRON_JOB}" | crontab -
     fi
@@ -59,7 +59,7 @@ function cron_job_backup () {
 
     function backup () {
         rm -f ${DATA_PATH}/${DB_FILE}
-        ${SCRIPT_PATH}/${SCRIPT_FILE} backup
+        ${SCRIPT_PATH}/${SCRIPT_NAME} backup
         cd ${DATA_PATH}/.. && tar -zcf "${BACKUP_PATH}/${BACKUP_FILE}" "$(basename ${DATA_PATH})"
     }
 
@@ -70,7 +70,7 @@ function cron_job_backup () {
 function cron_add_sync_push () {
     REMOTE_USER=${1}
     REMOTE_HOST=${2}
-    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_sync_push ${REMOTE_USER} ${REMOTE_HOST}"
+    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_NAME} cron job_sync_push ${REMOTE_USER} ${REMOTE_HOST}"
     if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
         crontab -l | grep -Fv "${CRON_JOB}" | crontab -
     fi
@@ -106,8 +106,8 @@ function cron_job_sync_push () {
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "rm -rf ${REMOTE_DATA_PATH}/*"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "cd ${REMOTE_DATA_PATH}/..; tar -zxf ${REMOTE_BACKUP_PATH}/${BACKUP_FILE}"
         ssh "${REMOTE_USER}@${REMOTE_HOST}" "cd ${REMOTE_SCRIPT_PATH}; git clean -xdf; git checkout .; git pull"
-        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} restore"
-        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_FILE} deploy"
+        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_NAME} restore"
+        ssh "${REMOTE_USER}@${REMOTE_HOST}" "${REMOTE_SCRIPT_PATH}/${SCRIPT_NAME} deploy"
     }
 
     clean_push
@@ -117,7 +117,7 @@ function cron_job_sync_push () {
 function cron_add_sync_pull () {
     REMOTE_USER=${1}
     REMOTE_HOST=${2}
-    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_FILE} cron job_sync_pull ${REMOTE_USER} ${REMOTE_HOST}"
+    CRON_JOB="0 3 * * 1 ${SCRIPT_PATH}/${SCRIPT_NAME} cron job_sync_pull ${REMOTE_USER} ${REMOTE_HOST}"
     if crontab -l 2>/dev/null | grep -Fq "${CRON_JOB}"; then
         crontab -l | grep -Fv "${CRON_JOB}" | crontab -
     fi
@@ -151,8 +151,8 @@ function cron_job_sync_pull () {
         rm -rf ${DATA_PATH}/*
         cd ${DATA_PATH}/..; tar -zxf ${BACKUP_PATH}/${REMOTE_BACKUP_FILE}
         cd ${SCRIPT_PATH}; code_clean
-        ${SCRIPT_PATH}/${SCRIPT_FILE} restore
-        ${SCRIPT_PATH}/${SCRIPT_FILE} deploy
+        ${SCRIPT_PATH}/${SCRIPT_NAME} restore
+        ${SCRIPT_PATH}/${SCRIPT_NAME} deploy
     }
 
     clean_pull
@@ -171,7 +171,7 @@ if [[ ${OPTION} == 'init' ]]; then
     if [[ ${#} -eq 5 ]]; then
         flask init --mail_address ${3} --mail_password ${5}
     else
-        echo "${SCRIPT_FILE} init --mail_address EMAIL_ADDRESS --mail_password EMAIL_PASSWORD"
+        echo "${SCRIPT_NAME} init --mail_address EMAIL_ADDRESS --mail_password EMAIL_PASSWORD"
     fi
     exit 0
 fi
@@ -194,13 +194,13 @@ elif [[ ${OPTION} == 'check' ]]; then
     flask check
 elif [[ ${OPTION} == 'addusr' ]]; then
     if [[ ${#} -ne 5 ]]; then
-        echo "${SCRIPT_FILE} addusr --username USERNAME --password PASSWORD"
+        echo "${SCRIPT_NAME} addusr --username USERNAME --password PASSWORD"
         exit -1
     fi
     flask addusr --username ${3} --password ${5}
 elif [[ ${OPTION} == 'delusr' ]]; then
     if [[ ${#} -ne 3 ]]; then
-        echo "${SCRIPT_FILE} delusr --username"
+        echo "${SCRIPT_NAME} delusr --username"
         exit -1
     fi
     flask delusr --username ${3}
@@ -228,11 +228,11 @@ elif [[ ${OPTION} == 'cron' ]]; then
     elif [[ ${CRON_CMD} == 'job_sync_push' && ${#} -eq 4 ]]; then
         cron_job_sync_push ${3} ${4}
     else
-        echo "Usage: ${SCRIPT_FILE} cron with command"
+        echo "Usage: ${SCRIPT_NAME} cron with command"
         echo "    cron [add_backup|job_backup]"
         echo "    cron [add_sync_pull|job_sync_pull|add_sync_push|job_sync_push] remote_user remote_host"
     fi
 else
-    echo "Usage: ${SCRIPT_FILE} [init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore|check]"
+    echo "Usage: ${SCRIPT_NAME} [init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore|check]"
 fi
 
