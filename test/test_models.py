@@ -42,8 +42,9 @@ class UserModelTestCase(unittest.TestCase):
         u = User(name=self.fake.user_name(), email=self.fake.email(), password='pwd')
         db.session.add(u)
         db.session.commit()
-        self.assertTrue((datetime.datetime.utcnow() - u.member_since).total_seconds() < 10)
-        self.assertTrue((datetime.datetime.utcnow() - u.last_seen).total_seconds() < 10)
+        current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+        self.assertTrue((current_time - u.member_since).total_seconds() < 10)
+        self.assertTrue((current_time - u.last_seen).total_seconds() < 10)
 
     def test_last_seen(self):
         u = User(name=self.fake.user_name(), email=self.fake.email(), password='pwd')

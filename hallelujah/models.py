@@ -25,8 +25,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(Config.SHORT_STR_LEN), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
     avatar_hash = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
-    member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
-    last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.utcnow)
+    member_since = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
+    last_seen = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
     articles = db.relationship('Article', backref='author', lazy='dynamic')
     medias = db.relationship('Media', backref='author', lazy='dynamic')
     resources = db.relationship('Resource', backref='author', lazy='dynamic')
@@ -54,7 +54,7 @@ class User(UserMixin, db.Model):
             url=url, avatar_hash=avatar_hash, size=size, default=default, rating=rating)
 
     def update_last_seen(self):
-        self.last_seen = datetime.datetime.utcnow()
+        self.last_seen = datetime.datetime.now(datetime.timezone.utc)
         db.session.add(self)
         try:
             db.session.commit()
@@ -162,7 +162,7 @@ class Article(db.Model):
     __tablename__ = 'articles'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=False, nullable=False, index=True)
-    timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.utcnow)
+    timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True, default=datetime.datetime.now(datetime.timezone.utc))
     url = db.Column(db.String(Config.MAX_STR_LEN), unique=True, nullable=False, index=True)
     is_public = db.Column(db.Boolean, unique=False, nullable=False, default=True)
     title = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
