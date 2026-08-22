@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-
+"""
+create app
+register extensions
+register blue prints
+register error handlers
+register request handlers
+register shell context processor
+register commands
+"""
 
 import os
 import sys
-import click
 import unittest
+import click
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, jsonify
 
@@ -39,6 +47,7 @@ login_manager.anonymous_user = AnonymousUser
 
 
 def create_app(config_name="default"):
+    """create app"""
     app = Flask(
         configs[config_name].SITE_NAME,
         static_folder=configs[config_name].SYS_STATIC,
@@ -64,6 +73,7 @@ def create_app(config_name="default"):
 
 
 def register_extensions(app):
+    """register extensions"""
     db.init_app(app)
     migrate.init_app(app, db)
     bootstrap.init_app(app)
@@ -74,6 +84,7 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
+    """register blueprints"""
     app.register_blueprint(bp_main)
     app.register_blueprint(
         bp_auth, url_prefix=app.config.get("AUTH_URL_PREFIX")
@@ -82,9 +93,10 @@ def register_blueprints(app):
 
 
 def register_errorhandlers(app):
+    """register error handlers"""
     def payload_too_large(e):
         if request.endpoint == "main.upload":
-            return "File is too large", 413
+            return f"File is too large: {str(e)}", 413
         return redirect_back("main.index")
 
     def make_api_or_redirect_handler(error_name):
@@ -106,24 +118,31 @@ def register_errorhandlers(app):
 
 
 def register_requesthandlers(app):
+    """register request handlers"""
     @app.before_request
     def request_handler():
         parts = request.url.split("/")
         if len(parts) < 4 or parts[3] != "static":
             app.logger.info(
-                "[{}] {}".format(get_request_ip(request), request.url)
+                f"[{get_request_ip(request)}] {request.url}"
             )
 
 
 def register_shell_context_processor(app):
+    """register shell context processor"""
     @app.shell_context_processor
     def make_shell_context():
-        return dict(
-            db=db, User=User, Article=Article, Media=Media, Resource=Resource
-        )
+        return {
+            "db": db,
+            "User": User,
+            "Article": Article,
+            "Media": Media,
+            "Resource": Resource
+        }
 
 
 def register_commands(app):  # noqa: C901
+    """register commands"""
     @app.cli.command()
     def test():
         test_set = unittest.TestLoader().discover("test")
