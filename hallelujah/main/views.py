@@ -271,7 +271,7 @@ def get_thumbnail(filename):
     media = Media.query.filter(Media.uuidname.like(f"{uuid}%")).first()
     if (
         not media
-        or media.media_type < MediaType.IMAGE
+        or media.media_type < MediaType.IMAGE.value
         or (
             not media.is_public
             and (
@@ -281,7 +281,7 @@ def get_thumbnail(filename):
         )
     ):
         return Response("", status=204, mimetype="text/xml")
-    if media.media_type == MediaType.VIDEO:
+    if media.media_type == MediaType.VIDEO.value:
         media_filename = (
             os.path.splitext(media.filename)[0] + IMAGE_SUFFIXES[0]
         )
@@ -304,7 +304,7 @@ def _delete_file(media):
     if os.path.isfile(full_path_name):
         os.remove(full_path_name)
         current_app.logger.info(f"deleted file {full_path_name}")
-    if media.media_type == MediaType.VIDEO:
+    if media.media_type == MediaType.VIDEO.value:
         thumbnail_filename = (
             os.path.splitext(media.filename)[0] + IMAGE_SUFFIXES[0]
         )

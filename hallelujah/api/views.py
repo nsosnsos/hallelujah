@@ -99,7 +99,7 @@ def get_self_medias(current_path):
     limit = current_app.config.get("ITEMS_PER_PAGE")
     excludes = current_app.config.get("SYS_MEDIA_EXCLUDES").split(",")
     medias = Media.query.filter(
-        (Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE)
+        (Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE.value)
     )
     medias = medias.filter(Media.path.like(f"{current_path}%"))
     for exclude_dir in excludes:

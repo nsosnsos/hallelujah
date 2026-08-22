@@ -1,55 +1,54 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""config"""
 
-
+import datetime
+import json
+import logging
 import os
 import re
-import sys
-import json
-import redis
 import secrets
-import logging
-import requests
-import datetime
-import cachelib
+import sys
+from dataclasses import dataclass
 from logging import handlers as log_handler
+
+import cachelib
+import redis
+import requests
 
 
 def _is_valid_email(email):
+    """is valid email"""
     regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     return re.fullmatch(regex, email)
 
 
 def _get_themes(static_dir, is_local):
+    """get themes"""
     try:
         if is_local:
-            bootswatch_cfg_file = os.path.join(
-                static_dir, "plugins/bootswatch/5.json"
-            )
-            with open(bootswatch_cfg_file, "r") as f:
+            bootswatch_cfg_file = os.path.join(static_dir, "plugins/bootswatch/5.json")
+            with open(bootswatch_cfg_file, "r", encoding="utf-8") as f:
                 bootswatch_cfg = json.load(f)
                 cdn_prefix = r"https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/"
                 themes = {
-                    theme["name"]: theme["cssCdn"].replace(
-                        cdn_prefix, "plugins/bootswatch/"
-                    )
+                    theme["name"]: theme["cssCdn"].replace(cdn_prefix, "plugins/bootswatch/")
                     for theme in bootswatch_cfg["themes"]
                 }
         else:
-            bootswatch_cfg_obj = requests.get(
-                "https://bootswatch.com/api/5.json"
-            )
-            themes = {
-                theme["name"]: theme["cssCdn"]
-                for theme in json.loads(bootswatch_cfg_obj.text)["themes"]
-            }
-    except Exception as e:
-        print("_get_themes: {}".format(str(e)))
-        sys.exit(-1)
+            bootswatch_cfg_obj = requests.get(url="https://bootswatch.com/api/5.json", timeout=10)
+            themes = {theme["name"]: theme["cssCdn"] for theme in json.loads(bootswatch_cfg_obj.text)["themes"]}
+    except (
+        FileNotFoundError,
+        json.JSONDecodeError,
+        requests.RequestException,
+    ) as e:
+        raise RuntimeError(f"Failed to load Bootswatch themes: {e!s}") from e
     return themes
 
 
 class Config:
+    """config"""
+
     ENV = "production"
     DEBUG = False
     TESTING = False
@@ -73,15 +72,9 @@ class Config:
     # SYSTEM
     SYS_HOST = "127.0.0.1"
     SYS_PORT = 4100
-    SYS_STATIC = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), "static"
-    )
-    SYS_TEMPLATE = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), "templates"
-    )
-    SYS_MEDIA = os.path.join(
-        os.path.abspath(os.path.expanduser("~")), "data", "media"
-    )
+    SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static")
+    SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
+    SYS_MEDIA = os.path.join(os.path.abspath(os.path.expanduser("~")), "data", "media")
     SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, "original")
     SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, "thumbnail")
     SYS_MEDIA_THUMBNAIL_HEIGHT = 200
@@ -104,14 +97,13 @@ class Config:
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = (
-        os.environ.get("MAIL_USERNAME", None) or "MAIL_USERNAME@SERVER.COM"
-    )
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", None) or "MAIL_USERNAME@SERVER.COM"
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", None) or "MAIL_PASSWORD"
     if not _is_valid_email(MAIL_USERNAME):
         print("Invalid MAIL_USERNAME.")
         sys.exit(-1)
-    MAIL_SERVER = "smtp." + MAIL_USERNAME[MAIL_USERNAME.find("@") + 1:]
+    domain_start_index = MAIL_USERNAME.find("@") + 1
+    MAIL_SERVER = "smtp." + MAIL_USERNAME[domain_start_index:]
 
     # DATABASE
     DB_HOST = SYS_HOST
@@ -131,46 +123,34 @@ class Config:
 
     # SESSION
     SESSION_TYPE = "redis"
-    SESSION_REDIS = redis.from_url(
-        "redis://" + REDIS_HOST + ":" + str(REDIS_PORT)
-    )
+    SESSION_REDIS = redis.from_url("redis://" + REDIS_HOST + ":" + str(REDIS_PORT))
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
 
     # SSH TUNNEL
     SSH_TUNNEL_SWITCH = False
     SSH_TUNNEL_PORT = 22
-    SSH_TUNNEL_USERNAME = (
-        os.environ.get("SSH_TUNNEL_USERNAME", None) or "SSH_TUNNEL_USERNAME"
-    )
-    SSH_TUNNEL_PASSWORD = (
-        os.environ.get("SSH_TUNNEL_PASSWORD", None) or "SSH_TUNNEL_PASSWORD"
-    )
+    SSH_TUNNEL_USERNAME = os.environ.get("SSH_TUNNEL_USERNAME", None) or "SSH_TUNNEL_USERNAME"
+    SSH_TUNNEL_PASSWORD = os.environ.get("SSH_TUNNEL_PASSWORD", None) or "SSH_TUNNEL_PASSWORD"
 
     # LOGGER
-    LOG_FILE = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), SITE_NAME + ".log"
-    )
+    LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), SITE_NAME + ".log")
     LOGGER = None
 
     # DATABASE
-    MDB_CONN_STR = "mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}".format(
-        DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_CHARSET
-    )
+    MDB_CONN_STR = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset={DB_CHARSET}"
     SQLITE_CONN_STR = "sqlite:///" + os.path.join(SQLITE_PATH, SQLITE_DB)
     SQLALCHEMY_DATABASE_URI = SQLITE_CONN_STR if SYS_SQLITE else MDB_CONN_STR
 
     def __repr__(self):
-        return "<%s : %s>" % (self.__class__.__name__, Config.__dict__)
+        return f"<{self.__class__.__name__} : Config.__dict__>"
 
     def __str__(self):
         return self.__repr__()
 
     @classmethod
     def _get_logger(cls):
-        log_format = logging.Formatter(
-            "[%(levelname)s][%(asctime)s]: %(message)s"
-        )
+        log_format = logging.Formatter("[%(levelname)s][%(asctime)s]: %(message)s")
         logger = logging.getLogger(name=cls.SITE_NAME)
         logger.setLevel(logging.DEBUG)
 
@@ -194,12 +174,16 @@ class Config:
 
     @classmethod
     def init_app(cls, app):
+        """init app"""
         if not cls.LOGGER:
             cls.LOGGER = cls._get_logger()
         app.logger = cls.LOGGER
 
 
+@dataclass
 class TestingConfig(Config):
+    """testing config"""
+
     ENV = "testing"
     TESTING = True
     SYS_SQLITE = True
@@ -210,14 +194,20 @@ class TestingConfig(Config):
     SECRET_KEY = secrets.token_hex(16)
 
 
+@dataclass
 class DevelopmentConfig(Config):
+    """development config"""
+
     ENV = "development"
     DEBUG = True
     SESSION_TYPE = "cachelib"
     SESSION_CACHELIB = cachelib.simple.SimpleCache()
 
 
+@dataclass
 class ProductionConfig(Config):
+    """production config"""
+
     @classmethod
     def __get_mail_handler(cls):
         credentials, secure = None, None

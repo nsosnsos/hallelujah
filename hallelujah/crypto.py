@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""crypto utility"""
 
-
+import base64
 import os
 import sys
-import base64
 
 op_en = ["en", "encrypt"]
 op_de = ["de", "decrypt"]
-crypt_ext = ".cry"
+CRYPT_EXT = ".cry"
 
 
 def usage():
+    """crypto usage"""
     print(f"Usage: {os.path.basename(__file__)} OPTION PASSWORD FILENAME")
-    print(
-        "    OPTION: [en|encrypt] for encryption, [de|decrypt] for decryption."
-    )
+    print("    OPTION: [en|encrypt] for encryption, [de|decrypt] for decryption.")
     print("    PASSWORD: password for cryption.")
     print("    FILENAME: filename for cryption.")
-    print(f"Note: after encryption, FILENAME{crypt_ext} would be generated.")
-    print(
-        "      before decryption, "
-        f"FILENAME should be ended with [{crypt_ext}]."
-    )
+    print(f"Note: after encryption, FILENAME{CRYPT_EXT} would be generated.")
+    print(f"      before decryption, FILENAME should be ended with [{CRYPT_EXT}].")
 
 
 def get_code(pwd):
+    """code generator"""
     i, sz = 0, len(pwd)
     while i < sz:
         yield pwd[i]
@@ -33,13 +29,14 @@ def get_code(pwd):
 
 
 def crypt(src, pwd, op):
+    """crypto process"""
     if op in op_en:
-        des = src + crypt_ext
+        des = src + CRYPT_EXT
     else:
-        if not src.endswith(crypt_ext):
+        if not src.endswith(CRYPT_EXT):
             usage()
             return
-        des = src[: -(len(crypt_ext))]
+        des = src[: -(len(CRYPT_EXT))]
     with open(src, "rb") as src_fd:
         src_data = src_fd.read()
         if op in op_de:
@@ -66,10 +63,10 @@ if __name__ == "__main__":
     if len(sys.argv) != 4:
         usage()
     else:
-        op, pwd, filename = sys.argv[1:]
+        option, passwd, filename = sys.argv[1:]
         if not os.path.exists(filename):
             usage()
-        elif op in op_en or op in op_de:
-            crypt(filename, pwd, op)
+        elif option in op_en or option in op_de:
+            crypt(filename, passwd, option)
         else:
             usage()
