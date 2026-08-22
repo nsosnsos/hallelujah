@@ -11,7 +11,7 @@ import secrets
 import logging
 import requests
 import datetime
-
+import cachelib
 from logging import handlers as log_handler
 
 
@@ -204,7 +204,8 @@ class TestingConfig(Config):
     TESTING = True
     SYS_SQLITE = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    SESSION_TYPE = "filesystem"
+    SESSION_TYPE = "cachelib"
+    SESSION_CACHELIB = cachelib.simple.SimpleCache()
     SYS_LOCAL_DEPLOY = False
     SECRET_KEY = secrets.token_hex(16)
 
@@ -212,7 +213,8 @@ class TestingConfig(Config):
 class DevelopmentConfig(Config):
     ENV = "development"
     DEBUG = True
-    SESSION_TYPE = "filesystem"
+    SESSION_TYPE = "cachelib"
+    SESSION_CACHELIB = cachelib.simple.SimpleCache()
 
 
 class ProductionConfig(Config):
