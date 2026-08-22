@@ -82,37 +82,27 @@ def register_blueprints(app):
 
 
 def register_errorhandlers(app):
-    @app.errorhandler(400)
-    def bad_request(e):
-        if request.path.startswith(app.config.get("API_URL_PREFIX")):
-            return jsonify({"error": "bad request", "message": str(e)})
-        return redirect_back("main.index")
-
-    @app.errorhandler(403)
-    def forbidden_error(e):
-        if request.path.startswith(app.config.get("API_URL_PREFIX")):
-            return jsonify({"error": "forbidden error", "message": str(e)})
-        return redirect_back("main.index")
-
-    @app.errorhandler(404)
-    def page_not_found(e):
-        if request.path.startswith(app.config.get("API_URL_PREFIX")):
-            return jsonify({"error": "page not found", "message": str(e)})
-        return redirect_back("main.index")
-
-    @app.errorhandler(413)
     def payload_too_large(e):
         if request.endpoint == "main.upload":
             return "File is too large", 413
         return redirect_back("main.index")
 
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        if request.path.startswith(app.config.get("API_URL_PREFIX")):
-            return jsonify(
-                {"error": "internal server error", "message": str(e)}
-            )
-        return redirect_back("main.index")
+    def make_api_or_redirect_handler(error_name):
+        def handler(e):
+            if request.path.startswith(app.config.get("API_URL_PREFIX")):
+                return jsonify({"error": error_name, "message": str(e)})
+            return redirect_back("main.index")
+        return handler
+
+    errors = {
+        400: "bad request",
+        403: "forbidden error",
+        404: "page not found",
+        500: "internal server error",
+    }
+    for code, name in errors.items():
+        app.register_error_handler(code, make_api_or_redirect_handler(name))
+    app.register_error_handler(413, payload_too_large)
 
 
 def register_requesthandlers(app):
@@ -133,7 +123,7 @@ def register_shell_context_processor(app):
         )
 
 
-def register_commands(app):
+def register_commands(app):  # noqa: C901
     @app.cli.command()
     def test():
         test_set = unittest.TestLoader().discover("test")
@@ -235,11 +225,3 @@ def register_commands(app):
         User.add_user(
             name=user_name, email=mail_address, password=mail_password
         )
-        """
-        app.logger.info('Adding fake users ...')
-        User.add_fake_users(5)
-        app.logger.info('Adding fake articles ...')
-        Article.add_fake_articles(20)
-        app.logger.info('Adding fake resources ...')
-        Resource.add_fake_resources(20)
-        """

@@ -443,7 +443,7 @@ def delete_resource(resource_id):
 
 @bp_main.route("/proxy", methods=["POST", "GET", "OPTIONS"])
 @login_required
-def proxy():
+def proxy():  # noqa: C901
     try:
         url = request.args.get("url", None)
         if request.method == "POST":
