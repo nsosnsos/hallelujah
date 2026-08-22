@@ -4,10 +4,8 @@
 
 from hallelujah import create_app
 
+app = create_app("development")
 
-app = create_app('development')
 
-
-if __name__ == '__main__':
-    app.run(host=app.config.get('SYS_HOST'), port=app.config.get('SYS_PORT'))
-
+if __name__ == "__main__":
+    app.run(host=app.config.get("SYS_HOST"), port=app.config.get("SYS_PORT"))
