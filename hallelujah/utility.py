@@ -26,151 +26,216 @@ class MediaType:
     VIDEO = 3
 
 
-MUSIC_SUFFIXES = ['.mp3', '.wav']
-IMAGE_SUFFIXES = ['.jpg', '.jpeg', '.png', '.gif']
-VIDEO_SUFFIXES = ['.mp4', '.mov', '.m4v']
+MUSIC_SUFFIXES = [".mp3", ".wav"]
+IMAGE_SUFFIXES = [".jpg", ".jpeg", ".png", ".gif"]
+VIDEO_SUFFIXES = [".mp4", ".mov", ".m4v"]
 EXIF_TAG_MAP = {ExifTags.TAGS[tag]: tag for tag in ExifTags.TAGS}
 
 
 def markdown_to_html(text):
-    extensions = ['fenced_code', 'admonition', 'tables', 'extra']
-    return bleach.linkify(markdown(text, extensions=extensions, output_format='html5'))
+    extensions = ["fenced_code", "admonition", "tables", "extra"]
+    return bleach.linkify(
+        markdown(text, extensions=extensions, output_format="html5")
+    )
 
 
 def get_request_ip(request):
-    return request.headers.get('Cf-Connecting-Ip') or request.headers.get('X-Real-Ip') or request.remote_addr
+    return (
+        request.headers.get("Cf-Connecting-Ip")
+        or request.headers.get("X-Real-Ip")
+        or request.remote_addr
+    )
 
 
 def redirect_back(endpoint=None, redirect_before=False, **kwargs):
     if endpoint:
         target_url = url_for(endpoint, **kwargs, _external=True)
         return redirect(target_url)
-    if redirect_before and 'url' in session:
-        return redirect(session['url'])
+    if redirect_before and "url" in session:
+        return redirect(session["url"])
     if request.referrer and request.referrer != request.url:
         return redirect(request.referrer)
-    return redirect(url_for('main.index', _external=True))
+    return redirect(url_for("main.index", _external=True))
 
 
 def redirect_save(url=None):
     if not url:
-        url = url_for('main.index', _external=True)
-    session['url'] = url
+        url = url_for("main.index", _external=True)
+    session["url"] = url
 
 
 def sqlite_in_use():
-    return current_app.config.get('SYS_SQLITE')
+    return current_app.config.get("SYS_SQLITE")
 
 
 def db_backup():
-    data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
+    data_directory = os.path.join(
+        os.path.join(current_app.config.get("SYS_MEDIA"), "..")
+    )
     if sqlite_in_use():
-        sqlite_path = current_app.config.get('SQLITE_PATH')
-        sqlite_db = current_app.config.get('SQLITE_DB')
+        sqlite_path = current_app.config.get("SQLITE_PATH")
+        sqlite_db = current_app.config.get("SQLITE_DB")
         src_file = os.path.join(sqlite_path, sqlite_db)
         dst_file = os.path.join(data_directory, sqlite_db)
         if os.path.exists(src_file):
             shutil.copyfile(src_file, dst_file)
             return True
         else:
-            current_app.logger.error('db_backup failed: {}'.format('sqlite db not found.'))
+            current_app.logger.error(
+                "db_backup failed: {}".format("sqlite db not found.")
+            )
             return False
     else:
         env = os.environ.copy()
-        env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
-        db_usr = current_app.config.get('DB_USERNAME')
-        db_name = current_app.config.get('DB_NAME')
-        target_db = os.path.join(data_directory, db_name + '.sql')
-        db_charset = current_app.config.get('DB_CHARSET')
-        command = ['mysqldump', '--single-transaction', '--default-character-set=' + db_charset,
-                   '-u', db_usr, '--databases', db_name]
+        env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
+        db_usr = current_app.config.get("DB_USERNAME")
+        db_name = current_app.config.get("DB_NAME")
+        target_db = os.path.join(data_directory, db_name + ".sql")
+        db_charset = current_app.config.get("DB_CHARSET")
+        command = [
+            "mysqldump",
+            "--single-transaction",
+            "--default-character-set=" + db_charset,
+            "-u",
+            db_usr,
+            "--databases",
+            db_name,
+        ]
         try:
-            with open(target_db, 'wb') as out:
-                ret = subprocess.run(command, stdout=out, stderr=subprocess.PIPE, env=env, shell=False)
+            with open(target_db, "wb") as out:
+                ret = subprocess.run(
+                    command,
+                    stdout=out,
+                    stderr=subprocess.PIPE,
+                    env=env,
+                    shell=False,
+                )
         except subprocess.CalledProcessError as e:
-            current_app.logger.error('db_backup failed: {}'.format(str(e)))
+            current_app.logger.error("db_backup failed: {}".format(str(e)))
             return False
-        current_app.logger.info('db_backup result: {}'.format(ret))
+        current_app.logger.info("db_backup result: {}".format(ret))
         return ret.returncode == 0
 
 
 def db_restore():
-    data_directory = os.path.join(os.path.join(current_app.config.get('SYS_MEDIA'), '..'))
+    data_directory = os.path.join(
+        os.path.join(current_app.config.get("SYS_MEDIA"), "..")
+    )
     if sqlite_in_use():
-        sqlite_path = current_app.config.get('SQLITE_PATH')
-        sqlite_db = current_app.config.get('SQLITE_DB')
+        sqlite_path = current_app.config.get("SQLITE_PATH")
+        sqlite_db = current_app.config.get("SQLITE_DB")
         src_file = os.path.join(data_directory, sqlite_db)
         dst_file = os.path.join(sqlite_path, sqlite_db)
         if os.path.exists(src_file):
             shutil.copyfile(src_file, dst_file)
             return True
         else:
-            current_app.logger.error('db_backup failed: {}'.format('backup db not found.'))
+            current_app.logger.error(
+                "db_backup failed: {}".format("backup db not found.")
+            )
             return False
     else:
         env = os.environ.copy()
-        env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
-        db_usr = current_app.config.get('DB_USERNAME')
-        db_name = current_app.config.get('DB_NAME')
-        target_db = os.path.join(data_directory, db_name + '.sql')
-        db_charset = current_app.config.get('DB_CHARSET')
-        command = ['mysql', '--default-character-set=' + db_charset, '-u', db_usr, db_name]
+        env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
+        db_usr = current_app.config.get("DB_USERNAME")
+        db_name = current_app.config.get("DB_NAME")
+        target_db = os.path.join(data_directory, db_name + ".sql")
+        db_charset = current_app.config.get("DB_CHARSET")
+        command = [
+            "mysql",
+            "--default-character-set=" + db_charset,
+            "-u",
+            db_usr,
+            db_name,
+        ]
         if not os.path.isfile(target_db):
-            current_app.logger.error('db_restore failed: backup db is not found.')
+            current_app.logger.error(
+                "db_restore failed: backup db is not found."
+            )
             return False
         try:
-            with open(target_db, 'rb') as src:
-                ret = subprocess.run(command, stdin=src, stderr=subprocess.PIPE, env=env, shell=False)
+            with open(target_db, "rb") as src:
+                ret = subprocess.run(
+                    command,
+                    stdin=src,
+                    stderr=subprocess.PIPE,
+                    env=env,
+                    shell=False,
+                )
         except subprocess.CalledProcessError as e:
-            current_app.logger.error('db_restore failed: {}'.format(str(e)))
+            current_app.logger.error("db_restore failed: {}".format(str(e)))
             return False
-        current_app.logger.info('db_restore result: {}'.format(ret))
+        current_app.logger.info("db_restore result: {}".format(ret))
         return ret.returncode == 0
 
 
 def db_is_exist(db_name=None):
     env = os.environ.copy()
-    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
-    db_usr = current_app.config.get('DB_USERNAME')
+    env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
+    db_usr = current_app.config.get("DB_USERNAME")
     if not db_name:
-        db_name = current_app.config.get('DB_NAME')
-    command = ['mysql', '-u', db_usr, '-e',
-               f'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME="{db_name}";']
+        db_name = current_app.config.get("DB_NAME")
+    command = [
+        "mysql",
+        "-u",
+        db_usr,
+        "-e",
+        "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA"
+        f' WHERE SCHEMA_NAME="{db_name}";',
+    ]
     try:
-        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
+        ret = subprocess.run(
+            command, stdout=subprocess.PIPE, env=env, shell=False
+        )
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_is_exist failed: {}'.format(str(e)))
-    return ret.returncode == 0 and ret.stdout.decode() != ''
+        current_app.logger.error("db_is_exist failed: {}".format(str(e)))
+    return ret.returncode == 0 and ret.stdout.decode() != ""
 
 
 def db_drop(db_name=None):
     env = os.environ.copy()
-    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
-    db_usr = current_app.config.get('DB_USERNAME')
+    env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
+    db_usr = current_app.config.get("DB_USERNAME")
     if not db_name:
-        db_name = current_app.config.get('DB_NAME')
-    command = ['mysql', '-u', db_usr, '-e', f'DROP DATABASE IF EXISTS {db_name};']
+        db_name = current_app.config.get("DB_NAME")
+    command = [
+        "mysql",
+        "-u",
+        db_usr,
+        "-e",
+        f"DROP DATABASE IF EXISTS {db_name};",
+    ]
     try:
-        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
+        ret = subprocess.run(
+            command, stdout=subprocess.PIPE, env=env, shell=False
+        )
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_drop failed: {}'.format(str(e)))
-    return ret.returncode == 0 and ret.stdout.decode() != ''
+        current_app.logger.error("db_drop failed: {}".format(str(e)))
+    return ret.returncode == 0 and ret.stdout.decode() != ""
 
 
 def db_create(db_name=None):
     env = os.environ.copy()
-    env['MYSQL_PWD'] = current_app.config.get('DB_PASSWORD')
-    db_usr = current_app.config.get('DB_USERNAME')
+    env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
+    db_usr = current_app.config.get("DB_USERNAME")
     if not db_name:
-        db_name = current_app.config.get('DB_NAME')
-    db_charset = current_app.config.get('DB_CHARSET')
-    command = ['mysql', '-u', db_usr, '-e',
-               f'CREATE DATABASE IF NOT EXISTS {db_name} DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;']
+        db_name = current_app.config.get("DB_NAME")
+    db_charset = current_app.config.get("DB_CHARSET")
+    command = [
+        "mysql",
+        "-u",
+        db_usr,
+        "-e",
+        f"CREATE DATABASE IF NOT EXISTS {db_name}"
+        f" DEFAULT CHARSET {db_charset} COLLATE {db_charset}_unicode_ci;",
+    ]
     try:
-        ret = subprocess.run(command, stdout=subprocess.PIPE, env=env, shell=False)
+        ret = subprocess.run(
+            command, stdout=subprocess.PIPE, env=env, shell=False
+        )
     except subprocess.CalledProcessError as e:
-        current_app.logger.error('db_create failed: {}'.format(str(e)))
-    return ret.returncode == 0 and ret.stdout.decode() == ''
+        current_app.logger.error("db_create failed: {}".format(str(e)))
+    return ret.returncode == 0 and ret.stdout.decode() == ""
 
 
 def send_async_email(app, message):
@@ -178,17 +243,24 @@ def send_async_email(app, message):
         try:
             mail.send(message)
         except Exception as e:
-            app.logger.error('send_async_email: {}'.format(str(e)))
+            app.logger.error("send_async_email: {}".format(str(e)))
 
 
 def send_email(to, subject, msg):
-    message = Message(subject=current_app.config.get('SITE_NAME') + ': ' + subject,
-                      sender=current_app.config.get('MAIL_USERNAME'), recipients=[to])
+    message = Message(
+        subject=current_app.config.get("SITE_NAME") + ": " + subject,
+        sender=current_app.config.get("MAIL_USERNAME"),
+        recipients=[to],
+    )
     message.body = msg
 
-    thread = Thread(target=send_async_email, args=[current_app._get_current_object(), message])
+    thread = Thread(
+        target=send_async_email,
+        args=[current_app._get_current_object(), message],
+    )
     thread.start()
     return thread
+
 
 def browse_directory(current_path):
     dirs = []
@@ -200,60 +272,31 @@ def browse_directory(current_path):
     dirs.sort()
     return dirs
 
-def _rotate_image_by_orientation(image):
-    try:
-        exif_info = image._getexif()
-        if exif_info and EXIF_TAG_MAP['Orientation'] in exif_info:
-            orientation = exif_info[EXIF_TAG_MAP['Orientation']]
-            if orientation == 3:
-                image = image.rotate(Image.ROTATE_180, expand=True)
-            elif orientation == 6:
-                image = image.rotate(Image.ROTATE_270, expand=True)
-            elif orientation == 8:
-                image = image.rotate(Image.ROTATE_90, expand=True)
-            """
-            if orientation == 1:
-                pass
-            elif orientation == 2:
-                image = image.transpose(Image.FLIP_LEFT_RIGHT)
-            elif orientation == 3:
-                image = image.rotate(Image.ROTATE_180)
-            elif orientation == 4:
-                image = image.transpose(Image.FLIP_TOP_BOTTOM)
-            elif orientation == 5:
-                image = image.rotate(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
-            elif orientation == 6:
-                image = image.rotate(Image.ROTATE_270)
-            elif orientation == 7:
-                image = image.rotate(Image.ROTATE_90).transpose(Image.FLIP_LEFT_RIGHT)
-            elif orientation == 8:
-                image = image.rotate(Image.ROTATE_90)
-            else:
-                pass
-            """
-    except Exception as e:
-        current_app.logger.error('_rotate_image_by_orientation: {}'.format(str(e)))
-    return image
 
 def get_thumbnail_size(image_size, thumbnail_height):
     width = round((float(thumbnail_height) / image_size[1]) * image_size[0])
     return width, thumbnail_height
 
+
 def get_file_ctime(file):
     stat = os.stat(file)
-    if 'st_birthtime' in dir(stat):
+    if "st_birthtime" in dir(stat):
         timestamp = stat.st_birthtime
     else:
         timestamp = os.path.getctime(file)
     return timestamp
 
+
 def _parse_exif_timestamp(timestamp_string):
-    timestamp_string = timestamp_string.split('+')[0]
+    timestamp_string = timestamp_string.split("+")[0]
     try:
-        timestamp = datetime.datetime.strptime(timestamp_string, '%Y:%m:%d %H:%M:%S').timestamp()
+        timestamp = datetime.datetime.strptime(
+            timestamp_string, "%Y:%m:%d %H:%M:%S"
+        ).timestamp()
     except ValueError:
         timestamp = None
     return timestamp
+
 
 def _get_image_timestamp(image_file):
     image = Image.open(image_file)
@@ -261,15 +304,22 @@ def _get_image_timestamp(image_file):
     image.close()
     image_timestamp = None
     if exif_info:
-        if EXIF_TAG_MAP['DateTimeOriginal'] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP['DateTimeOriginal']])
-        elif EXIF_TAG_MAP['DateTimeDigitized'] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP['DateTimeDigitized']])
-        elif EXIF_TAG_MAP['DateTime'] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP['DateTime']])
+        if EXIF_TAG_MAP["DateTimeOriginal"] in exif_info:
+            image_timestamp = _parse_exif_timestamp(
+                exif_info[EXIF_TAG_MAP["DateTimeOriginal"]]
+            )
+        elif EXIF_TAG_MAP["DateTimeDigitized"] in exif_info:
+            image_timestamp = _parse_exif_timestamp(
+                exif_info[EXIF_TAG_MAP["DateTimeDigitized"]]
+            )
+        elif EXIF_TAG_MAP["DateTime"] in exif_info:
+            image_timestamp = _parse_exif_timestamp(
+                exif_info[EXIF_TAG_MAP["DateTime"]]
+            )
     if not image_timestamp:
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
+
 
 def _is_file_exist(cur_filename, query_func):
     pathname = os.path.dirname(_get_relative_name(cur_filename))
@@ -277,20 +327,30 @@ def _is_file_exist(cur_filename, query_func):
     username = pathname.split(os.sep)[0]
     return query_func(username, pathname, filename)
 
+
 def _get_solid_filename(cur_filename, query_func):
     while _is_file_exist(cur_filename, query_func):
         file_path = os.path.dirname(cur_filename)
         file_name, file_ext = os.path.splitext(os.path.basename(cur_filename))
-        prefix_str, dt_str = file_name.split('_', 1)
-        cur_dt = datetime.datetime.strptime(dt_str, '%Y%m%d_%H%M%S')
+        prefix_str, dt_str = file_name.split("_", 1)
+        cur_dt = datetime.datetime.strptime(dt_str, "%Y%m%d_%H%M%S")
         next_dt = cur_dt + datetime.timedelta(seconds=1)
-        file_basename = prefix_str + '_' +  next_dt.strftime('%Y%m%d_%H%M%S') + file_ext
+        file_basename = (
+            prefix_str + "_" + next_dt.strftime("%Y%m%d_%H%M%S") + file_ext
+        )
         cur_filename = os.path.join(file_path, file_basename)
     return cur_filename
 
+
 def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
     image_timestamp = _get_image_timestamp(image_file)
-    new_filename = 'IMG_' + datetime.datetime.fromtimestamp(image_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(image_file)[1]
+    new_filename = (
+        "IMG_"
+        + datetime.datetime.fromtimestamp(image_timestamp).strftime(
+            "%Y%m%d_%H%M%S"
+        )
+        + os.path.splitext(image_file)[1]
+    )
     new_file = os.path.join(os.path.dirname(image_file), new_filename)
     new_file = _get_solid_filename(new_file, query_func)
     if image_file != new_file:
@@ -299,8 +359,6 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
 
     image = Image.open(new_file)
     image = ImageOps.exif_transpose(image)
-    ### PIL.Image.rotate is not good enough to be applyed!
-    # image = _rotate_image_by_orientation(image)
     image_size = image.size
 
     thumbnail_file = os.path.join(thumbnail_dirname, new_filename)
@@ -308,12 +366,13 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
         thumbnail_size = get_thumbnail_size(image_size, height)
         if thumbnail_size != image_size:
             image = image.resize(thumbnail_size, Image.Resampling.LANCZOS)
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        if image.mode != "RGB":
+            image = image.convert("RGB")
         image.save(thumbnail_file)
 
     image.close()
     return (image_size, MediaType.IMAGE, image_timestamp, new_filename)
+
 
 def _get_video_timestamp(video_file):
     file_ctime = get_file_ctime(video_file)
@@ -323,18 +382,21 @@ def _get_video_timestamp(video_file):
 
     try:
         metadata = extractMetadata(parser)
-    except Exception as error:
+    except Exception:
         metadata = None
     if not metadata:
         return file_ctime
 
     for line in metadata.exportPlaintext():
-        datetime_caption, datetime_str = line.split(':', 1)
-        if datetime_caption == '- Creation date':
+        datetime_caption, datetime_str = line.split(":", 1)
+        if datetime_caption == "- Creation date":
             datetime_str = datetime_str.strip()
-            timestamp = datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S').timestamp()
+            timestamp = datetime.datetime.strptime(
+                datetime_str, "%Y-%m-%d %H:%M:%S"
+            ).timestamp()
             return timestamp
     return file_ctime
+
 
 def _get_video_thumbnail_filename(original_filename):
     prefix, ext = os.path.splitext(original_filename)
@@ -346,7 +408,13 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
     _, image = video_capture.read()
     video_size = (image.shape[1], image.shape[0])
     video_timestamp = _get_video_timestamp(video_file)
-    new_filename = 'VID_' + datetime.datetime.fromtimestamp(video_timestamp).strftime('%Y%m%d_%H%M%S') + os.path.splitext(video_file)[1]
+    new_filename = (
+        "VID_"
+        + datetime.datetime.fromtimestamp(video_timestamp).strftime(
+            "%Y%m%d_%H%M%S"
+        )
+        + os.path.splitext(video_file)[1]
+    )
     new_file = os.path.join(os.path.dirname(video_file), new_filename)
     new_file = _get_solid_filename(new_file, query_func)
     if video_file != new_file:
@@ -361,57 +429,99 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
         cv2.imwrite(thumbnail_file, thumbnail_image)
     return (video_size, MediaType.VIDEO, video_timestamp, new_filename)
 
+
 def _create_thumbnail(media_fullname, thumbnail_dirname, height, query_func):
     file_ext = os.path.splitext(media_fullname)[1]
     if file_ext in IMAGE_SUFFIXES:
-        meta_data = _create_image_thumbnail(media_fullname, thumbnail_dirname, height, query_func)
+        meta_data = _create_image_thumbnail(
+            media_fullname, thumbnail_dirname, height, query_func
+        )
     elif file_ext in VIDEO_SUFFIXES:
-        meta_data = _create_video_thumbnail(media_fullname, thumbnail_dirname, height, query_func)
+        meta_data = _create_video_thumbnail(
+            media_fullname, thumbnail_dirname, height, query_func
+        )
     elif file_ext in MUSIC_SUFFIXES:
-        meta_data = ((None, None), MediaType.MUSIC, get_file_ctime(media_fullname), os.path.basename(media_fullname))
+        meta_data = (
+            (None, None),
+            MediaType.MUSIC,
+            get_file_ctime(media_fullname),
+            os.path.basename(media_fullname),
+        )
     else:
-        meta_data = ((None, None), MediaType.OTHER, get_file_ctime(media_fullname), os.path.basename(media_fullname))
+        meta_data = (
+            (None, None),
+            MediaType.OTHER,
+            get_file_ctime(media_fullname),
+            os.path.basename(media_fullname),
+        )
     return meta_data
 
+
 def _get_relative_name(media_fullname):
-    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
-    media_relative_name = media_fullname[len(original_path)+1:]
+    original_path = current_app.config.get("SYS_MEDIA_ORIGINAL")
+    media_relative_name = media_fullname[len(original_path) + 1:]
     return media_relative_name
 
+
 def _get_thumbnail_name(media_fullname):
-    thumbnail_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
+    thumbnail_path = current_app.config.get("SYS_MEDIA_THUMBNAIL")
     media_relative_name = _get_relative_name(media_fullname)
     thumbnail_full_name = os.path.join(thumbnail_path, media_relative_name)
     return thumbnail_full_name
 
+
 def get_media_files(pathname, filename, media_type):
-    original_base_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
-    thumbnail_base_path = current_app.config.get('SYS_MEDIA_THUMBNAIL')
+    original_base_path = current_app.config.get("SYS_MEDIA_ORIGINAL")
+    thumbnail_base_path = current_app.config.get("SYS_MEDIA_THUMBNAIL")
     original_media = os.path.join(original_base_path, pathname, filename)
     if media_type == MediaType.IMAGE:
         thumbnail_media = os.path.join(thumbnail_base_path, pathname, filename)
     elif media_type == MediaType.VIDEO:
         thumbnail_filename = _get_video_thumbnail_filename(filename)
-        thumbnail_media = os.path.join(thumbnail_base_path, pathname, thumbnail_filename)
+        thumbnail_media = os.path.join(
+            thumbnail_base_path, pathname, thumbnail_filename
+        )
     else:
         thumbnail_media = None
     return original_media, thumbnail_media
 
+
 def _verify_media_integrity(added_media, pathname, filename, media_type):
-    original_media, thumbnail_media = get_media_files(pathname, filename, media_type)
-    if (not added_media) or (not os.path.isfile(original_media)) or (thumbnail_media and not os.path.isfile(thumbnail_media)):
+    original_media, thumbnail_media = get_media_files(
+        pathname, filename, media_type
+    )
+    if (
+        (not added_media)
+        or (not os.path.isfile(original_media))
+        or (thumbnail_media and not os.path.isfile(thumbnail_media))
+    ):
         if os.path.isfile(original_media):
             os.remove(original_media)
-            current_app.logger.error('verify media integrity: remove original media {}'.format(original_media))
+            current_app.logger.error(
+                "verify media integrity: remove original media {}".format(
+                    original_media
+                )
+            )
         if thumbnail_media and os.path.isfile(thumbnail_media):
             os.remove(thumbnail_media)
-            current_app.logger.error('verify media integrity: remove thumbnail media {}'.format(thumbnail_media))
+            current_app.logger.error(
+                "verify media integrity: remove thumbnail media {}".format(
+                    thumbnail_media
+                )
+            )
         if added_media:
             added_media.delete_media(added_media.uuidname)
-            current_app.logger.error('verify media integrity: remove media {}'.format(added_media.uuidname))
+            current_app.logger.error(
+                "verify media integrity: remove media {}".format(
+                    added_media.uuidname
+                )
+            )
     return added_media
 
-def import_user_media(media_fullname, is_public, user_query_media_func, user_add_media_func):
+
+def import_user_media(
+    media_fullname, is_public, user_query_media_func, user_add_media_func
+):
     prefix, ext = os.path.splitext(media_fullname)
     target_ext = ext.lower()
     if ext != target_ext:
@@ -421,15 +531,31 @@ def import_user_media(media_fullname, is_public, user_query_media_func, user_add
     relative_path = os.path.dirname(_get_relative_name(media_fullname))
     username = relative_path.split(os.sep)[0]
     os.makedirs(thumbnail_dirname, mode=0o750, exist_ok=True)
-    metadata = _create_thumbnail(media_fullname, thumbnail_dirname, current_app.config.get('SYS_MEDIA_THUMBNAIL_HEIGHT'), user_query_media_func)
+    metadata = _create_thumbnail(
+        media_fullname,
+        thumbnail_dirname,
+        current_app.config.get("SYS_MEDIA_THUMBNAIL_HEIGHT"),
+        user_query_media_func,
+    )
     (width, height), media_type, media_datetime, media_filename = metadata
     timestamp = datetime.datetime.fromtimestamp(media_datetime)
-    added_media = user_add_media_func(username, relative_path, media_filename, timestamp,
-                                      width=width, height=height, media_type=media_type, is_public=is_public)
-    return _verify_media_integrity(added_media, relative_path, media_filename, media_type)
+    added_media = user_add_media_func(
+        username,
+        relative_path,
+        media_filename,
+        timestamp,
+        width=width,
+        height=height,
+        media_type=media_type,
+        is_public=is_public,
+    )
+    return _verify_media_integrity(
+        added_media, relative_path, media_filename, media_type
+    )
+
 
 def import_user_medias(username, user_query_media_func, user_add_media_func):
-    original_path = current_app.config.get('SYS_MEDIA_ORIGINAL')
+    original_path = current_app.config.get("SYS_MEDIA_ORIGINAL")
 
     cur_path = os.path.join(original_path, username)
     if not os.path.exists(cur_path):
@@ -438,5 +564,9 @@ def import_user_medias(username, user_query_media_func, user_add_media_func):
 
     for root, _, files in os.walk(cur_path, topdown=False):
         for filename in files:
-            import_user_media(os.path.join(root, filename), False, user_query_media_func, user_add_media_func)
-
+            import_user_media(
+                os.path.join(root, filename),
+                False,
+                user_query_media_func,
+                user_add_media_func,
+            )

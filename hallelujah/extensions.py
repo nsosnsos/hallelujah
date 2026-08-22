@@ -10,7 +10,6 @@ from flask_mail import Mail
 from flask_moment import Moment
 from flask_session import Session
 
-
 db = SQLAlchemy()
 migrate = Migrate()
 bootstrap = Bootstrap()
@@ -18,4 +17,3 @@ login_manager = LoginManager()
 mail = Mail()
 moment = Moment()
 session = Session()
-

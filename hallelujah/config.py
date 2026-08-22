@@ -11,39 +11,51 @@ import secrets
 import logging
 import requests
 import datetime
-from logging import handlers
+
+from logging import handlers as log_handler
 
 
 def _is_valid_email(email):
-    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     return re.fullmatch(regex, email)
 
 
 def _get_themes(static_dir, is_local):
     try:
         if is_local:
-            bootswatch_cfg_file = os.path.join(static_dir, 'plugins/bootswatch/5.json')
-            with open(bootswatch_cfg_file, 'r') as f:
+            bootswatch_cfg_file = os.path.join(
+                static_dir, "plugins/bootswatch/5.json"
+            )
+            with open(bootswatch_cfg_file, "r") as f:
                 bootswatch_cfg = json.load(f)
-                cdn_prefix = r'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/'
-                themes = {theme['name']: theme['cssCdn'].replace(cdn_prefix, 'plugins/bootswatch/')
-                    for theme in bootswatch_cfg['themes']}
+                cdn_prefix = r"https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/"
+                themes = {
+                    theme["name"]: theme["cssCdn"].replace(
+                        cdn_prefix, "plugins/bootswatch/"
+                    )
+                    for theme in bootswatch_cfg["themes"]
+                }
         else:
-            bootswatch_cfg_obj = requests.get('https://bootswatch.com/api/5.json')
-            themes = {theme['name']: theme['cssCdn'] for theme in json.loads(bootswatch_cfg_obj.text)['themes']}
+            bootswatch_cfg_obj = requests.get(
+                "https://bootswatch.com/api/5.json"
+            )
+            themes = {
+                theme["name"]: theme["cssCdn"]
+                for theme in json.loads(bootswatch_cfg_obj.text)["themes"]
+            }
     except Exception as e:
-        print('_get_themes: {}'.format(str(e)))
+        print("_get_themes: {}".format(str(e)))
         sys.exit(-1)
     return themes
 
 
 class Config:
-    ENV = 'production'
+    ENV = "production"
     DEBUG = False
     TESTING = False
 
     CSRF_ENABLED = True
-    SECRET_KEY = os.environ.get('SECRET_KEY', None)
+    SECRET_KEY = os.environ.get("SECRET_KEY", None)
     MIN_STR_LEN = 4
     SHORT_STR_LEN = 64
     LONG_STR_LEN = 256
@@ -54,30 +66,36 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # SITE
-    SITE_NAME = 'hallelujah'
-    SITE_DESCRIPTION = 'In God We Trust'
-    SITE_AUTHOR = 'Stan Lee'
+    SITE_NAME = "hallelujah"
+    SITE_DESCRIPTION = "In God We Trust"
+    SITE_AUTHOR = "Stan Lee"
 
     # SYSTEM
-    SYS_HOST = '127.0.0.1'
+    SYS_HOST = "127.0.0.1"
     SYS_PORT = 4100
-    SYS_STATIC = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static')
-    SYS_TEMPLATE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates')
-    SYS_MEDIA = os.path.join(os.path.abspath(os.path.expanduser('~')), 'data', 'media')
-    SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, 'original')
-    SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, 'thumbnail')
+    SYS_STATIC = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)), "static"
+    )
+    SYS_TEMPLATE = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)), "templates"
+    )
+    SYS_MEDIA = os.path.join(
+        os.path.abspath(os.path.expanduser("~")), "data", "media"
+    )
+    SYS_MEDIA_ORIGINAL = os.path.join(SYS_MEDIA, "original")
+    SYS_MEDIA_THUMBNAIL = os.path.join(SYS_MEDIA, "thumbnail")
     SYS_MEDIA_THUMBNAIL_HEIGHT = 200
-    SYS_MEDIA_EXCLUDES = 'public,private'
+    SYS_MEDIA_EXCLUDES = "public,private"
     SYS_REGISTER = False
     SYS_SQLITE = False
     SYS_LOCAL_DEPLOY = True
     SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
-    SYS_THEME_DAY = 'United'
-    SYS_THEME_NIGHT = 'Darkly'
+    SYS_THEME_DAY = "United"
+    SYS_THEME_NIGHT = "Darkly"
 
     # BLUEMAP
-    AUTH_URL_PREFIX = '/auth'
-    API_URL_PREFIX = '/api'
+    AUTH_URL_PREFIX = "/auth"
+    API_URL_PREFIX = "/api"
 
     # DROPZONE
     DROPZONE_PARALLEL_UPLOADS = 100
@@ -86,60 +104,73 @@ class Config:
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', None) or 'MAIL_USERNAME@SERVER.COM'
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', None) or 'MAIL_PASSWORD'
+    MAIL_USERNAME = (
+        os.environ.get("MAIL_USERNAME", None) or "MAIL_USERNAME@SERVER.COM"
+    )
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", None) or "MAIL_PASSWORD"
     if not _is_valid_email(MAIL_USERNAME):
-        print('Invalid MAIL_USERNAME.')
+        print("Invalid MAIL_USERNAME.")
         sys.exit(-1)
-    MAIL_SERVER = 'smtp.' + MAIL_USERNAME[MAIL_USERNAME.find('@')+1:]
+    MAIL_SERVER = "smtp." + MAIL_USERNAME[MAIL_USERNAME.find("@") + 1:]
 
     # DATABASE
     DB_HOST = SYS_HOST
     DB_PORT = 3306
     DB_NAME = SITE_NAME
-    DB_USERNAME = os.environ.get('DB_USERNAME', None) or SITE_NAME
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', None) or SITE_NAME
-    DB_CHARSET = 'utf8mb4'
+    DB_USERNAME = os.environ.get("DB_USERNAME", None) or SITE_NAME
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", None) or SITE_NAME
+    DB_CHARSET = "utf8mb4"
 
     # SQLITE
     SQLITE_PATH = os.path.dirname(os.path.realpath(__file__))
-    SQLITE_DB = 'sqlite.db'
+    SQLITE_DB = "sqlite.db"
 
     # REDIS
     REDIS_HOST = SYS_HOST
     REDIS_PORT = 6379
 
     # SESSION
-    SESSION_TYPE = 'redis'
-    SESSION_REDIS = redis.from_url('redis://' + REDIS_HOST + ':' + str(REDIS_PORT))
+    SESSION_TYPE = "redis"
+    SESSION_REDIS = redis.from_url(
+        "redis://" + REDIS_HOST + ":" + str(REDIS_PORT)
+    )
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
 
     # SSH TUNNEL
     SSH_TUNNEL_SWITCH = False
     SSH_TUNNEL_PORT = 22
-    SSH_TUNNEL_USERNAME = os.environ.get('SSH_TUNNEL_USERNAME', None) or 'SSH_TUNNEL_USERNAME'
-    SSH_TUNNEL_PASSWORD = os.environ.get('SSH_TUNNEL_PASSWORD', None) or 'SSH_TUNNEL_PASSWORD'
+    SSH_TUNNEL_USERNAME = (
+        os.environ.get("SSH_TUNNEL_USERNAME", None) or "SSH_TUNNEL_USERNAME"
+    )
+    SSH_TUNNEL_PASSWORD = (
+        os.environ.get("SSH_TUNNEL_PASSWORD", None) or "SSH_TUNNEL_PASSWORD"
+    )
 
     # LOGGER
-    LOG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), SITE_NAME + '.log')
+    LOG_FILE = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), SITE_NAME + ".log"
+    )
     LOGGER = None
 
     # DATABASE
-    MDB_CONN_STR = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}'.format(
-        DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_CHARSET)
-    SQLITE_CONN_STR = 'sqlite:///' + os.path.join(SQLITE_PATH, SQLITE_DB)
+    MDB_CONN_STR = "mysql+pymysql://{0}:{1}@{2}:{3}/{4}?charset={5}".format(
+        DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_CHARSET
+    )
+    SQLITE_CONN_STR = "sqlite:///" + os.path.join(SQLITE_PATH, SQLITE_DB)
     SQLALCHEMY_DATABASE_URI = SQLITE_CONN_STR if SYS_SQLITE else MDB_CONN_STR
 
     def __repr__(self):
-        return '<%s : %s>' % (self.__class__.__name__, Config.__dict__)
+        return "<%s : %s>" % (self.__class__.__name__, Config.__dict__)
 
     def __str__(self):
         return self.__repr__()
 
     @classmethod
     def _get_logger(cls):
-        log_format = logging.Formatter('[%(levelname)s][%(asctime)s]: %(message)s')
+        log_format = logging.Formatter(
+            "[%(levelname)s][%(asctime)s]: %(message)s"
+        )
         logger = logging.getLogger(name=cls.SITE_NAME)
         logger.setLevel(logging.DEBUG)
 
@@ -149,8 +180,12 @@ class Config:
             stream_handler.setLevel(logging.INFO)
             logger.addHandler(stream_handler)
         else:
-            file_handler = logging.handlers.TimedRotatingFileHandler(
-                filename=cls.LOG_FILE, encoding='utf8', when='W0', backupCount=7)
+            file_handler = log_handler.TimedRotatingFileHandler(
+                filename=cls.LOG_FILE,
+                encoding="utf8",
+                when="W0",
+                backupCount=7,
+            )
             file_handler.setFormatter(log_format)
             file_handler.setLevel(logging.INFO)
             logger.addHandler(file_handler)
@@ -165,33 +200,37 @@ class Config:
 
 
 class TestingConfig(Config):
-    ENV = 'testing'
+    ENV = "testing"
     TESTING = True
     SYS_SQLITE = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SESSION_TYPE = 'filesystem'
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SESSION_TYPE = "filesystem"
     SYS_LOCAL_DEPLOY = False
     SECRET_KEY = secrets.token_hex(16)
 
 
 class DevelopmentConfig(Config):
-    ENV = 'development'
+    ENV = "development"
     DEBUG = True
-    SESSION_TYPE = 'filesystem'
+    SESSION_TYPE = "filesystem"
 
 
 class ProductionConfig(Config):
     @classmethod
     def __get_mail_handler(cls):
         credentials, secure = None, None
-        if getattr(cls, 'MAIL_USERNAME', None):
+        if getattr(cls, "MAIL_USERNAME", None):
             credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
-            if getattr(cls, 'MAIL_USE_TLS', None):
+            if getattr(cls, "MAIL_USE_TLS", None):
                 secure = ()
-        mail_handler = logging.handlers.SMTPHandler(
-            mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT), fromaddr=cls.MAIL_USERNAME,
-            toaddrs=[cls.MAIL_USERNAME], subject=cls.SITE_NAME + ' message',
-            credentials=credentials, secure=secure)
+        mail_handler = log_handler.SMTPHandler(
+            mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
+            fromaddr=cls.MAIL_USERNAME,
+            toaddrs=[cls.MAIL_USERNAME],
+            subject=cls.SITE_NAME + " message",
+            credentials=credentials,
+            secure=secure,
+        )
         mail_handler.setLevel(logging.ERROR)
         return mail_handler
 
@@ -202,9 +241,8 @@ class ProductionConfig(Config):
 
 
 configs = {
-    'testing': TestingConfig,
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'default': ProductionConfig
+    "testing": TestingConfig,
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "default": ProductionConfig,
 }
-
