@@ -2,8 +2,8 @@
 #set -x
 set -e
 
-CUR_USER="${SUDO_USER:-$(whoami)}"
-HOME_PATH="/home/${CUR_USER}"
+CUR_USER=${SUDO_USER:-$(whoami)}
+HOME_PATH=$(eval echo "~${CUR_USER}")
 SCRIPT_PATH=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 SCRIPT_NAME=$(basename $(readlink -f "${BASH_SOURCE[0]}"))
 
