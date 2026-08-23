@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
+"""test views"""
 
 import datetime
 import unittest
 
 from hallelujah import create_app, db
-from hallelujah.models import User, Article, Media, Resource
+from hallelujah.models import Article, Media, Resource, User
 
 
 class MediaTestCase(unittest.TestCase):
@@ -16,9 +15,7 @@ class MediaTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
-        u = User(
-            name="testuser", email="test@example.com", password="password123"
-        )
+        u = User(name="testuser", email="test@example.com", password="password123")
         db.session.add(u)
         db.session.commit()
         m = Media(
@@ -61,9 +58,7 @@ class ResourceTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
-        u = User(
-            name="testuser", email="test@example.com", password="password123"
-        )
+        u = User(name="testuser", email="test@example.com", password="password123")
         db.session.add(u)
         db.session.commit()
         r = Resource(
@@ -82,9 +77,7 @@ class ResourceTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_resource_uri_starts_with_http(self):
-        r = Resource.query.filter(
-            Resource.user_id == self.resource.user_id
-        ).first()
+        r = Resource.query.filter(Resource.user_id == self.resource.user_id).first()
         self.assertTrue(r.uri.startswith("https://"))
 
     def test_resource_uri_auto_prepends_http(self):
@@ -93,9 +86,7 @@ class ResourceTestCase(unittest.TestCase):
 
     def test_resource_to_json(self):
         with self.app.test_request_context("/"):
-            r = Resource.query.filter(
-                Resource.user_id == self.resource.user_id
-            ).first()
+            r = Resource.query.filter(Resource.user_id == self.resource.user_id).first()
             json_data = r.to_json()
             self.assertIn("id", json_data)
             self.assertIn("uri", json_data)
@@ -112,9 +103,7 @@ class ArticleTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
-        u = User(
-            name="testuser", email="test@example.com", password="password123"
-        )
+        u = User(name="testuser", email="test@example.com", password="password123")
         db.session.add(u)
         db.session.commit()
         a = Article(
@@ -132,25 +121,19 @@ class ArticleTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_article_generates_url(self):
-        a = Article.query.filter(
-            Article.user_id == self.article.user_id
-        ).first()
+        a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertIsNotNone(a.url)
         self.assertEqual(len(a.url), 32)
 
     def test_article_content_html_generated(self):
-        a = Article.query.filter(
-            Article.user_id == self.article.user_id
-        ).first()
+        a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertIn("<h1>Head</h1>", a.content_html)
         self.assertIn("<ol>", a.content_html)
         self.assertIn("<li>first</li>", a.content_html)
         self.assertIn("<li>second</li>", a.content_html)
 
     def test_article_is_public_default_true(self):
-        a = Article.query.filter(
-            Article.user_id == self.article.user_id
-        ).first()
+        a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertTrue(a.is_public)
 
     def test_article_url_unique(self):

@@ -15,6 +15,8 @@ import cachelib
 import redis
 import requests
 
+_REQ_TIMEOUT = 10
+
 
 def _is_valid_email(email):
     """is valid email"""
@@ -35,7 +37,7 @@ def _get_themes(static_dir, is_local):
                     for theme in bootswatch_cfg["themes"]
                 }
         else:
-            bootswatch_cfg_obj = requests.get(url="https://bootswatch.com/api/5.json", timeout=10)
+            bootswatch_cfg_obj = requests.get(url="https://bootswatch.com/api/5.json", timeout=_REQ_TIMEOUT)
             themes = {theme["name"]: theme["cssCdn"] for theme in json.loads(bootswatch_cfg_obj.text)["themes"]}
     except (
         FileNotFoundError,
@@ -85,6 +87,7 @@ class Config:
     SYS_THEMES = _get_themes(SYS_STATIC, SYS_LOCAL_DEPLOY)
     SYS_THEME_DAY = "United"
     SYS_THEME_NIGHT = "Darkly"
+    SYS_REQ_TIMEOUT = _REQ_TIMEOUT
 
     # BLUEMAP
     AUTH_URL_PREFIX = "/auth"

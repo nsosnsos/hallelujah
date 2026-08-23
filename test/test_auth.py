@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""test auth"""
 
-
-import time
 import datetime
+import time
 import unittest
 
-from hallelujah import create_app, db, User
+from hallelujah import User, create_app, db
 
 
 class AuthTestCase(unittest.TestCase):
@@ -16,9 +15,7 @@ class AuthTestCase(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
-        self.user = User(
-            name="testuser", email="test@example.com", password="password123"
-        )
+        self.user = User(name="testuser", email="test@example.com", password="password123")
         db.session.add(self.user)
         db.session.commit()
 
@@ -67,9 +64,7 @@ class AuthTestCase(unittest.TestCase):
         db.session.add(u)
         db.session.commit()
         now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-        self.assertAlmostEqual(
-            (now - u.member_since).total_seconds(), 0, delta=5
-        )
+        self.assertAlmostEqual((now - u.member_since).total_seconds(), 0, delta=5)
         self.assertAlmostEqual((now - u.last_seen).total_seconds(), 0, delta=5)
 
     def test_last_seen_updates(self):
@@ -89,10 +84,7 @@ class AuthTestCase(unittest.TestCase):
             gravatar_256 = u.get_gravatar_icon(size=256)
             gravatar_pg = u.get_gravatar_icon(rating="pg")
             gravatar_retro = u.get_gravatar_icon(default="retro")
-        self.assertTrue(
-            "https://www.gravatar.com/avatar/b642b4217b34b1e8d3bd915fc65c4452"
-            in gravatar
-        )
+        self.assertTrue("https://www.gravatar.com/avatar/b642b4217b34b1e8d3bd915fc65c4452" in gravatar)
         self.assertTrue("s=256" in gravatar_256)
         self.assertTrue("r=pg" in gravatar_pg)
         self.assertTrue("d=retro" in gravatar_retro)

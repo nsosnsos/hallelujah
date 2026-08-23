@@ -399,7 +399,7 @@ def _get_video_timestamp(video_file):
     try:
         metadata = extractMetadata(parser)
         if metadata and metadata.has("creation_date"):
-            return datetime.datetime.strptime(metadata.get("creation_date"), "%Y-%m-%d %H:%M:%S%z").timestamp()
+            return metadata.get("creation_date").timestamp()
     except (ValueError, TypeError):
         metadata = None
     if not metadata:
@@ -409,7 +409,11 @@ def _get_video_timestamp(video_file):
         datetime_caption, datetime_str = line.split(":", 1)
         if datetime_caption == "- Creation date":
             datetime_str = datetime_str.strip()
-            timestamp = datetime.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S%z").timestamp()
+            timestamp = (
+                datetime.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+                .replace(tzinfo=datetime.timezone.utc)
+                .timestamp()
+            )
             return timestamp
     return file_ctime
 
@@ -569,7 +573,7 @@ def import_user_medias(username, user_query_media_func, user_add_media_func):
         os.makedirs(cur_path, mode=0o750, exist_ok=True)
         return
 
-    shutil.rmtree(thumbnail_path)
+    shutil.rmtree(thumbnail_path, ignore_errors=True)
     count = 0
     for root, _, files in os.walk(cur_path, topdown=False):
         for filename in files:
