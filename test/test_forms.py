@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
+"""test forms"""
 
 import unittest
 
 from hallelujah import create_app, db
-from hallelujah.main.forms import ArticleForm, ResourceForm, DirectoryForm
 from hallelujah.auth.forms import LoginForm, RegisterForm, SettingForm
+from hallelujah.main.forms import ArticleForm, DirectoryForm, ResourceForm
 
 
 class FormTestCase(unittest.TestCase):
@@ -43,9 +42,7 @@ class FormTestCase(unittest.TestCase):
         self.assertIn("content", form.errors)
 
     def test_resource_form_valid(self):
-        form = ResourceForm(
-            data={"uri": "https://example.com", "title": "Test Resource"}
-        )
+        form = ResourceForm(data={"uri": "https://example.com", "title": "Test Resource"})
         self.assertTrue(form.validate())
 
     def test_resource_form_missing_uri(self):

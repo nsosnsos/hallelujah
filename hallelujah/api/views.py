@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""api views"""
 
-
+from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user
-from flask import Blueprint, current_app, request, jsonify
 
-from ..utility import MediaType
 from ..extensions import db
-from ..models import Article, User, Media, Resource
+from ..models import Article, Media, Resource, User
+from ..utility import MediaType
 
 bp_api = Blueprint("api", __name__)
 
 
 @bp_api.route("/search")
 def search():
+    """search"""
     keywords = request.args.get("keywords", None)
     if not keywords:
         return jsonify([])
     keywords = keywords.split()
-    offset = int(request.args.get("offset", 0)) * current_app.config.get(
-        "ITEMS_PER_PAGE", 1
-    )
+    offset = int(request.args.get("offset", 0)) * current_app.config.get("ITEMS_PER_PAGE", 1)
     limit = current_app.config.get("ITEMS_PER_PAGE")
     user_id = current_user.id if current_user.is_authenticated else -1
-    articles = Article.query.filter(
-        db.or_(Article.user_id == user_id, Article.is_public)
-    )
+    articles = Article.query.filter(db.or_(Article.user_id == user_id, Article.is_public))
     for keyword in keywords:
         articles = articles.filter(
             db.or_(
@@ -33,40 +29,29 @@ def search():
                 Article.content.like(f"%{keyword}%"),
             )
         )
-    articles = (
-        articles.order_by(Article.timestamp.desc()).offset(offset).limit(limit)
-    )
+    articles = articles.order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
 
 
 @bp_api.route("/get_articles")
 def get_articles():
-    offset = int(request.args.get("offset", 0)) * current_app.config.get(
-        "ITEMS_PER_PAGE", 1
-    )
+    """get articles"""
+    offset = int(request.args.get("offset", 0)) * current_app.config.get("ITEMS_PER_PAGE", 1)
     limit = current_app.config.get("ITEMS_PER_PAGE")
-    articles = (
-        Article.query.filter(Article.is_public)
-        .order_by(Article.timestamp.desc())
-        .offset(offset)
-        .limit(limit)
-    )
+    articles = Article.query.filter(Article.is_public).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([article.to_json() for article in articles])
 
 
 @bp_api.route("/get_user_articles")
 def get_user_articles():
+    """get user articles"""
     user_name = request.args.get("name", "")
     user = User.query.filter(User.name == user_name).first()
     user_id = user.id if user else -1
-    offset = int(request.args.get("offset", 0)) * current_app.config.get(
-        "ITEMS_PER_PAGE", 1
-    )
+    offset = int(request.args.get("offset", 0)) * current_app.config.get("ITEMS_PER_PAGE", 1)
     limit = current_app.config.get("ITEMS_PER_PAGE")
     articles = (
-        Article.query.filter(
-            db.and_(Article.is_public, Article.user_id == user_id)
-        )
+        Article.query.filter(db.and_(Article.is_public, Article.user_id == user_id))
         .order_by(Article.timestamp.desc())
         .offset(offset)
         .limit(limit)
@@ -76,48 +61,38 @@ def get_user_articles():
 
 @bp_api.route("/get_self_articles")
 def get_self_articles():
+    """get self articles"""
     user_id = current_user.id if current_user.is_authenticated else -1
-    offset = int(request.args.get("offset", 0)) * current_app.config.get(
-        "ITEMS_PER_PAGE", 1
-    )
+    offset = int(request.args.get("offset", 0)) * current_app.config.get("ITEMS_PER_PAGE", 1)
     limit = current_app.config.get("ITEMS_PER_PAGE")
     articles = (
-        Article.query.filter(Article.user_id == user_id)
-        .order_by(Article.timestamp.desc())
-        .offset(offset)
-        .limit(limit)
+        Article.query.filter(Article.user_id == user_id).order_by(Article.timestamp.desc()).offset(offset).limit(limit)
     )
     return jsonify([article.to_json() for article in articles])
 
 
 @bp_api.route("/get_self_medias/<path:current_path>")
 def get_self_medias(current_path):
+    """get self medias"""
     user_id = current_user.id if current_user.is_authenticated else -1
-    offset = int(request.args.get("offset", 0)) * current_app.config.get(
-        "ITEMS_PER_PAGE", 1
-    )
+    offset = int(request.args.get("offset", 0)) * current_app.config.get("ITEMS_PER_PAGE", 1)
     limit = current_app.config.get("ITEMS_PER_PAGE")
     excludes = current_app.config.get("SYS_MEDIA_EXCLUDES").split(",")
-    medias = Media.query.filter(
-        (Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE)
-    )
+    medias = Media.query.filter((Media.user_id == user_id) & (Media.media_type >= MediaType.IMAGE.value))
     medias = medias.filter(Media.path.like(f"{current_path}%"))
     for exclude_dir in excludes:
-        medias = medias.filter(
-            Media.path.notlike(f"{current_path}%{exclude_dir}%")
-        )
-    medias = (
-        medias.order_by(Media.timestamp.desc()).offset(offset).limit(limit)
-    )
+        medias = medias.filter(Media.path.notlike(f"{current_path}%{exclude_dir}%"))
+    medias = medias.order_by(Media.timestamp.desc()).offset(offset).limit(limit)
     return jsonify([media.to_json() for media in medias])
 
 
 @bp_api.route("/get_self_resources")
 def get_self_resources():
+    """get self resources"""
     user_id = current_user.id if current_user.is_authenticated else -1
     query = Resource.query.filter(Resource.user_id == user_id)
-    search = request.args.get("search")
-    if search:
+    keywords = request.args.get("search")
+    if keywords:
         query = query.filter(
             db.or_(
                 Resource.uri.like(f"%{search}%"),
@@ -144,6 +119,7 @@ def get_self_resources():
 
 @bp_api.route("/modify_resource", methods=["POST"])
 def modify_resource():
+    """modify resource"""
     if not current_user.is_authenticated:
         return jsonify([])
     data = request.get_json()

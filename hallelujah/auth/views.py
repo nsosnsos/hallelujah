@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""auth views"""
 
-
-from sqlalchemy import exc
 from flask import (
     Blueprint,
     current_app,
-    url_for,
-    session,
+    flash,
     render_template,
     request,
-    flash,
+    session,
+    url_for,
 )
-from flask_login import current_user, login_user, logout_user, login_required
+from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import exc
 
 from ..extensions import db, login_manager
 from ..models import User
-from ..utility import get_request_ip, redirect_save, redirect_back, send_email
+from ..utility import get_request_ip, redirect_back, redirect_save, send_email
 from .forms import LoginForm, RegisterForm, SettingForm
 
 bp_auth = Blueprint("auth", __name__)
@@ -24,14 +23,14 @@ bp_auth = Blueprint("auth", __name__)
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    redirect_save(
-        url_for(request.endpoint, **request.view_args, _external=True)
-    )
+    """unauthorized"""
+    redirect_save(url_for(request.endpoint, **request.view_args, _external=True))
     return redirect_back("auth.login")
 
 
 @bp_auth.route("login", methods=["GET", "POST"])
 def login():
+    """login"""
     if current_user.is_authenticated:
         return redirect_back("main.index")
 
@@ -49,9 +48,7 @@ def login():
                 session.permanent = True
             current_user.update_last_seen()
             ip_addr = get_request_ip(request)
-            current_app.logger.info(
-                "Auth: login user {} from {}.".format(user.name, ip_addr)
-            )
+            current_app.logger.info(f"Auth: login user {user.name} from {ip_addr}.")
             login_info = {
                 "user_name": user.name,
                 "ip_addr": ip_addr,
@@ -66,7 +63,8 @@ def login():
 @bp_auth.route("logout")
 @login_required
 def logout():
-    current_app.logger.info("Auth: logout user {}.".format(current_user.name))
+    """logout"""
+    current_app.logger.info(f"Auth: logout user {current_user.name}.")
     logout_user()
     flash("You are logged out.")
     return redirect_back()
@@ -75,6 +73,7 @@ def logout():
 @bp_auth.route("profile")
 @login_required
 def profile():
+    """profile"""
     name, email = current_user.name, current_user.email
     return render_template("auth/profile.html", name=name, email=email)
 
@@ -82,6 +81,7 @@ def profile():
 @bp_auth.route("setting", methods=["GET", "POST"])
 @login_required
 def setting():
+    """setting"""
     form = SettingForm()
     if form.validate_on_submit():
         if not current_user.verify_password(form.old_password.data):
@@ -94,11 +94,9 @@ def setting():
             try:
                 db.session.commit()
             except exc.SQLAlchemyError as e:
-                current_app.logger.error("setting: {}".format(str(e)))
-                return
-            current_app.logger.info(
-                "Auth: setting user {}.".format(current_user.name)
-            )
+                current_app.logger.error(f"setting: {e!s}")
+                return render_template("auth/setting.html", form=form)
+            current_app.logger.info(f"Auth: setting user {current_user.name}.")
             flash("Your password has been updated.")
             return redirect_back(redirect_before=True)
     redirect_save(request.referrer)
@@ -107,6 +105,7 @@ def setting():
 
 @bp_auth.route("register", methods=["GET", "POST"])
 def register():
+    """register"""
     form = RegisterForm()
     if form.validate_on_submit():
         if not current_app.config.get("SYS_REGISTER"):
@@ -127,17 +126,15 @@ def register():
             try:
                 db.session.commit()
             except exc.SQLAlchemyError as e:
-                current_app.logger.error("register: {}".format(str(e)))
-                return
+                current_app.logger.error(f"register: {e!s}")
+                return render_template("auth/register.html", form=form)
             thread = send_email(
                 to=user.email,
                 subject=current_app.config.get("SITE_NAME"),
                 msg=f"Hello, {user.name}. Thanks for registering!",
             )
             thread.join()
-            current_app.logger.info(
-                "Auth: register user {}.".format(user.name)
-            )
-            flash("Success! Welcome {}!".format(user.name))
+            current_app.logger.info(f"Auth: register user {user.name}.")
+            flash(f"Success! Welcome {user.name}!")
             return redirect_back("auth.login")
     return render_template("auth/register.html", form=form)

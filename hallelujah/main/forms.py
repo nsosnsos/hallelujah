@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
+"""main forms"""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SubmitField
+from wtforms import BooleanField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired
 
 
 class ArticleForm(FlaskForm):
+    """article form"""
+
     title = StringField(
         "Article Title",
         validators=[DataRequired()],
@@ -23,6 +24,8 @@ class ArticleForm(FlaskForm):
 
 
 class ResourceForm(FlaskForm):
+    """resource form"""
+
     uri = StringField(
         "Resource URI",
         validators=[DataRequired()],
@@ -35,6 +38,8 @@ class ResourceForm(FlaskForm):
 
 
 class DirectoryForm(FlaskForm):
+    """directory form"""
+
     directory_name = StringField(
         "Directory Name",
         validators=[DataRequired()],

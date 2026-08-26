@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""test models"""
 
-
-import uuid
-import time
 import datetime
+import time
 import unittest
+import uuid
+
 from faker import Faker
 
-from hallelujah import create_app, db, User, Article, Media, Resource
+from hallelujah import Article, Media, Resource, User, create_app, db
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -25,15 +25,11 @@ class UserModelTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_password_setter(self):
-        u = User(
-            name=self.fake.user_name(), email=self.fake.email(), password="pwd"
-        )
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password="pwd")
         self.assertTrue(u.password_hash is not None)
 
     def test_no_password_getter(self):
-        u = User(
-            name=self.fake.user_name(), email=self.fake.email(), password="pwd"
-        )
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password="pwd")
         with self.assertRaises(AttributeError):
             u.password
 
@@ -51,21 +47,15 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u1.password_hash != u2.password_hash)
 
     def test_timestamp(self):
-        u = User(
-            name=self.fake.user_name(), email=self.fake.email(), password="pwd"
-        )
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password="pwd")
         db.session.add(u)
         db.session.commit()
-        current_time = datetime.datetime.now(datetime.timezone.utc).replace(
-            tzinfo=None
-        )
+        current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         self.assertTrue((current_time - u.member_since).total_seconds() < 10)
         self.assertTrue((current_time - u.last_seen).total_seconds() < 10)
 
     def test_last_seen(self):
-        u = User(
-            name=self.fake.user_name(), email=self.fake.email(), password="pwd"
-        )
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password="pwd")
         db.session.add(u)
         db.session.commit()
         time.sleep(1)
@@ -74,19 +64,13 @@ class UserModelTestCase(unittest.TestCase):
         self.assertTrue(u.last_seen > old_last_seen)
 
     def test_gravatar(self):
-        u = User(
-            name=self.fake.user_name(), email="test@test.com", password="pwd"
-        )
+        u = User(name=self.fake.user_name(), email="test@test.com", password="pwd")
         with self.app.test_request_context("/"):
             gravatar = u.get_gravatar_icon()
             gravatar_256 = u.get_gravatar_icon(size=256)
             gravatar_pg = u.get_gravatar_icon(rating="pg")
             gravatar_retro = u.get_gravatar_icon(default="retro")
-        self.assertTrue(
-            "https://www.gravatar.com/avatar/"
-            + "b642b4217b34b1e8d3bd915fc65c4452"
-            in gravatar
-        )
+        self.assertTrue("https://www.gravatar.com/avatar/" + "b642b4217b34b1e8d3bd915fc65c4452" in gravatar)
         self.assertTrue("s=256" in gravatar_256)
         self.assertTrue("r=pg" in gravatar_pg)
         self.assertTrue("d=retro" in gravatar_retro)
@@ -105,9 +89,7 @@ class ArticleModelTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_url_html(self):
-        a = Article(
-            title="test", content="#Head\n1. first\n2. second\n3. third\n"
-        )
+        a = Article(title="test", content="#Head\n1. first\n2. second\n3. third\n")
         self.assertIsNotNone(a.url)
 
         try:
@@ -115,8 +97,7 @@ class ArticleModelTestCase(unittest.TestCase):
         except ValueError:
             self.fail(f"a.url '{a.url}' is not a valid UUID")
 
-        expected_html = "<h1>Head</h1>\n<ol>\n<li>first</li>\n" \
-            "<li>second</li>\n<li>third</li>\n</ol>"
+        expected_html = "<h1>Head</h1>\n<ol>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ol>"
         self.assertEqual(a.content_html, expected_html)
 
 

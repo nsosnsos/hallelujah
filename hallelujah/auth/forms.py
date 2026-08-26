@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
-
+"""auth forms"""
 
 from flask_wtf import FlaskForm
 from wtforms import (
-    StringField,
     BooleanField,
+    StringField,
     SubmitField,
 )
-from wtforms.validators import DataRequired, Length, Regexp, EqualTo
+from wtforms.validators import DataRequired, EqualTo, Length, Regexp
 
 from ..config import Config
 
 
 class LoginForm(FlaskForm):
+    """login form"""
+
     username = StringField(
         "Username",
         validators=[
@@ -34,14 +35,14 @@ class LoginForm(FlaskForm):
 
 
 class RegisterForm(FlaskForm):
+    """register form"""
+
     username = StringField(
         "Username",
         validators=[
             DataRequired(),
             Length(Config.MIN_STR_LEN, Config.SHORT_STR_LEN),
-            Regexp(
-                regex=r"^[A-Za-z][A-Za-z0-9_.]*$", message="Invalid username."
-            ),
+            Regexp(regex=r"^[A-Za-z][A-Za-z0-9_.]*$", message="Invalid username."),
         ],
         render_kw={"autofocus": True},
     )
@@ -75,6 +76,8 @@ class RegisterForm(FlaskForm):
 
 
 class SettingForm(FlaskForm):
+    """setting form"""
+
     old_password = StringField(
         "Old Password",
         validators=[

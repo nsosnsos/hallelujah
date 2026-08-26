@@ -1,31 +1,33 @@
 #!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+"""models"""
 
-
+import datetime
+import hashlib
 import os
 import uuid
-import hashlib
-import datetime
-from faker import Faker
-from sqlalchemy import exc
-from flask import current_app, url_for
-from flask_login import UserMixin, AnonymousUserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from jinja2.filters import do_striptags, do_truncate
 
+from faker import Faker
+from flask import current_app, url_for
+from flask_login import AnonymousUserMixin, UserMixin
+from jinja2.filters import do_striptags, do_truncate
+from sqlalchemy import exc
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from .config import Config
 from .extensions import db, login_manager
 from .utility import (
-    markdown_to_html,
-    get_thumbnail_size,
-    get_media_files,
-    import_user_medias,
-    MediaType,
     IMAGE_SUFFIXES,
+    MediaType,
+    get_media_files,
+    get_thumbnail_size,
+    import_user_medias,
+    markdown_to_html,
 )
-from .config import Config
 
 
 class User(UserMixin, db.Model):
+    """user"""
+
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(
@@ -40,12 +42,8 @@ class User(UserMixin, db.Model):
         nullable=False,
         index=True,
     )
-    password_hash = db.Column(
-        db.String(Config.LONG_STR_LEN), unique=False, nullable=False
-    )
-    avatar_hash = db.Column(
-        db.String(Config.SHORT_STR_LEN), unique=False, nullable=False
-    )
+    password_hash = db.Column(db.String(Config.LONG_STR_LEN), unique=False, nullable=False)
+    avatar_hash = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
     member_since = db.Column(
         db.DateTime,
         unique=False,
@@ -63,47 +61,44 @@ class User(UserMixin, db.Model):
     resources = db.relationship("Resource", backref="author", lazy="dynamic")
 
     def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.email = self.email.lower()
         self.avatar_hash = self._generate_avatar_hash()
 
     def __repr__(self):
-        return "{}: id={}, name={}, email={}".format(
-            self.__class__.__name__, self.id, self.name, self.email
-        )
+        return f"{self.__class__.__name__}: id={self.id}, name={self.name}, email={self.email}"
 
     def __str__(self):
         return self.__repr__()
 
     def _generate_avatar_hash(self):
+        """generate avatar hash"""
         return hashlib.md5(self.email.encode("utf-8")).hexdigest()
 
     def get_gravatar_icon(self, size=100, default="identicon", rating="g"):
+        """get gravatar icon"""
         if current_app.config.get("SYS_LOCAL_DEPLOY", False):
             return url_for("static", filename="img/user.png", _external=True)
         url = "https://www.gravatar.com/avatar"
         avatar_hash = self.avatar_hash or self._generate_avatar_hash()
-        return "{url}/{avatar_hash}?s={size}&d={default}&r={rating}".format(
-            url=url,
-            avatar_hash=avatar_hash,
-            size=size,
-            default=default,
-            rating=rating,
-        )
+        return f"{url}/{avatar_hash}?s={size}&d={default}&r={rating}"
 
     def update_last_seen(self):
+        """update last seen"""
         self.last_seen = datetime.datetime.now(datetime.timezone.utc)
         db.session.add(self)
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("update_last_seen: {}".format(str(e)))
+            current_app.logger.error(f"update_last_seen: {e!s}")
 
     def verify_password(self, password):
+        """verify password"""
         return check_password_hash(self.password_hash, password)
 
     @property
     def password(self):
+        """password"""
         raise AttributeError("Password is not a readable attribute.")
 
     @password.setter
@@ -111,6 +106,7 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def to_json(self):
+        """to json"""
         json_user = {
             "name": self.name,
             "email": self.email,
@@ -119,68 +115,49 @@ class User(UserMixin, db.Model):
         }
         return json_user
 
-    def _import_self_medias(self):
+    def import_self_medias(self):
+        """import self medias"""
         user_path = os.path.join(Config.SYS_MEDIA_ORIGINAL, self.name)
         if not os.path.exists(user_path):
             os.makedirs(user_path)
         else:
-            import_user_medias(
-                self.name, self.query_user_media, self.add_user_media
-            )
+            import_user_medias(self.name, self.query_user_media, self.add_user_media)
 
     @staticmethod
     def add_user(name, email, password):
+        """add user"""
         user = User(name=name, email=email, password=password)
         db.session.add(user)
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_user: {}".format(str(e)))
+            current_app.logger.error(f"add_user: {e!s}")
             return None
-        user._import_self_medias()
+        user.import_self_medias()
         return user
 
     @staticmethod
     def query_user_media(username, pathname, filename):
+        """query user media"""
         user = User.query.filter(User.name == username).first()
         if not user:
             return False
         name = os.path.splitext(filename)[0]
-        media = (
-            Media.query.filter(Media.path == pathname)
-            .filter(Media.filename.like(f"{name}%"))
-            .first()
-        )
+        media = Media.query.filter(Media.path == pathname).filter(Media.filename.like(f"{name}%")).first()
         return media is not None
 
     @staticmethod
-    def add_user_media(
-        username,
-        pathname,
-        filename,
-        timestamp,
-        width=None,
-        height=None,
-        media_type=MediaType.OTHER,
-        is_public=False,
-    ):
+    def add_user_media(username, pathname, filename, timestamp, props):
+        """add user media"""
         user = User.query.filter(User.name == username).first()
         if not user:
             return None
-        media = Media.add_media(
-            user.id,
-            pathname,
-            filename,
-            timestamp,
-            width,
-            height,
-            media_type,
-            is_public,
-        )
+        media = Media.add_media(user.id, pathname, filename, timestamp, props)
         return media
 
     @staticmethod
     def _remove_user_source(current_path):
+        """remove user source"""
         if os.path.isdir(current_path):
             for root, dirs, files in os.walk(current_path, topdown=False):
                 for name in files:
@@ -190,6 +167,7 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def delete_user(name):
+        """delete users"""
         user = User.query.filter(User.name == name).first()
         if not user:
             return False
@@ -197,7 +175,7 @@ class User(UserMixin, db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("delete_user: {}".format(str(e)))
+            current_app.logger.error(f"delete_user: {e!s}")
             return False
         user_path = os.path.join(Config.SYS_MEDIA_ORIGINAL, user.name)
         User._remove_user_source(user_path)
@@ -205,22 +183,28 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def add_fake_users(count=1):
+        """add fake users"""
         fake = Faker()
-        for i in range(count):
+        for _ in range(count):
             User.add_user(fake.user_name(), fake.email(), "password")
 
 
 class AnonymousUser(AnonymousUserMixin):
+    """anonymous user"""
+
     def __init__(self, **kwargs):
-        super(AnonymousUser, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 @login_manager.user_loader
 def load_user(user_id):
+    """get current user id"""
     return db.session.get(User, int(user_id))
 
 
 class Article(db.Model):
+    """article"""
+
     __tablename__ = "articles"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(
@@ -237,26 +221,18 @@ class Article(db.Model):
         index=True,
         default=datetime.datetime.now(datetime.timezone.utc),
     )
-    url = db.Column(
-        db.String(Config.MAX_STR_LEN), unique=True, nullable=False, index=True
-    )
-    is_public = db.Column(
-        db.Boolean, unique=False, nullable=False, default=True
-    )
-    title = db.Column(
-        db.String(Config.SHORT_STR_LEN), unique=False, nullable=False
-    )
+    url = db.Column(db.String(Config.MAX_STR_LEN), unique=True, nullable=False, index=True)
+    is_public = db.Column(db.Boolean, unique=False, nullable=False, default=True)
+    title = db.Column(db.String(Config.SHORT_STR_LEN), unique=False, nullable=False)
     content = db.Column(db.Text, unique=False, nullable=False)
     content_html = db.Column(db.Text, unique=False, nullable=False)
 
     def __init__(self, **kwargs):
-        super(Article, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._generate_url_html()
 
     def __repr__(self):
-        return "{}: id={}, user_id={}, url={}".format(
-            self.__class__.__name__, self.id, self.user_id, self.url
-        )
+        return f"{self.__class__.__name__}: id={self.id}, user_id={self.user_id}, url={self.url}"
 
     def __str__(self):
         return self.__repr__()
@@ -272,37 +248,32 @@ class Article(db.Model):
         self.content_html = markdown_to_html(self.content)
 
     def to_json(self):
+        """to json"""
         json_article = {
             "author": self.author.name,
-            "author_url": url_for(
-                "main.user", user_name=self.author.name, _external=True
-            ),
+            "author_url": url_for("main.user", user_name=self.author.name, _external=True),
             "title": self.title,
-            "truncated_content": do_truncate(
-                current_app.jinja_env, do_striptags(self.content_html)
-            ),
+            "truncated_content": do_truncate(current_app.jinja_env, do_striptags(self.content_html)),
             "timestamp": self.timestamp,
-            "url": url_for(
-                "main.article", article_url=self.url, _external=True
-            ),
+            "url": url_for("main.article", article_url=self.url, _external=True),
         }
         return json_article
 
     @staticmethod
     def add_article(user_id, is_public, title, content):
-        article = Article(
-            user_id=user_id, is_public=is_public, title=title, content=content
-        )
+        """add article"""
+        article = Article(user_id=user_id, is_public=is_public, title=title, content=content)
         db.session.add(article)
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_article: {}".format(str(e)))
+            current_app.logger.error(f"add_article: {e!s}")
             return None
         return article
 
     @staticmethod
     def edit_article(article_id, is_public, title, content):
+        """edit article"""
         article = Article.query.filter(Article.id == article_id).first()
         if not article:
             return None
@@ -314,12 +285,13 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_article: {}".format(str(e)))
+            current_app.logger.error(f"add_article: {e!s}")
             return None
         return article
 
     @staticmethod
     def delete_article(article_id):
+        """delete article"""
         article = Article.query.filter(Article.id == article_id).first()
         if not article:
             return False
@@ -327,30 +299,29 @@ class Article(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_article: {}".format(str(e)))
+            current_app.logger.error(f"add_article: {e!s}")
             return False
         return True
 
     @staticmethod
     def add_fake_articles(count=1):
+        """add fake articles"""
         fake = Faker()
         num_users = User.query.count()
-        for i in range(num_users):
+        for _ in range(num_users):
             u = User.query.offset(fake.random_int(0, num_users - 1)).first()
-            for j in range(count):
+            for _ in range(count):
                 Article.add_article(
                     u.id,
                     fake.pybool(),
-                    fake.text(
-                        max_nb_chars=current_app.config.get("SHORT_STR_LEN")
-                    ),
-                    fake.text(
-                        max_nb_chars=current_app.config.get("MAX_STR_LEN")
-                    ),
+                    fake.text(max_nb_chars=current_app.config.get("SHORT_STR_LEN")),
+                    fake.text(max_nb_chars=current_app.config.get("MAX_STR_LEN")),
                 )
 
 
 class Media(db.Model):
+    """media"""
+
     __tablename__ = "medias"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(
@@ -360,15 +331,9 @@ class Media(db.Model):
         nullable=False,
         index=True,
     )
-    timestamp = db.Column(
-        db.DateTime, unique=False, nullable=False, index=True
-    )
-    path = db.Column(
-        db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True
-    )
-    filename = db.Column(
-        db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True
-    )
+    timestamp = db.Column(db.DateTime, unique=False, nullable=False, index=True)
+    path = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
+    filename = db.Column(db.String(Config.MAX_STR_LEN), unique=False, nullable=False, index=True)
     uuidname = db.Column(
         db.String(Config.SHORT_STR_LEN),
         unique=True,
@@ -382,20 +347,16 @@ class Media(db.Model):
         unique=False,
         nullable=False,
         index=True,
-        default=MediaType.OTHER,
+        default=MediaType.OTHER.value,
     )
-    is_public = db.Column(
-        db.Boolean, unique=False, nullable=False, index=True, default=False
-    )
+    is_public = db.Column(db.Boolean, unique=False, nullable=False, index=True, default=False)
 
     def __init__(self, **kwargs):
-        super(Media, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._generate_uuidname()
 
     def __repr__(self):
-        return "{}: id={}, user_id={}, uuidname={}".format(
-            self.__class__.__name__, self.id, self.user_id, self.uuidname
-        )
+        return f"{self.__class__.__name__}: id={self.id}, user_id={self.user_id}, uuidname={self.uuidname}"
 
     def __str__(self):
         return self.__repr__()
@@ -405,42 +366,29 @@ class Media(db.Model):
         self.uuidname = uuid.uuid4().hex + file_ext
 
     def to_json(self):
-        view_url = url_for(
-            "main.get_file", filename=self.uuidname, _external=True
-        )
+        """to json"""
+        view_url = url_for("main.get_file", filename=self.uuidname, _external=True)
         download_url = url_for(
             "main.get_file",
             filename=self.uuidname,
             download="yes",
             _external=True,
         )
-        if self.media_type == MediaType.VIDEO:
-            video_thumbnail = (
-                os.path.splitext(self.uuidname)[0] + IMAGE_SUFFIXES[0]
-            )
-            thumbnail_url = url_for(
-                "main.get_thumbnail", filename=video_thumbnail, _external=True
-            )
-        elif self.media_type == MediaType.IMAGE:
-            thumbnail_url = url_for(
-                "main.get_thumbnail", filename=self.uuidname, _external=True
-            )
+        if self.media_type == MediaType.VIDEO.value:
+            video_thumbnail = os.path.splitext(self.uuidname)[0] + IMAGE_SUFFIXES[0]
+            thumbnail_url = url_for("main.get_thumbnail", filename=video_thumbnail, _external=True)
+        elif self.media_type == MediaType.IMAGE.value:
+            thumbnail_url = url_for("main.get_thumbnail", filename=self.uuidname, _external=True)
         else:
             thumbnail_url = view_url
-        thumbnail_size = get_thumbnail_size(
-            (self.width, self.height), Config.SYS_MEDIA_THUMBNAIL_HEIGHT
-        )
+        thumbnail_size = get_thumbnail_size((self.width, self.height), Config.SYS_MEDIA_THUMBNAIL_HEIGHT)
         json_media = {
             "author": self.author.name,
             "timestamp": self.timestamp,
             "uuidname": self.uuidname,
             "view_url": view_url,
             "download_url": download_url,
-            "thumbnail_url": (
-                thumbnail_url
-                if self.media_type >= MediaType.IMAGE
-                else view_url
-            ),
+            "thumbnail_url": (thumbnail_url if self.media_type >= MediaType.IMAGE.value else view_url),
             "height": self.height,
             "width": self.width,
             "thumbnail_height": thumbnail_size[1],
@@ -456,11 +404,11 @@ class Media(db.Model):
         pathname,
         filename,
         timestamp,
-        width=None,
-        height=None,
-        media_type=MediaType.OTHER,
-        is_public=False,
+        props,
     ):
+        """add media"""
+
+        width, height, media_type, is_public = props
         media = Media(
             user_id=user_id,
             path=pathname,
@@ -475,12 +423,13 @@ class Media(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_media: {}".format(str(e)))
+            current_app.logger.error(f"add_media: {e!s}")
             return None
         return media
 
     @staticmethod
     def delete_media(uuidname):
+        """delete media"""
         media = Media.query.filter(Media.uuidname == uuidname).first()
         if not media:
             return False
@@ -488,51 +437,40 @@ class Media(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("delete_media: {}".format(str(e)))
+            current_app.logger.error(f"delete_media: {e!s}")
             return False
         return True
 
     @staticmethod
     def check_media():
+        """check media"""
         data_set = set()
         items = Media.query.all()
         for item in items:
-            original_media, thumbnail_media = get_media_files(
-                item.path, item.filename, item.media_type
-            )
+            original_media, thumbnail_media = get_media_files(item.path, item.filename, item.media_type)
             if original_media in data_set:
-                current_app.logger.error(
-                    f"duplicated file in database: {original_media}"
-                )
+                current_app.logger.error(f"duplicated file in database: {original_media}")
             elif not os.path.isfile(original_media):
-                current_app.logger.error(
-                    f"invalid file in database: {original_media}"
-                )
+                current_app.logger.error(f"invalid file in database: {original_media}")
             else:
                 data_set.add(original_media)
             if thumbnail_media:
                 if thumbnail_media in data_set:
-                    current_app.logger.error(
-                        f"duplicated file in database: {thumbnail_media}"
-                    )
+                    current_app.logger.error(f"duplicated file in database: {thumbnail_media}")
                 elif not os.path.isfile(thumbnail_media):
-                    current_app.logger.error(
-                        f"invalid file in database: {thumbnail_media}"
-                    )
+                    current_app.logger.error(f"invalid file in database: {thumbnail_media}")
                 else:
                     data_set.add(thumbnail_media)
-        for root, _, files in os.walk(
-            current_app.config.get("SYS_MEDIA"), topdown=False
-        ):
+        for root, _, files in os.walk(current_app.config.get("SYS_MEDIA"), topdown=False):
             for filename in files:
                 cur_filename = os.path.join(root, filename)
                 if cur_filename not in data_set:
-                    current_app.logger.error(
-                        f"unrecorded file: {cur_filename}"
-                    )
+                    current_app.logger.error(f"unrecorded file: {cur_filename}")
 
 
 class Resource(db.Model):
+    """resource"""
+
     __tablename__ = "resources"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(
@@ -571,39 +509,36 @@ class Resource(db.Model):
     )
 
     def __init__(self, **kwargs):
-        super(Resource, self).__init__(**kwargs)
-        self._uri_adaption()
-
-    def _uri_adaption(self):
-        if not self.uri.startswith("http://") and not self.uri.startswith(
-            "https://"
-        ):
-            self.uri = "https://" + self.uri
-        return self.uri
+        super().__init__(**kwargs)
+        self.uri_adaption()
 
     def __repr__(self):
-        return "{}: id={}, user_id={}, uri={}".format(
-            self.__class__.__name__, self.id, self.user_id, self.uri
-        )
+        return f"{self.__class__.__name__}: id={self.id}, user_id={self.user_id}, uri={self.uri}"
 
     def __str__(self):
         return self.__repr__()
 
+    def uri_adaption(self):
+        """uri adaption"""
+        if not self.uri.startswith("http://") and not self.uri.startswith("https://"):
+            self.uri = "https://" + self.uri
+        return self.uri
+
     def to_json(self):
+        """to json"""
         json_resource = {
             "id": self.id,
             "uri": self.uri,
             "rank": self.rank,
             "category": self.category,
             "title": self.title,
-            "delete_uri": url_for(
-                "main.delete_resource", resource_id=self.id, _external=True
-            ),
+            "delete_uri": url_for("main.delete_resource", resource_id=self.id, _external=True),
         }
         return json_resource
 
     @staticmethod
     def add_resource(user_id, uri, rank=None, title=None, category=None):
+        """add resource"""
         resource = Resource(
             user_id=user_id,
             uri=uri,
@@ -615,33 +550,35 @@ class Resource(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("add_resource: {}".format(str(e)))
+            current_app.logger.error(f"add_resource: {e!s}")
             return None
         return resource
 
     @staticmethod
     def modify_resource(json_data, current_user):
+        """modify resource"""
+        ret = None
         resource = db.session.get(Resource, json_data.get("id", -1))
         if not resource or resource.user_id != current_user.id:
-            return None
+            return ret
         columns = [column.key for column in Resource.__table__.columns]
         for col in columns:
             if col in json_data:
                 setattr(resource, col, json_data[col])
                 if col == "uri":
-                    ret = resource._uri_adaption()
+                    ret = resource.uri_adaption()
                 else:
                     ret = json_data[col]
         db.session.add(resource)
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("modify_resource: {}".format(str(e)))
-            return None
+            current_app.logger.error(f"modify_resource: {e!s}")
         return ret
 
     @staticmethod
     def delete_resource(resource_id):
+        """delete resource"""
         resource = Resource.query.filter(Resource.id == resource_id).first()
         if not resource:
             return False
@@ -649,12 +586,13 @@ class Resource(db.Model):
         try:
             db.session.commit()
         except exc.SQLAlchemyError as e:
-            current_app.logger.error("delete_resource: {}".format(str(e)))
+            current_app.logger.error(f"delete_resource: {e!s}")
             return False
         return True
 
     @staticmethod
     def add_fake_resources(count=1):
+        """add fake resources"""
         fake = Faker()
         num_users = User.query.count()
         for i in range(num_users):
@@ -664,8 +602,6 @@ class Resource(db.Model):
                     u.id,
                     fake.url(),
                     fake.random_int(0, u.id),
-                    fake.text(
-                        max_nb_chars=current_app.config.get("SHORT_STR_LEN")
-                    ),
+                    fake.text(max_nb_chars=current_app.config.get("SHORT_STR_LEN")),
                     u.name if j % 2 == 0 else u.name[::-1],
                 )
