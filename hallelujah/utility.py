@@ -6,6 +6,7 @@ import os
 import shutil
 import smtplib
 import subprocess
+import time
 from enum import Enum
 from threading import Thread
 
@@ -33,7 +34,6 @@ class MediaType(Enum):
 MUSIC_SUFFIXES = [".mp3", ".wav"]
 IMAGE_SUFFIXES = [".jpg", ".jpeg", ".png", ".gif"]
 VIDEO_SUFFIXES = [".mp4", ".mov", ".m4v"]
-EXIF_TAG_MAP = {ExifTags.TAGS[tag]: tag for tag in ExifTags.TAGS}
 
 
 def markdown_to_html(text):
@@ -290,12 +290,50 @@ def get_thumbnail_size(image_size, thumbnail_height):
 
 def get_file_ctime(file):
     """get file create time"""
-    stat = os.stat(file)
-    if "st_birthtime" in dir(stat):
-        timestamp = stat.st_birthtime
-    else:
-        timestamp = os.path.getctime(file)
-    return timestamp
+    try:
+        stat = os.stat(file)
+        if hasattr(stat, "st_birthtime"):
+            current_app.logger.info(f"get birth time[{stat.st_birthtime}] {file}")
+            return stat.st_birthtime
+        current_app.logger.info(f"get modified time[{stat.st_mtime}] {file}")
+        return stat.st_mtime
+    except (FileNotFoundError, PermissionError, IsADirectoryError, OSError, ValueError, AttributeError):
+        current_app.logger.error(f"failed to get birth time: {file}")
+        return time.time()
+
+
+def _write_timestamp_to_image_file(image_file, timestamp):
+    """write timestamp to image file"""
+    root, ext = os.path.splitext(image_file)
+    tmp_output = f"{root}_tmp{ext}"
+    datetime_info = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+    datetime_target = datetime.datetime.strptime(os.path.basename(root)[4:], "%Y%m%d_%H%M%S").replace(
+        tzinfo=datetime.timezone.utc
+    )
+    if datetime_info != datetime_target:
+        datetime_info = datetime_target
+    datetime_str = datetime_info.strftime("%Y:%m:%d %H:%M:%S")
+    timezone_str = datetime_info.strftime("%z")
+    if ":" not in timezone_str:
+        timezone_str = f"{timezone_str[:-2]}:{timezone_str[-2:]}"
+    try:
+        with Image.open(image_file) as image:
+            exif_info = image.getexif()
+            exif_sub_info = exif_info.get_ifd(ExifTags.IFD.Exif)
+            exif_info[ExifTags.Base.DateTime] = datetime_str
+            exif_info[ExifTags.Base.OffsetTime] = timezone_str
+            exif_sub_info[ExifTags.Base.DateTimeOriginal] = datetime_str
+            exif_sub_info[ExifTags.Base.OffsetTimeOriginal] = timezone_str
+            exif_sub_info[ExifTags.Base.DateTimeDigitized] = datetime_str
+            exif_sub_info[ExifTags.Base.OffsetTimeDigitized] = timezone_str
+            exif_info[ExifTags.IFD.Exif] = exif_sub_info
+            image.save(tmp_output, exif=exif_info)
+        os.replace(tmp_output, image_file)
+        os.utime(image_file, (timestamp, timestamp))
+    except (FileNotFoundError, PermissionError, IsADirectoryError, OSError, AttributeError, ValueError, TypeError):
+        current_app.logger.error(f"failed to write back timestamp: {image_file}")
+        if os.path.exists(tmp_output):
+            os.remove(tmp_output)
 
 
 def _parse_exif_timestamp(timestamp_string):
@@ -303,35 +341,40 @@ def _parse_exif_timestamp(timestamp_string):
     if not timestamp_string:
         return None
     timestamp_string = timestamp_string.strip()
-    if ("+" in timestamp_string or "-" in timestamp_string[-6:]) and ":" in timestamp_string[-6:]:
-        timestamp_string = timestamp_string[:-6] + timestamp_string[-6:].replace(":", "")
+    if "+" in timestamp_string or "-" in timestamp_string:
+        sign_idx = max(timestamp_string.rfind("+"), timestamp_string.rfind("-"))
+        if sign_idx != -1 and ":" in timestamp_string[sign_idx:]:
+            tz_part = timestamp_string[sign_idx:].replace(":", "")
+            timestamp_string = timestamp_string[:sign_idx] + tz_part
     try:
-        timestamp = datetime.datetime.strptime(timestamp_string, "%Y:%m:%d %H:%M:%S%z").timestamp()
+        return datetime.datetime.strptime(timestamp_string, "%Y:%m:%d %H:%M:%S%z").timestamp()
     except ValueError:
         try:
-            timestamp = (
-                datetime.datetime.strptime(timestamp_string, "%Y:%m:%d %H:%M:%S")
-                .replace(tzinfo=datetime.timezone.utc)
-                .timestamp()
-            )
+            return datetime.datetime.strptime(timestamp_string, "%Y:%m:%d %H:%M:%S").astimezone().timestamp()
         except ValueError:
-            pass
-    return timestamp
+            current_app.logger.error(f"failed to parse timestamp string: {timestamp_string}")
+            return None
 
 
 def _get_image_timestamp(image_file):
     """get image timestamp"""
-    image = Image.open(image_file)
-    exif_info = image._getexif()  # pylint: disable=protected-access
-    image.close()
     image_timestamp = None
-    if exif_info:
-        if EXIF_TAG_MAP["DateTimeOriginal"] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP["DateTimeOriginal"]])
-        elif EXIF_TAG_MAP["DateTimeDigitized"] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP["DateTimeDigitized"]])
-        elif EXIF_TAG_MAP["DateTime"] in exif_info:
-            image_timestamp = _parse_exif_timestamp(exif_info[EXIF_TAG_MAP["DateTime"]])
+    try:
+        with Image.open(image_file) as image:
+            exif_info = image.getexif()
+            if exif_info:
+                exif_sub_info = exif_info.get_ifd(ExifTags.IFD.Exif)
+                if ExifTags.Base.DateTimeOriginal in exif_sub_info:
+                    tz_str = exif_sub_info.get(ExifTags.Base.OffsetTimeOriginal, "")
+                    image_timestamp = _parse_exif_timestamp(exif_sub_info[ExifTags.Base.DateTimeOriginal] + tz_str)
+                if not image_timestamp and ExifTags.Base.DateTimeDigitized in exif_sub_info:
+                    tz_str = exif_sub_info.get(ExifTags.Base.OffsetTimeDigitized, "")
+                    image_timestamp = _parse_exif_timestamp(exif_sub_info[ExifTags.Base.DateTimeDigitized] + tz_str)
+                if not image_timestamp and ExifTags.Base.DateTime in exif_info:
+                    tz_str = exif_info.get(ExifTags.Base.OffsetTime, "")
+                    image_timestamp = _parse_exif_timestamp(exif_info[ExifTags.Base.DateTime] + tz_str)
+    except (FileNotFoundError, PermissionError, UnicodeDecodeError, IsADirectoryError, ValueError):
+        current_app.logger.error(f"image read error: {image_file}")
     if not image_timestamp:
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
@@ -371,6 +414,7 @@ def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
     if image_file != new_file:
         os.rename(image_file, new_file)
         new_filename = os.path.basename(new_file)
+    _write_timestamp_to_image_file(new_filename, image_timestamp)
 
     image = Image.open(new_file)
     image = ImageOps.exif_transpose(image)
