@@ -163,7 +163,6 @@ export SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
 cd ${SCRIPT_PATH}
 
 if [[ ${OPTION} == 'init' ]]; then
-    sudo apt install libgl1 -y
     mkdir -p ${PYTHON_PATH}
     virtualenv ${PYTHON_PATH}
     source ${PYTHON_ENV}

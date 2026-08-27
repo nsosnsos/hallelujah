@@ -5,19 +5,18 @@ import datetime
 import os
 import shutil
 import smtplib
+import struct
 import subprocess
 import time
 from enum import Enum
 from threading import Thread
 
+import av
 import bleach
-import cv2
 from flask import current_app, redirect, request, session, url_for
 from flask_mail import Message
-from hachoir.metadata import extractMetadata
-from hachoir.parser import createParser
 from markdown import markdown
-from PIL import ExifTags, Image, ImageOps
+from PIL import ExifTags, Image, ImageOps, PngImagePlugin
 
 from .extensions import mail
 
@@ -31,9 +30,14 @@ class MediaType(Enum):
     VIDEO = 3
 
 
-MUSIC_SUFFIXES = [".mp3", ".wav"]
-IMAGE_SUFFIXES = [".jpg", ".jpeg", ".png", ".gif"]
-VIDEO_SUFFIXES = [".mp4", ".mov", ".m4v"]
+MUSIC_SUFFIXES = [".mp3"]
+IMAGE_SUFFIXES = [".jpg", ".jpeg", ".png"]
+VIDEO_SUFFIXES = [".mp4"]
+
+VIDEO_LONG_HEAD_LEN = 8
+VIDEO_SHORT_HEAD_LEN = 4
+EPOCH_1904 = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
+DEFAULT_MVHD_INFO = {"pos": -1, "version": -1, "timestamp": 0}
 
 
 def markdown_to_html(text):
@@ -82,7 +86,7 @@ def db_backup():
         if os.path.exists(src_file):
             shutil.copyfile(src_file, dst_file)
             return True
-        current_app.logger.error("db_backup failed: sqlite db not found.")
+        current_app.logger.error(f"db_backup failed: db({src_file}) not found.")
         return False
     env = os.environ.copy()
     env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
@@ -127,7 +131,7 @@ def db_restore():
         if os.path.exists(src_file):
             shutil.copyfile(src_file, dst_file)
             return True
-        current_app.logger.error("db_backup failed: backup db not found.")
+        current_app.logger.error("db_restore failed: db({src_file}) not found.")
         return False
     env = os.environ.copy()
     env["MYSQL_PWD"] = current_app.config.get("DB_PASSWORD")
@@ -143,7 +147,7 @@ def db_restore():
         db_name,
     ]
     if not os.path.isfile(target_db):
-        current_app.logger.error("db_restore failed: backup db is not found.")
+        current_app.logger.error("db_restore failed: db({target_db}) not found.")
         return False
     try:
         with open(target_db, "rb") as src:
@@ -293,17 +297,15 @@ def get_file_ctime(file):
     try:
         stat = os.stat(file)
         if hasattr(stat, "st_birthtime"):
-            current_app.logger.info(f"get birth time[{stat.st_birthtime}] {file}")
             return stat.st_birthtime
-        current_app.logger.info(f"get modified time[{stat.st_mtime}] {file}")
         return stat.st_mtime
     except (FileNotFoundError, PermissionError, IsADirectoryError, OSError, ValueError, AttributeError):
-        current_app.logger.error(f"failed to get birth time: {file}")
+        current_app.logger.error(f"failed to get created time in {file}")
         return time.time()
 
 
-def _write_timestamp_to_image_file(image_file, timestamp):
-    """write timestamp to image file"""
+def set_image_timestamp(image_file, timestamp):
+    """set image timestamp"""
     root, ext = os.path.splitext(image_file)
     tmp_output = f"{root}_tmp{ext}"
     datetime_info = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
@@ -327,11 +329,16 @@ def _write_timestamp_to_image_file(image_file, timestamp):
             exif_sub_info[ExifTags.Base.DateTimeDigitized] = datetime_str
             exif_sub_info[ExifTags.Base.OffsetTimeDigitized] = timezone_str
             exif_info[ExifTags.IFD.Exif] = exif_sub_info
-            image.save(tmp_output, exif=exif_info)
+            if ext.lower() == IMAGE_SUFFIXES[-1]:
+                png_info = PngImagePlugin.PngInfo()
+                png_info.add_text("Creation Time", datetime_str)
+                image.save(tmp_output, exif=exif_info, pnginfo=png_info)
+            else:
+                image.save(tmp_output, exif=exif_info)
         os.replace(tmp_output, image_file)
         os.utime(image_file, (timestamp, timestamp))
     except (FileNotFoundError, PermissionError, IsADirectoryError, OSError, AttributeError, ValueError, TypeError):
-        current_app.logger.error(f"failed to write back timestamp: {image_file}")
+        current_app.logger.error(f"failed to write timestamp to {image_file}")
         if os.path.exists(tmp_output):
             os.remove(tmp_output)
 
@@ -352,11 +359,11 @@ def _parse_exif_timestamp(timestamp_string):
         try:
             return datetime.datetime.strptime(timestamp_string, "%Y:%m:%d %H:%M:%S").astimezone().timestamp()
         except ValueError:
-            current_app.logger.error(f"failed to parse timestamp string: {timestamp_string}")
+            current_app.logger.error(f"failed to parse timestamp string [{timestamp_string}]")
             return None
 
 
-def _get_image_timestamp(image_file):
+def get_image_timestamp(image_file):
     """get image timestamp"""
     image_timestamp = None
     try:
@@ -373,8 +380,8 @@ def _get_image_timestamp(image_file):
                 if not image_timestamp and ExifTags.Base.DateTime in exif_info:
                     tz_str = exif_info.get(ExifTags.Base.OffsetTime, "")
                     image_timestamp = _parse_exif_timestamp(exif_info[ExifTags.Base.DateTime] + tz_str)
-    except (FileNotFoundError, PermissionError, UnicodeDecodeError, IsADirectoryError, ValueError):
-        current_app.logger.error(f"image read error: {image_file}")
+    except (FileNotFoundError, PermissionError, UnicodeDecodeError, IsADirectoryError, ValueError, KeyError):
+        current_app.logger.error(f"{image_file} meta data read error")
     if not image_timestamp:
         image_timestamp = get_file_ctime(image_file)
     return image_timestamp
@@ -390,11 +397,11 @@ def _is_file_exist(cur_filename, query_func):
 
 def _get_solid_filename(cur_filename, query_func):
     """get solid filename"""
+    file_path = os.path.dirname(cur_filename)
+    file_name, file_ext = os.path.splitext(os.path.basename(cur_filename))
+    prefix_str, dt_str = file_name.split("_", 1)
+    cur_dt = datetime.datetime.strptime(dt_str, "%Y%m%d_%H%M%S").replace(tzinfo=datetime.timezone.utc)
     while _is_file_exist(cur_filename, query_func):
-        file_path = os.path.dirname(cur_filename)
-        file_name, file_ext = os.path.splitext(os.path.basename(cur_filename))
-        prefix_str, dt_str = file_name.split("_", 1)
-        cur_dt = datetime.datetime.strptime(dt_str, "%Y%m%d_%H%M%S").replace(tzinfo=datetime.timezone.utc)
         next_dt = cur_dt + datetime.timedelta(seconds=1)
         file_basename = prefix_str + "_" + next_dt.strftime("%Y%m%d_%H%M%S") + file_ext
         cur_filename = os.path.join(file_path, file_basename)
@@ -403,63 +410,122 @@ def _get_solid_filename(cur_filename, query_func):
 
 def _create_image_thumbnail(image_file, thumbnail_dirname, height, query_func):
     """create image thumbnail"""
-    image_timestamp = _get_image_timestamp(image_file)
-    new_filename = (
-        "IMG_"
-        + datetime.datetime.fromtimestamp(timestamp=image_timestamp, tz=datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-        + os.path.splitext(image_file)[1]
-    )
-    new_file = os.path.join(os.path.dirname(image_file), new_filename)
-    new_file = _get_solid_filename(new_file, query_func)
-    if image_file != new_file:
-        os.rename(image_file, new_file)
-        new_filename = os.path.basename(new_file)
-    _write_timestamp_to_image_file(new_filename, image_timestamp)
+    try:
+        image_timestamp = get_image_timestamp(image_file)
+        new_filename = (
+            "IMG_"
+            + datetime.datetime.fromtimestamp(timestamp=image_timestamp, tz=datetime.timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
+            + os.path.splitext(image_file)[1]
+        )
+        new_file = os.path.join(os.path.dirname(image_file), new_filename)
+        new_file = _get_solid_filename(new_file, query_func)
+        if image_file != new_file:
+            os.rename(image_file, new_file)
+            new_filename = os.path.basename(new_file)
+        set_image_timestamp(new_file, image_timestamp)
+        image_size = (0, 0)
 
-    image = Image.open(new_file)
-    image = ImageOps.exif_transpose(image)
-    image_size = image.size
+        with Image.open(new_file) as image:
+            image = ImageOps.exif_transpose(image)
+            image_size = image.size
 
-    thumbnail_file = os.path.join(thumbnail_dirname, new_filename)
-    if not os.path.isfile(thumbnail_file):
-        thumbnail_size = get_thumbnail_size(image_size, height)
-        if thumbnail_size != image_size:
-            image = image.resize(thumbnail_size, Image.Resampling.LANCZOS)
-        if image.mode != "RGB":
-            image = image.convert("RGB")
-        image.save(thumbnail_file)
+            thumbnail_file = os.path.join(thumbnail_dirname, new_filename)
+            if not os.path.isfile(thumbnail_file):
+                thumbnail_size = get_thumbnail_size(image_size, height)
+                if thumbnail_size != image_size:
+                    image = image.resize(thumbnail_size, Image.Resampling.LANCZOS)
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+                image.save(thumbnail_file)
+                set_image_timestamp(thumbnail_file, image_timestamp)
+    except (FileNotFoundError, PermissionError, UnicodeDecodeError, IsADirectoryError, ValueError, TypeError):
+        current_app.logger.error(f"failed to create image thumbnail {image_file}")
 
-    image.close()
     return (image_size, MediaType.IMAGE.value, image_timestamp, new_filename)
 
 
-def _get_video_timestamp(video_file):
+def _parse_mvhd_payload(file_handler, version):
+    """parse mvhd payload"""
+    timestamp_pos = file_handler.tell()
+    if version == 1:
+        timestamp_bytes = file_handler.read(VIDEO_LONG_HEAD_LEN + VIDEO_LONG_HEAD_LEN)
+        if len(timestamp_bytes) != VIDEO_LONG_HEAD_LEN + VIDEO_LONG_HEAD_LEN:
+            return DEFAULT_MVHD_INFO
+        creation_ts, modification_ts = struct.unpack(">QQ", timestamp_bytes)
+    else:
+        timestamp_bytes = file_handler.read(VIDEO_SHORT_HEAD_LEN + VIDEO_SHORT_HEAD_LEN)
+        if len(timestamp_bytes) != VIDEO_SHORT_HEAD_LEN + VIDEO_SHORT_HEAD_LEN:
+            return DEFAULT_MVHD_INFO
+        creation_ts, modification_ts = struct.unpack(">II", timestamp_bytes)
+    return {"pos": timestamp_pos, "version": version, "timestamp": creation_ts or modification_ts}
+
+
+def _get_video_mvhd_info(file_handler):
+    """get video mvhd info"""
+    file_handler.seek(0, os.SEEK_END)
+    file_size = file_handler.tell()
+    file_handler.seek(0)
+    while file_handler.tell() + VIDEO_LONG_HEAD_LEN <= file_size:
+        cur_pos = file_handler.tell()
+        header = file_handler.read(VIDEO_LONG_HEAD_LEN)
+        if len(header) < VIDEO_LONG_HEAD_LEN:
+            break
+
+        size, box_type = struct.unpack(">I4s", header)
+        if size == 1:
+            header_ext = file_handler.read(VIDEO_LONG_HEAD_LEN)
+            if len(header_ext) < VIDEO_LONG_HEAD_LEN:
+                break
+            size = struct.unpack(">Q", header_ext)[0]
+        if size <= 0:
+            break
+
+        if box_type == b"mvhd":
+            version_flags = file_handler.read(VIDEO_SHORT_HEAD_LEN)
+            if len(version_flags) < VIDEO_SHORT_HEAD_LEN:
+                break
+            return _parse_mvhd_payload(file_handler, version_flags[0])
+        if box_type != b"moov":
+            file_handler.seek(cur_pos + size)
+    return DEFAULT_MVHD_INFO
+
+
+def get_video_timestamp(video_file):
     """get video timestamp"""
-    file_ctime = get_file_ctime(video_file)
-    parser = createParser(video_file)
-    if not parser:
-        return file_ctime
-
     try:
-        metadata = extractMetadata(parser)
-        if metadata and metadata.has("creation_date"):
-            return metadata.get("creation_date").timestamp()
-    except (ValueError, TypeError):
-        metadata = None
-    if not metadata:
-        return file_ctime
+        with open(video_file, "rb") as file_handler:
+            mvhd_info = _get_video_mvhd_info(file_handler)
+            if mvhd_info.get("pos", -1) != -1:
+                dt = EPOCH_1904 + datetime.timedelta(seconds=mvhd_info.get("timestamp", 0))
+                return dt.timestamp()
+    except (FileNotFoundError, PermissionError, IsADirectoryError, AttributeError, ValueError, TypeError):
+        current_app.logger.error(f"failed to get timestamp from {video_file}")
+    return get_file_ctime(video_file)
 
-    for line in metadata.exportPlaintext():
-        datetime_caption, datetime_str = line.split(":", 1)
-        if datetime_caption == "- Creation date":
-            datetime_str = datetime_str.strip()
-            timestamp = (
-                datetime.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
-                .replace(tzinfo=datetime.timezone.utc)
-                .timestamp()
-            )
-            return timestamp
-    return file_ctime
+
+def set_video_timestamp(video_file, timestamp):
+    """set video timestmap"""
+    try:
+        target_dt = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+        target_timestamp = int((target_dt - EPOCH_1904).total_seconds())
+
+        with open(video_file, "r+b") as file_handler:
+            mvhd_info = _get_video_mvhd_info(file_handler)
+            if mvhd_info.get("pos", -1) == -1:
+                current_app.logger.error(f"failed to get mvhd info in {video_file}")
+                return
+
+            file_handler.seek(mvhd_info["pos"])
+            if mvhd_info["version"] == 1:
+                new_bytes = struct.pack(">QQ", target_timestamp, target_timestamp)
+            else:
+                new_bytes = struct.pack(">II", target_timestamp, target_timestamp)
+            file_handler.write(new_bytes)
+    except (FileNotFoundError, PermissionError, IsADirectoryError, AttributeError, ValueError, TypeError):
+        current_app.logger.error(f"failed write timestamp to {video_file}")
+    os.utime(video_file, (timestamp, timestamp))
 
 
 def _get_video_thumbnail_filename(original_filename):
@@ -468,12 +534,33 @@ def _get_video_thumbnail_filename(original_filename):
     return prefix + IMAGE_SUFFIXES[0]
 
 
+def _get_first_frame_from_video(video_file):
+    image = None
+    try:
+        with av.open(video_file) as container:
+            video_stream = container.streams.video[0]
+            for frame in container.decode(video_stream):
+                rotation = int(getattr(frame, "rotation", 0)) % 360
+                image = frame.to_image()
+                if rotation == 90:
+                    image = image.transpose(Image.Transpose.ROTATE_90)
+                elif rotation == 180:
+                    image = image.transpose(Image.Transpose.ROTATE_180)
+                elif rotation == 270:
+                    image = image.transpose(Image.Transpose.ROTATE_270)
+                break
+    except (FileNotFoundError, PermissionError, UnicodeDecodeError, IsADirectoryError, ValueError, TypeError):
+        current_app.logger.error(f"{video_file} decode error")
+    return image
+
+
 def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
     """create video thumbnail"""
-    video_capture = cv2.VideoCapture(video_file)
-    _, image = video_capture.read()
-    video_size = (image.shape[1], image.shape[0])
-    video_timestamp = _get_video_timestamp(video_file)
+    image = _get_first_frame_from_video(video_file)
+    if image is None:
+        return ((0, 0), MediaType.VIDEO.value, 0, "")
+
+    video_timestamp = get_video_timestamp(video_file)
     dt = datetime.datetime.fromtimestamp(timestamp=video_timestamp, tz=datetime.timezone.utc)
     new_filename = f"VID_{dt.strftime('%Y%m%d_%H%M%S')}{os.path.splitext(video_file)[1]}"
     new_file = os.path.join(os.path.dirname(video_file), new_filename)
@@ -481,14 +568,18 @@ def _create_video_thumbnail(video_file, thumbnail_dirname, height, query_func):
     if video_file != new_file:
         os.rename(video_file, new_file)
         new_filename = os.path.basename(new_file)
+    set_video_timestamp(new_file, video_timestamp)
 
     thumbnail_filename = _get_video_thumbnail_filename(new_filename)
     thumbnail_file = os.path.join(thumbnail_dirname, thumbnail_filename)
     if not os.path.isfile(thumbnail_file):
-        width = round(image.shape[1] * float(height) / image.shape[0])
-        thumbnail_image = cv2.resize(image, (width, height))
-        cv2.imwrite(thumbnail_file, thumbnail_image)
-    return (video_size, MediaType.VIDEO.value, video_timestamp, new_filename)
+        thumbnail_size = get_thumbnail_size(image.size, height)
+        image = image.resize(thumbnail_size, Image.Resampling.LANCZOS)
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        image.save(thumbnail_file)
+        set_image_timestamp(thumbnail_file, video_timestamp)
+    return (image.size, MediaType.VIDEO.value, video_timestamp, new_filename)
 
 
 def _create_thumbnail(media_fullname, thumbnail_dirname, height, query_func):

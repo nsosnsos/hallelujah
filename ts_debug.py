@@ -20,22 +20,21 @@ with app.app_context():
             cur_file = os.path.join(root, filename)
             file_ext = os.path.splitext(cur_file)[1]
             if file_ext in hallelujah.utility.IMAGE_SUFFIXES:
-                """
-                ts = hallelujah.utility._get_image_timestamp(cur_file)
-                print(
-                    f"[{count}]{cur_file} created at {datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)}"
-                )
-                hallelujah.utility._write_timestamp_to_image_file(cur_file, ts)
-                ts = hallelujah.utility._get_image_timestamp(cur_file)
-                print(
-                    f"[{count}]{cur_file} updated at {datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)}"
-                )
-                """
+                ts = hallelujah.utility.get_image_timestamp(cur_file)
+                ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
+                print(f"[{count}]{cur_file} created at {ts_str}")
+                hallelujah.utility.set_image_timestamp(cur_file, ts)
+                ts = hallelujah.utility.get_image_timestamp(cur_file)
+                ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
+                print(f"[{count}]{cur_file} updated at {ts_str}")
             elif file_ext in hallelujah.utility.VIDEO_SUFFIXES:
-                ts = hallelujah.utility._get_video_timestamp(cur_file)
-                print(
-                    f"[{count}]{cur_file} created at {datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)}"
-                )
+                ts = hallelujah.utility.get_video_timestamp(cur_file)
+                ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
+                print(f"[{count}]{cur_file} created at {ts_str}")
+                hallelujah.utility.set_video_timestamp(cur_file, ts)
+                ts = hallelujah.utility.get_video_timestamp(cur_file)
+                ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
+                print(f"[{count}]{cur_file} updated at {ts_str}")
             else:
                 pass
             count += 1
