@@ -329,12 +329,20 @@ def set_image_timestamp(image_file, timestamp):
             exif_sub_info[ExifTags.Base.DateTimeDigitized] = datetime_str
             exif_sub_info[ExifTags.Base.OffsetTimeDigitized] = timezone_str
             exif_info[ExifTags.IFD.Exif] = exif_sub_info
+            saved_args = {"exif": exif_info}
+            saved_args.update(image.info)
             if ext.lower() == IMAGE_SUFFIXES[-1]:
+                target_format = IMAGE_SUFFIXES[-1][1:].upper()
                 png_info = PngImagePlugin.PngInfo()
                 png_info.add_text("Creation Time", datetime_str)
-                image.save(tmp_output, exif=exif_info, pnginfo=png_info)
+                image.save(tmp_output, format=target_format, pnginfo=png_info, **saved_args)
             else:
-                image.save(tmp_output, exif=exif_info)
+                target_format = IMAGE_SUFFIXES[1][1:].upper()
+                if getattr(image, "format", None) == IMAGE_SUFFIXES[1][1:].upper():
+                    saved_args["quality"] = "keep"
+                else:
+                    saved_args["quality"] = 95
+                image.save(tmp_output, format=target_format, **saved_args)
         os.replace(tmp_output, image_file)
         os.utime(image_file, (timestamp, timestamp))
     except (FileNotFoundError, PermissionError, IsADirectoryError, OSError, AttributeError, ValueError, TypeError):
@@ -402,8 +410,8 @@ def _get_solid_filename(cur_filename, query_func):
     prefix_str, dt_str = file_name.split("_", 1)
     cur_dt = datetime.datetime.strptime(dt_str, "%Y%m%d_%H%M%S").replace(tzinfo=datetime.timezone.utc)
     while _is_file_exist(cur_filename, query_func):
-        next_dt = cur_dt + datetime.timedelta(seconds=1)
-        file_basename = prefix_str + "_" + next_dt.strftime("%Y%m%d_%H%M%S") + file_ext
+        cur_dt += datetime.timedelta(seconds=1)
+        file_basename = prefix_str + "_" + cur_dt.strftime("%Y%m%d_%H%M%S") + file_ext
         cur_filename = os.path.join(file_path, file_basename)
     return cur_filename
 

@@ -23,10 +23,17 @@ with app.app_context():
                 ts = hallelujah.utility.get_image_timestamp(cur_file)
                 ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
                 print(f"[{count}]{cur_file} created at {ts_str}")
-                hallelujah.utility.set_image_timestamp(cur_file, ts)
-                ts = hallelujah.utility.get_image_timestamp(cur_file)
+                new_filename = (
+                    "IMG_"
+                    + datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+                    + os.path.splitext(cur_file)[1]
+                )
+                new_file = os.path.join(os.path.dirname(cur_file), new_filename)
+                os.rename(cur_file, new_file)
+                hallelujah.utility.set_image_timestamp(new_file, ts)
+                ts = hallelujah.utility.get_image_timestamp(new_file)
                 ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
-                print(f"[{count}]{cur_file} updated at {ts_str}")
+                print(f"[{count}]{new_file} updated at {ts_str}")
             elif file_ext in hallelujah.utility.VIDEO_SUFFIXES:
                 ts = hallelujah.utility.get_video_timestamp(cur_file)
                 ts_str = datetime.datetime.fromtimestamp(timestamp=ts, tz=datetime.timezone.utc)
