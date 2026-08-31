@@ -231,6 +231,14 @@ def cli_init(app, database, mail_address, mail_password):
     app.logger.info(f"Adding administrator: {user_name} ...")
     User.add_user(name=user_name, email=mail_address, password=mail_password)
 
+    app.logger.info(f"Sending email to {mail_address} ...")
+    thread = send_email(
+        to=mail_address,
+        subject=app.config.get("SITE_NAME"),
+        msg=f"Hello, {user_name}. Thanks for registering!",
+    )
+    thread.join()
+
 
 def register_commands(app):
     """register commands"""

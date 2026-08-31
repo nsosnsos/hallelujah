@@ -3,7 +3,7 @@
 
 import os
 import shutil
-import urllib.parse
+import urllib
 
 import requests
 from bs4 import BeautifulSoup
@@ -106,7 +106,7 @@ def edit_article(article_url):
     form = ArticleForm()
     if form.validate_on_submit():
         cur_article = Article.edit_article(
-            article_id=article.id,
+            article_id=cur_article.id,
             title=form.title.data,
             content=form.content.data,
             is_public=form.is_public.data,
@@ -218,9 +218,9 @@ def upload(current_path):
         if not filename or filename in (".", ".."):
             return make_response("bad request", 400)
         full_path_name = os.path.join(full_path, filename)
+        if os.path.isfile(full_path_name):
+            return make_response("file allready exists", 400)
         file.save(full_path_name)
-        if not os.path.isfile(full_path_name):
-            return make_response("file not found", 404)
         media = import_user_media(
             full_path_name,
             is_public,
@@ -395,7 +395,11 @@ def delete_resource(resource_id):
     return redirect_back()
 
 
-@bp_main.route("/proxy", methods=["POST", "GET", "OPTIONS"])
+def _url_percent_encoding(url, tag):
+    return urllib.parse.quote_plus(urllib.parse.urljoin(url, tag))
+
+
+@bp_main.route("/proxy", methods=["POST", "GET"])
 @login_required
 def proxy():
     """proxy"""
@@ -416,24 +420,19 @@ def proxy():
         rsp.headers["Access-Control-Allow-Origin"] = "*"
         rsp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         rsp.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        if request.method not in ("GET", "POST"):
-            return rsp
         content_type = rsp.headers.get("Content-Type", "text/html")
         headers = dict(rsp.headers)
         headers.pop("X-Frame-Options", None)
         headers.pop("Content-Security-Policy", None)
 
-        def url_percent_encoding(url, tag):
-            return urllib.parse.quote_plus(urllib.parse.urljoin(url, tag))
-
         if "text/html" in content_type or "text/javascript" in content_type:
             soup = BeautifulSoup(rsp.content, "html.parser")
             for tag in soup.find_all(["a", "link", "form"], href=True):
-                tag["href"] = f"/proxy?url={url_percent_encoding(url, tag['href'])}"
+                tag["href"] = f"/proxy?url={_url_percent_encoding(url, tag['href'])}"
             for form in soup.find_all(["form"], action=True):
-                form["action"] = f"/proxy?url={url_percent_encoding(url, form['action'])}"
+                form["action"] = f"/proxy?url={_url_percent_encoding(url, form['action'])}"
             for tag in soup.find_all(["img", "script", "link"], src=True):
-                tag["src"] = f"/proxy?url={url_percent_encoding(url, tag['src'])}"
+                tag["src"] = f"/proxy?url={_url_percent_encoding(url, tag['src'])}"
             return Response(str(soup), headers=headers, content_type=content_type)
         return Response(rsp.content, headers=headers, content_type=content_type)
     except (requests.RequestException, ValueError, TypeError) as e:
