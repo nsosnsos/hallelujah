@@ -1,25 +1,16 @@
 #!/usr/bin/env python3
 """test basics"""
 
-import unittest
-
-from hallelujah import create_app, db
+from .test_base import BaseTestCase
 
 
-class BasicTestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = create_app("testing")
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
+class BasicTestCase(BaseTestCase):
+    """basic testcase"""
 
     def test_app_exists(self):
+        """test app exists"""
         self.assertTrue(self.app is not None)
 
     def test_app_test_mode(self):
+        """test app test mode"""
         self.assertTrue(self.app.config.get("TESTING", True))
