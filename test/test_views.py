@@ -2,20 +2,22 @@
 """test views"""
 
 import datetime
-import unittest
 
-from hallelujah import create_app, db
+from faker import Faker
+
+from hallelujah import db
 from hallelujah.models import Article, Media, Resource, User
 
+from .test_base import BaseTestCase
 
-class MediaTestCase(unittest.TestCase):
+
+class MediaTestCase(BaseTestCase):
+    """media testcase"""
+
     def setUp(self):
-        self.app = create_app("testing")
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-        u = User(name="testuser", email="test@example.com", password="password123")
+        super().setUp()
+        self.fake = Faker()
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password=self.fake.password())
         db.session.add(u)
         db.session.commit()
         m = Media(
@@ -28,16 +30,13 @@ class MediaTestCase(unittest.TestCase):
         db.session.commit()
         self.media = m
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
-
     def test_media_create_default(self):
+        """test media create default"""
         m = Media.query.filter(Media.user_id == self.media.user_id).first()
         self.assertIsNotNone(m.timestamp)
 
     def test_media_to_json_has_required_fields(self):
+        """test media to json has required fields"""
         with self.app.test_request_context("/"):
             m = Media.query.filter(Media.user_id == self.media.user_id).first()
             m.width = 100
@@ -51,14 +50,13 @@ class MediaTestCase(unittest.TestCase):
             self.assertIn("thumbnail_url", json_data)
 
 
-class ResourceTestCase(unittest.TestCase):
+class ResourceTestCase(BaseTestCase):
+    """resource testcase"""
+
     def setUp(self):
-        self.app = create_app("testing")
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-        u = User(name="testuser", email="test@example.com", password="password123")
+        super().setUp()
+        self.fake = Faker()
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password=self.fake.password())
         db.session.add(u)
         db.session.commit()
         r = Resource(
@@ -71,20 +69,18 @@ class ResourceTestCase(unittest.TestCase):
         db.session.commit()
         self.resource = r
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
-
     def test_resource_uri_starts_with_http(self):
+        """test resource uri starts with http"""
         r = Resource.query.filter(Resource.user_id == self.resource.user_id).first()
         self.assertTrue(r.uri.startswith("https://"))
 
     def test_resource_uri_auto_prepends_http(self):
+        """test resource uri auto prepends http"""
         r = Resource(user_id=self.resource.user_id, uri="example.com/resource")
         self.assertTrue(r.uri.startswith("https://"))
 
     def test_resource_to_json(self):
+        """test resource to json"""
         with self.app.test_request_context("/"):
             r = Resource.query.filter(Resource.user_id == self.resource.user_id).first()
             json_data = r.to_json()
@@ -96,14 +92,13 @@ class ResourceTestCase(unittest.TestCase):
             self.assertIn("delete_uri", json_data)
 
 
-class ArticleTestCase(unittest.TestCase):
+class ArticleTestCase(BaseTestCase):
+    """article testcase"""
+
     def setUp(self):
-        self.app = create_app("testing")
-        self.app.config["WTF_CSRF_ENABLED"] = False
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-        u = User(name="testuser", email="test@example.com", password="password123")
+        super().setUp()
+        self.fake = Faker()
+        u = User(name=self.fake.user_name(), email=self.fake.email(), password=self.fake.password())
         db.session.add(u)
         db.session.commit()
         a = Article(
@@ -115,17 +110,14 @@ class ArticleTestCase(unittest.TestCase):
         db.session.commit()
         self.article = a
 
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        self.app_context.pop()
-
     def test_article_generates_url(self):
+        """test article generates url"""
         a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertIsNotNone(a.url)
         self.assertEqual(len(a.url), 32)
 
     def test_article_content_html_generated(self):
+        """test article content html generated"""
         a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertIn("<h1>Head</h1>", a.content_html)
         self.assertIn("<ol>", a.content_html)
@@ -133,10 +125,12 @@ class ArticleTestCase(unittest.TestCase):
         self.assertIn("<li>second</li>", a.content_html)
 
     def test_article_is_public_default_true(self):
+        """test article is public default true"""
         a = Article.query.filter(Article.user_id == self.article.user_id).first()
         self.assertTrue(a.is_public)
 
     def test_article_url_unique(self):
+        """test article url unique"""
         # Create two articles with different content
         a1 = Article(
             user_id=self.article.user_id,
