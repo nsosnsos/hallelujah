@@ -26,7 +26,7 @@
 5. redis session support for multiple workers.
 6. easy to use by flasky script with command: init|debug|run|deploy|cron|test|clean|addusr|delusr|backup|restore|check.
 7. log every view url access with real ip address, and authentication information.
-8. simple proxy browser without security check.
+8. pywb-based proxy browser with multi-user session isolation, browser impersonation (TLS fingerprint via curl_cffi) and login support.
 
 ## About
 * database suport

@@ -3,10 +3,7 @@
 
 import os
 import shutil
-import urllib
 
-import requests
-from bs4 import BeautifulSoup
 from flask import (
     Blueprint,
     Response,
@@ -393,51 +390,6 @@ def delete_resource(resource_id):
     else:
         flash("Resource " + resource.title + " " + resource.uri + " is deleted!")
     return redirect_back()
-
-
-def _url_percent_encoding(url, tag):
-    return urllib.parse.quote_plus(urllib.parse.urljoin(url, tag))
-
-
-@bp_main.route("/proxy", methods=["POST", "GET"])
-@login_required
-def proxy():
-    """proxy"""
-    try:
-        url = request.args.get("url", None)
-        if request.method == "POST":
-            rsp = requests.post(
-                url, data=request.form, allow_redirects=True, timeout=current_app.config.get("SYS_REQ_TIMEOUT")
-            )
-        elif request.method == "GET":
-            if not url:
-                return render_template("main/proxy.html")
-            rsp = requests.get(url, allow_redirects=True, timeout=current_app.config.get("SYS_REQ_TIMEOUT"))
-        else:
-            url = None
-            rsp = Response()
-        rsp.raise_for_status()
-        rsp.headers["Access-Control-Allow-Origin"] = "*"
-        rsp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        rsp.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        content_type = rsp.headers.get("Content-Type", "text/html")
-        headers = dict(rsp.headers)
-        headers.pop("X-Frame-Options", None)
-        headers.pop("Content-Security-Policy", None)
-
-        if "text/html" in content_type or "text/javascript" in content_type:
-            soup = BeautifulSoup(rsp.content, "html.parser")
-            for tag in soup.find_all(["a", "link", "form"], href=True):
-                tag["href"] = f"/proxy?url={_url_percent_encoding(url, tag['href'])}"
-            for form in soup.find_all(["form"], action=True):
-                form["action"] = f"/proxy?url={_url_percent_encoding(url, form['action'])}"
-            for tag in soup.find_all(["img", "script", "link"], src=True):
-                tag["src"] = f"/proxy?url={_url_percent_encoding(url, tag['src'])}"
-            return Response(str(soup), headers=headers, content_type=content_type)
-        return Response(rsp.content, headers=headers, content_type=content_type)
-    except (requests.RequestException, ValueError, TypeError) as e:
-        current_app.logger.info(f"failed to proxy {url}, {e!s}.")
-        return render_template("main/proxy.html")
 
 
 @bp_main.route("/about")
