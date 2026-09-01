@@ -100,13 +100,13 @@ class Config:
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", None) or "MAIL_USERNAME@SERVER.COM"
+    MAIL_ADDRESS = os.environ.get("MAIL_ADDRESS", None) or "MAIL_ADDRESS@SERVER.COM"
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", None) or "MAIL_PASSWORD"
-    if not _is_valid_email(MAIL_USERNAME):
-        print("Invalid MAIL_USERNAME.")
+    if not _is_valid_email(MAIL_ADDRESS):
+        print("Invalid MAIL_ADDRESS.")
         sys.exit(-1)
-    domain_start_index = MAIL_USERNAME.find("@") + 1
-    MAIL_SERVER = "smtp." + MAIL_USERNAME[domain_start_index:]
+    domain_start_index = MAIL_ADDRESS.find("@") + 1
+    MAIL_SERVER = "smtp." + MAIL_ADDRESS[domain_start_index:]
 
     # DATABASE
     DB_HOST = SYS_HOST
@@ -214,14 +214,14 @@ class ProductionConfig(Config):
     @classmethod
     def __get_mail_handler(cls):
         credentials, secure = None, None
-        if getattr(cls, "MAIL_USERNAME", None):
-            credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
+        if getattr(cls, "MAIL_ADDRESS", None):
+            credentials = (cls.MAIL_ADDRESS, cls.MAIL_PASSWORD)
             if getattr(cls, "MAIL_USE_TLS", None):
                 secure = ()
         mail_handler = log_handler.SMTPHandler(
             mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-            fromaddr=cls.MAIL_USERNAME,
-            toaddrs=[cls.MAIL_USERNAME],
+            fromaddr=cls.MAIL_ADDRESS,
+            toaddrs=[cls.MAIL_ADDRESS],
             subject=cls.SITE_NAME + " message",
             credentials=credentials,
             secure=secure,
