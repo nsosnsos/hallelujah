@@ -264,7 +264,7 @@ def register_commands(app):
     @click.option(
         "--mail_address",
         prompt=True,
-        default=lambda: app.config.get("MAIL_USERNAME"),
+        default=lambda: app.config.get("MAIL_ADDRESS"),
         help="Administrator mail address",
     )
     @click.option(
