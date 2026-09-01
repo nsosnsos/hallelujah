@@ -261,7 +261,7 @@ def send_email(to, subject, msg):
     """send email"""
     message = Message(
         subject=current_app.config.get("SITE_NAME") + ": " + subject,
-        sender=current_app.config.get("MAIL_USERNAME"),
+        sender=current_app.config.get("MAIL_ADDRESS"),
         recipients=[to],
     )
     message.body = msg

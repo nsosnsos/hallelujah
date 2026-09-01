@@ -81,7 +81,13 @@
                                 <div style="height: 40px">
                                     {% if file.media_type >= 2 %}
                                         <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
-                                            <img src="{{ url_for('main.get_thumbnail', filename=file.uuidname, _external=True) }}" class="image-fluid mx-1" style="height: 100%"></img>
+                                            {% if file.media_type == 3 %}
+                                                {% set last_dot = file.uuidname.rfind('.') %}
+                                                {% set clean_name = file.uuidname[:last_dot] + '.jpg' if last_dot != -1 else file.uuidname %}
+                                                <img src="{{ url_for('main.get_thumbnail', filename=clean_name, _external=True) }}" class="image-fluid mx-1" style="height: 100%"></img>
+                                            {% else %}
+                                                <img src="{{ url_for('main.get_thumbnail', filename=file.uuidname, _external=True) }}" class="image-fluid mx-1" style="height: 100%"></img>
+                                            {% endif %}
                                         </a>
                                     {% else %}
                                         <a target="_blank" href="{{ url_for('main.get_file', filename=file.uuidname, _external=True) }}">
