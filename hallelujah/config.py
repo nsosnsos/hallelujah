@@ -97,6 +97,12 @@ class Config:
     DROPZONE_PARALLEL_UPLOADS = 100
     DROPZONE_MAX_FILE_SIZE = 1024 * 1024 * 1024
 
+    # PROXY
+    PROXY_STORAGE = os.path.join(os.path.abspath(os.path.expanduser("~")), "data", "proxy")
+    PROXY_BROWSER_TYPE = "chrome"
+    PROXY_COLLECTION_CLEANUP_DAYS = 30
+    PROXY_VERIFY_SSL = True
+
     # MAIL PORT CONFIG: 465 for SSL, 587 for TLS
     MAIL_PORT = 587
     MAIL_USE_TLS = True

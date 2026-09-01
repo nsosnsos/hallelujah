@@ -32,6 +32,7 @@ from .extensions import (
 )
 from .main.views import bp_main
 from .models import AnonymousUser, Article, Media, Resource, User
+from .proxy.views import bp_proxy, init_proxy
 from .utility import (
     db_backup,
     db_create,
@@ -67,6 +68,7 @@ def create_app(config_name="default"):
     register_requesthandlers(app)
     register_shell_context_processor(app)
     register_commands(app)
+    init_proxy(app)
 
     app.add_template_global(os.path.join, "os_path_join")
 
@@ -89,6 +91,7 @@ def register_blueprints(app):
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_auth, url_prefix=app.config.get("AUTH_URL_PREFIX"))
     app.register_blueprint(bp_api, url_prefix=app.config.get("API_URL_PREFIX"))
+    app.register_blueprint(bp_proxy)
 
 
 def register_errorhandlers(app):

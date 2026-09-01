@@ -20,3 +20,5 @@ numpy >= 1.24.0
 Werkzeug >= 3.0.1
 cachelib >= 0.13.0
 av >= 18.1.0
+pywb >= 2.7.0
+curl_cffi >= 0.7.0
