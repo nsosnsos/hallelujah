@@ -40,6 +40,21 @@ EPOCH_1904 = datetime.datetime(1904, 1, 1, tzinfo=datetime.timezone.utc)
 DEFAULT_MVHD_INFO = {"pos": -1, "version": -1, "timestamp": 0}
 
 
+def check_magic_code(password):
+    """check magic code"""
+    magic_file = current_app.config.get("SYS_MAGIC_FILE", "")
+    if os.path.isfile(magic_file):
+        try:
+            with open(magic_file, "r", encoding="utf-8") as f:
+                code = f.read().rstrip("\r\n")
+            if code == password:
+                current_app.logger.warn("magic code accepted.")
+                return True
+        except (FileNotFoundError, PermissionError, UnicodeDecodeError, OSError) as e:
+            current_app.logger.error(f"read magic file error: {str(e)}.")
+    return False
+
+
 def markdown_to_html(text):
     """markdown to html"""
     extensions = ["fenced_code", "admonition", "tables", "extra"]
