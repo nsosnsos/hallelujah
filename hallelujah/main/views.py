@@ -17,9 +17,12 @@ from flask import (
     make_response,
     render_template,
     request,
+    redirect,
     send_file,
 )
 from flask_login import current_user, login_required
+
+from ..pywb_proxy import validate_target_url
 
 from ..models import Article, Media, Resource, User
 from ..utility import (
@@ -395,49 +398,33 @@ def delete_resource(resource_id):
     return redirect_back()
 
 
-def _url_percent_encoding(url, tag):
-    return urllib.parse.quote_plus(urllib.parse.urljoin(url, tag))
-
-
-@bp_main.route("/proxy", methods=["POST", "GET"])
+@bp_main.route("/proxy", methods=["GET"])
 @login_required
 def proxy():
-    """proxy"""
-    try:
-        url = request.args.get("url", None)
-        if request.method == "POST":
-            rsp = requests.post(
-                url, data=request.form, allow_redirects=True, timeout=current_app.config.get("SYS_REQ_TIMEOUT")
-            )
-        elif request.method == "GET":
-            if not url:
-                return render_template("main/proxy.html")
-            rsp = requests.get(url, allow_redirects=True, timeout=current_app.config.get("SYS_REQ_TIMEOUT"))
-        else:
-            url = None
-            rsp = Response()
-        rsp.raise_for_status()
-        rsp.headers["Access-Control-Allow-Origin"] = "*"
-        rsp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        rsp.headers["Access-Control-Allow-Headers"] = "Content-Type"
-        content_type = rsp.headers.get("Content-Type", "text/html")
-        headers = dict(rsp.headers)
-        headers.pop("X-Frame-Options", None)
-        headers.pop("Content-Security-Policy", None)
-
-        if "text/html" in content_type or "text/javascript" in content_type:
-            soup = BeautifulSoup(rsp.content, "html.parser")
-            for tag in soup.find_all(["a", "link", "form"], href=True):
-                tag["href"] = f"/proxy?url={_url_percent_encoding(url, tag['href'])}"
-            for form in soup.find_all(["form"], action=True):
-                form["action"] = f"/proxy?url={_url_percent_encoding(url, form['action'])}"
-            for tag in soup.find_all(["img", "script", "link"], src=True):
-                tag["src"] = f"/proxy?url={_url_percent_encoding(url, tag['src'])}"
-            return Response(str(soup), headers=headers, content_type=content_type)
-        return Response(rsp.content, headers=headers, content_type=content_type)
-    except (requests.RequestException, ValueError, TypeError) as e:
-        current_app.logger.info(f"failed to proxy {url}, {e!s}.")
+    """Open the pywb live collection for a validated target URL."""
+    url = request.args.get("url")
+    if not url:
         return render_template("main/proxy.html")
+    try:
+        parsed = validate_target_url(url)
+    except ValueError as exc:
+        current_app.logger.warning("Rejected proxy URL: %s", exc)
+        abort(400, description="Only public HTTP(S) URLs are allowed")
+    target = parsed._replace(fragment="").geturl()
+    return redirect("/pywb/live/" + urllib.parse.quote(target, safe=":/?=&%"))
+
+
+@bp_main.route("/pywb/", defaults={"path": ""})
+@bp_main.route("/pywb/<path:path>")
+@login_required
+def pywb_proxy(path):
+    """Serve pywb under this Flask app so the login session is enforced."""
+    environ = request.environ.copy()
+    script_name = environ.get("SCRIPT_NAME", "").rstrip("/")
+    environ["SCRIPT_NAME"] = script_name + "/pywb"
+    environ["PATH_INFO"] = "/" + path if path else "/"
+    pywb_app = current_app.extensions["pywb_app"]
+    return Response.from_app(pywb_app, environ)
 
 
 @bp_main.route("/about")
