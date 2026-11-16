@@ -10,6 +10,10 @@ register shell context processor
 register commands
 """
 
+# pywb uses gevent; patch before importing Flask and networking modules.
+from gevent import monkey
+monkey.patch_all()
+
 import os
 import sys
 import unittest
@@ -31,6 +35,7 @@ from .extensions import (
     session,
 )
 from .main.views import bp_main
+from .pywb_proxy import create_pywb_app
 from .models import AnonymousUser, Article, Media, Resource, User
 from .utility import (
     db_backup,
@@ -63,6 +68,7 @@ def create_app(config_name="default"):
 
     register_extensions(app)
     register_blueprints(app)
+    app.extensions["pywb_app"] = create_pywb_app()
     register_errorhandlers(app)
     register_requesthandlers(app)
     register_shell_context_processor(app)
