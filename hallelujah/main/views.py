@@ -3,7 +3,7 @@
 
 import os
 import shutil
-import urllib
+import urllib.parse
 
 import requests
 from bs4 import BeautifulSoup
