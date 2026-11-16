@@ -3,14 +3,14 @@
 {% block content %}
     <div class="row justify-content-center" id="div_input">
         <div class="col-md-6">
-            <form method="post" role="form" class="search-group my-3" action="{{ url_for('main.proxy', _external=True) }}">
+            <form method="get" role="form" class="search-group my-3" action="{{ url_for('main.proxy') }}">
                 <span class="search-icon"><i class="bi-ladder mx-1"></i></span>
-                <input class="form-control search-input" type="proxy" id="proxy" name="proxy" placeholder="URL" onkeydown="handleKeyDown(event)"  autofocus required>
+                <input class="form-control search-input" type="url" id="proxy" name="url" placeholder="https://example.com" onkeydown="handleKeyDown(event)" autofocus required>
             </form>
         </div>
     </div>
     <div class="row" id="div_output">
-        <iframe class="proxy-border mb-3" id="iframe_output" name="iframe_output" sandbox="allow-scripts allow-same-origin"> </iframe>
+        <iframe class="proxy-border mb-3" id="iframe_output" name="iframe_output" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
     </div>
 {% endblock content %}
 
@@ -20,69 +20,36 @@
         function loadUrl() {
             let url = document.getElementById("proxy").value;
             if (!/^https?:\/\//i.test(url)) {
-                url = "https://" + url
+                url = "https://" + url;
             }
-            const outputIframe = document.getElementById("iframe_output");
-            outputIframe.src = `/proxy?url=${encodeURIComponent(url)}`;
+            document.getElementById("iframe_output").src = `/proxy?url=${encodeURIComponent(url)}`;
         }
+
         function handleKeyDown(event) {
-            if (event.key == "Enter") {
+            if (event.key === "Enter") {
                 event.preventDefault();
                 loadUrl();
             }
         }
 
         function iframe_adaption() {
-            header = document.querySelector("header");
-            footer = document.querySelector("footer");
-            header_style = getComputedStyle(header);
-            footer_style = getComputedStyle(footer);
-            header_height = header.clientHeight + parseInt(header_style.marginTop) + parseInt(header_style.marginBottom);
-            footer_height = footer.clientHeight + parseInt(footer_style.marginTop) + parseInt(footer_style.marginBottom);
-            data_container_height = window.innerHeight - header_height - footer_height;
-            data_container = document.querySelector("#data_container");
-            data_container.style.height = data_container_height + "px";
-
-            div_input = document.querySelector("#div_input");
-            div_input_style = getComputedStyle(div_input);
-            div_input_height = div_input.clientHeight + parseInt(div_input_style.marginTop) + parseInt(div_input_style.marginBottom);
-            div_output_height = data_container_height - div_input_height;
-            div_output = document.querySelector("#div_output");
-            div_output.style.height = div_output_height + "px";
-
-            iframe_output = document.querySelector("#iframe_output");
-            iframe_mb = parseInt(window.getComputedStyle(iframe_output).marginBottom);
-            iframe_output.style.height = (div_output_height - iframe_mb) + "px";
-
-            iframe_doc = iframe_output.contentDocument || iframe_output.contentWindow.document;
-            iframe_doc.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var form = e.target();
-                var formData = new FormData(form);
-                var actionUrl = form.action;
-                var method = form.method;
-                var xhr = new XMLHttpRequest();
-                xhr.open(method, '/proxy?url=' + encodeURIComponent(actionUrl), true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        iframe_output.contentWindow.document.open();
-                        iframe_output.contentWindow.document.write(xhr.responseText);
-                        iframe_output.contentWindow.document.close();
-                    }
-                }
-                xhr.send(formData);
-            });
-            iframe_doc.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    e.preventDefault();
-                    var linkUrl = e.target.href;
-                    var proxyUrl = '/proxy?url=' + encodeURIComponent(linkUrl);
-                    iframe_output.src = proxyUrl;
-                }
-            });
+            const header = document.querySelector("header");
+            const footer = document.querySelector("footer");
+            const dataContainer = document.querySelector("#data_container");
+            const divInput = document.querySelector("#div_input");
+            const divOutput = document.querySelector("#div_output");
+            const iframeOutput = document.querySelector("#iframe_output");
+            if (!header || !footer || !dataContainer || !divInput || !divOutput || !iframeOutput) return;
+            const outerHeight = element => {
+                const style = getComputedStyle(element);
+                return element.clientHeight + parseFloat(style.marginTop || 0) + parseFloat(style.marginBottom || 0);
+            };
+            const dataHeight = Math.max(240, window.innerHeight - outerHeight(header) - outerHeight(footer));
+            dataContainer.style.height = dataHeight + "px";
+            divOutput.style.height = Math.max(160, dataHeight - outerHeight(divInput)) + "px";
+            iframeOutput.style.height = Math.max(120, divOutput.clientHeight - outerHeight(iframeOutput) + iframeOutput.clientHeight) + "px";
         }
         window.addEventListener("load", iframe_adaption);
         window.addEventListener("resize", iframe_adaption);
     </script>
 {% endblock scripts %}
-
